@@ -3,9 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Stage.Database.Models
 {
@@ -13,7 +10,9 @@ namespace Stage.Database.Models
     {
         public int Key { get; set; }
 
-        public string Name { get; set; }
+        public string Id { get; set; }
+
+        public string DisplayName { get; set; }
 
         public StageStatus Status { get; set; }
 

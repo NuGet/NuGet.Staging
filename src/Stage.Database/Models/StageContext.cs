@@ -13,12 +13,16 @@ namespace Stage.Database.Models
     {
         public DbSet<Stage> Stages { get; set; }
 
+        public DbSet<StageMemeber> StageMembers { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Stage>()
                 .HasKey(s => s.Key);
             modelBuilder.Entity<Stage>()
-                .Property(s => s.Name).IsRequired();
+                .Property(s => s.Id).IsRequired();
+            modelBuilder.Entity<Stage>()
+                .Property(s => s.DisplayName).IsRequired();
             modelBuilder.Entity<Stage>()
                 .Property(s => s.CreationDate).IsRequired();
             modelBuilder.Entity<Stage>()

@@ -18,7 +18,7 @@
     "web": {
       "commandName": "web",
       "environmentVariables": {
-        "Hosting:Environment": "Local"
+        "Hosting:Environment": "Development"
       }
     }
   }

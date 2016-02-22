@@ -1,10 +1,11 @@
 using System;
-using Microsoft.Data.Entity.Metadata;
+using System.Collections.Generic;
 using Microsoft.Data.Entity.Migrations;
+using Microsoft.Data.Entity.Metadata;
 
-namespace Stage.Database.Migrations
+namespace Stage.Manager.Migrations
 {
-    public partial class InitialMigration : Migration
+    public partial class stagesAndMembers : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -15,8 +16,9 @@ namespace Stage.Database.Migrations
                     Key = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     CreationDate = table.Column<DateTime>(nullable: false),
+                    DisplayName = table.Column<string>(nullable: false),
                     ExpirationDate = table.Column<DateTime>(nullable: false),
-                    Name = table.Column<string>(nullable: false),
+                    Id = table.Column<string>(nullable: false),
                     Status = table.Column<int>(nullable: false)
                 },
                 constraints: table =>

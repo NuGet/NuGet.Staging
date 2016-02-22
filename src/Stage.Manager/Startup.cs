@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
 using Microsoft.Data.Entity;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
 using Stage.Database.Models;
+using Stage.Manager.Logging;
 using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceCollection;
 
 namespace Stage.Manager
@@ -49,9 +51,11 @@ namespace Stage.Manager
             services.AddApplicationInsightsTelemetry(Configuration);
             services.AddMvc();
 
+            var connectionString = Configuration["StageDatabase:ConnectionString"];
+
             services.AddEntityFramework()
                 .AddSqlServer()
-                .AddDbContext<StageContext>(options => options.UseSqlServer(Configuration.Get("StageDatabase:ConnectionString")));
+                .AddDbContext<StageContext>(options => options.UseSqlServer(connectionString));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -76,6 +80,8 @@ namespace Stage.Manager
             applicationBuilder.UseApplicationInsightsExceptionTelemetry();
 
             applicationBuilder.UseMvc();
+
+            loggerFactory.AddApplicationInsights(applicationBuilder.ApplicationServices.GetService<TelemetryClient>());
         }
 
         // Entry point for the application.

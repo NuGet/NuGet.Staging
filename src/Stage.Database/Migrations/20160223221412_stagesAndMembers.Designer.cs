@@ -5,11 +5,11 @@ using Microsoft.Data.Entity.Metadata;
 using Microsoft.Data.Entity.Migrations;
 using Stage.Database.Models;
 
-namespace Stage.Database.Migrations
+namespace Stage.Manager.Migrations
 {
     [DbContext(typeof(StageContext))]
-    [Migration("20160220005327_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20160223221412_stagesAndMembers")]
+    partial class stagesAndMembers
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -24,9 +24,12 @@ namespace Stage.Database.Migrations
 
                     b.Property<DateTime>("CreationDate");
 
+                    b.Property<string>("DisplayName")
+                        .IsRequired();
+
                     b.Property<DateTime>("ExpirationDate");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Id")
                         .IsRequired();
 
                     b.Property<int>("Status");
