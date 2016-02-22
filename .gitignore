@@ -159,3 +159,7 @@ $RECYCLE.BIN/
 
 # Vs2015
 .vs/config/applicationhost.config
+
+# DNX
+project.lock.json
+artifacts/
