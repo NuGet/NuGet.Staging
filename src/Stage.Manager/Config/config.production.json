@@ -1,5 +1,8 @@
 ﻿{
     "ApplicationInsights": {
         "InstrumentationKey": ""
+    },
+    "StageDatabase": {
+        "ConnectionString": ""
     }
 }

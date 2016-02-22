@@ -4,10 +4,12 @@
 using System.IO;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
+using Microsoft.Data.Entity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
+using Stage.Database.Models;
 using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceCollection;
 
 namespace Stage.Manager
@@ -46,6 +48,10 @@ namespace Stage.Manager
         {
             services.AddApplicationInsightsTelemetry(Configuration);
             services.AddMvc();
+
+            services.AddEntityFramework()
+                .AddSqlServer()
+                .AddDbContext<StageContext>(options => options.UseSqlServer(Configuration.Get("StageDatabase:ConnectionString")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

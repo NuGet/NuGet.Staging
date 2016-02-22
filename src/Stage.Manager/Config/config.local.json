@@ -1,0 +1,8 @@
+﻿{
+    "ApplicationInsights": {
+        "InstrumentationKey": ""
+    },
+    "StageDatabase": {
+        "ConnectionString": "Server=(localdb)\\mssqllocaldb;Database=StageDB;Trusted_Connection=True;"
+    }
+}
