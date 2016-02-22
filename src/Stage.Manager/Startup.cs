@@ -15,13 +15,14 @@ using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceColl
 namespace Stage.Manager
 {
     /// <summary>
-    /// Helpful links: 
+    /// Helpful links:
     /// https://github.com/Microsoft/ApplicationInsights-aspnetcore/wiki/Getting-Started
     /// https://docs.asp.net/en/latest/fundamentals/startup.html
     /// </summary>
     public class Startup
     {
-        private const string LocalEnvironmentName = "Local";
+        private const string _localEnvironmentName = "Local";
+
         public IConfigurationRoot Configuration { get; set; }
 
         public Startup(IHostingEnvironment hostingEnvironment, IApplicationEnvironment applicationEnvironment)
@@ -35,12 +36,11 @@ namespace Stage.Manager
 
             Configuration = builder.Build();
 
-            if (hostingEnvironment.IsEnvironment(LocalEnvironmentName))
+            if (hostingEnvironment.IsEnvironment(_localEnvironmentName))
             {
                 builder.AddApplicationInsightsSettings(developerMode: true);
             }
         }
-       
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940
@@ -60,7 +60,7 @@ namespace Stage.Manager
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
 
             // Debug settings for local runs and for dev deployment
-            if (hostingEnvironment.IsEnvironment(LocalEnvironmentName) || hostingEnvironment.IsDevelopment())
+            if (hostingEnvironment.IsEnvironment(_localEnvironmentName) || hostingEnvironment.IsDevelopment())
             {
                 loggerFactory.AddDebug();
                 applicationBuilder.UseDeveloperExceptionPage();
