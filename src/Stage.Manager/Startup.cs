@@ -2,12 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
+using Stage.Manager.Logging;
 using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceCollection;
 
 namespace Stage.Manager
@@ -32,7 +34,7 @@ namespace Stage.Manager
                 .AddJsonFile(Path.Combine("Config", $"config.{hostingEnvironment.EnvironmentName}.json") )
                 .AddEnvironmentVariables();
 
-            Configuration = builder.Build();
+            Configuration = builder.Build(); 
 
             if (hostingEnvironment.IsEnvironment(_localEnvironmentName))
             {
@@ -70,6 +72,8 @@ namespace Stage.Manager
             applicationBuilder.UseApplicationInsightsExceptionTelemetry();
 
             applicationBuilder.UseMvc();
+
+            loggerFactory.AddApplicationInsights(applicationBuilder.ApplicationServices.GetService<TelemetryClient>());
         }
 
         // Entry point for the application.
