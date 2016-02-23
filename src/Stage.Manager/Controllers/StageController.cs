@@ -3,16 +3,26 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Stage.Manager.Controllers
 {
     [Route("api/[controller]")]
     public class StageController : Controller
     {
+        private readonly ILogger<StageController> _logger;
+
+        public StageController(ILogger<StageController> logger)
+        {
+            _logger = logger;
+        }
+
         // GET: api/stage
         [HttpGet]
         public IEnumerable<string> Get()
         {
+            _logger.LogInformation("Get was called");
+
             return new string[] { "value1", "value2" };
         }
 
