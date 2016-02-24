@@ -21,11 +21,23 @@ namespace Stage.Manager.Controllers
         private readonly ILogger<StageController> _logger;
         private readonly StageContext _context;
 
-        // Temp user key until we add authentication + autherization
+        private const string _messageFormat = "User: {UserKey}, Stage: {StageId}, {Message}";
+
+        // Temp user key until we add authentication + authorization
         private const int _userKey = 101;
 
         public StageController(ILogger<StageController> logger, StageContext context)
         {
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             _logger = logger;
             _context = context;
         }
@@ -36,8 +48,6 @@ namespace Stage.Manager.Controllers
         {
             var userKey = GetUserKey();
             var userMemberships = _context.StageMembers.Where(sm => sm.UserKey == userKey);
-
-            _logger.LogVerbose("User: {0}, List stages was requested. Found {1} stages.", userKey, userMemberships.Count());
 
             return
                 new HttpOkObjectResult(
@@ -58,17 +68,24 @@ namespace Stage.Manager.Controllers
         [HttpGet("{id}")]
         public IActionResult GetDetails(string id)
         {
+            Guid stageIdGuid;
+
+            if (!Guid.TryParse(id, out stageIdGuid))
+            {
+                return new BadRequestObjectResult("Provide a valid stage id Guid");
+            }
+
+            string stageId = GuidToStageId(stageIdGuid);
+
             var userKey = GetUserKey();
 
-            var stage = _context.Stages.FirstOrDefault(s => s.Id == id);
+            var stage = _context.Stages.FirstOrDefault(s => s.Id == stageId);
 
             if (stage == null)
             {
-                _logger.LogVerbose(FormatLog(userKey, id, "Can't retrieve stage details. Stage not found."));
                 return new HttpNotFoundResult();
             }
 
-            _logger.LogVerbose(FormatLog(userKey, id, "Stage details retrieved successfuly."));
             return new HttpOkObjectResult(new { stage.Id, stage.DisplayName, stage.CreationDate, stage.ExpirationDate, stage.Status });
         }
 
@@ -78,35 +95,34 @@ namespace Stage.Manager.Controllers
         {
             var userKey = GetUserKey();
 
-            _logger.LogVerbose(FormatLog(userKey, displayName, "Create stage was requested"));
-
             if (!CheckStageDisplayNameValidity(displayName))
             {
-                _logger.LogInformation(FormatLog(userKey, displayName, "Create stage failed due to invalid display name"));
                 return new BadRequestObjectResult("Provide a non-empty display name");
             }
 
+            var utcNow = DateTime.UtcNow;
+
             var stage = new Stage.Database.Models.Stage
             {
-                StageMemebers = new List<StageMemeber>(new[]
+                StageMembers = new List<StageMember>(new[]
                 {
-                    new StageMemeber()
+                    new StageMember()
                     {
                         MemberType = MemberType.Owner,
                         UserKey = userKey
                     }
                 }),
-                Id = Guid.NewGuid().ToString("N"),
+                Id = GuidToStageId(Guid.NewGuid()),
                 DisplayName = displayName,
-                CreationDate = DateTime.UtcNow,
-                ExpirationDate = DateTime.UtcNow + TimeSpan.FromDays(DefaultExpirationPeriodDays),
+                CreationDate = utcNow,
+                ExpirationDate = utcNow.AddDays(DefaultExpirationPeriodDays),
                 Status = StageStatus.Active,
             };
 
             _context.Stages.Add(stage);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation(FormatLog(userKey, displayName, "Create stage succeeded. Id: " + stage.Id));
+            _logger.LogInformation(_messageFormat, userKey, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
 
             // TODO: add feed uri to returned data
             return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id, stage.ExpirationDate, stage.Status });
@@ -116,23 +132,30 @@ namespace Stage.Manager.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Drop(string id)
         {
+            Guid stageIdGuid;
+
+            if (!Guid.TryParse(id, out stageIdGuid))
+            {
+                return new BadRequestObjectResult("Provide a valid stage id Guid");
+            }
+
+            string stageId = GuidToStageId(stageIdGuid);
+
             // TODO: in the future, just mark the stage as deleted and have a background job perform the actual delete
             var userKey = GetUserKey();
 
-            _logger.LogVerbose(FormatLog(userKey, id, "Drop was requested"));
-
-            var stage = _context.Stages.FirstOrDefault(s => s.Id == id);
+            var stage = _context.Stages.FirstOrDefault(s => s.Id == stageId);
 
             if (stage != null)
             {
                 _context.Stages.Remove(stage);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation(FormatLog(userKey, id, "Drop was successful"));
+                _logger.LogInformation(_messageFormat, userKey, stageId, "Drop was successful");
                 return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id });
             }
 
-            _logger.LogInformation(FormatLog(userKey, id, "Drop failed, stage not found"));
+            _logger.LogInformation(_messageFormat, userKey, stageId, "Drop failed, stage not found");
             return new HttpNotFoundResult();
         }
 
@@ -144,23 +167,19 @@ namespace Stage.Manager.Controllers
             return new BadRequestResult();
         }
 
-        #region Private Methods
-
-        private string FormatLog(int userKey, string stage, string message)
-        {
-            return string.Format("User {0}, Stage: {1}, {2}", userKey, stage, message);
-        }
-
         private bool CheckStageDisplayNameValidity(string displayName)
         {
             return !string.IsNullOrWhiteSpace(displayName);
+        }
+
+        private string GuidToStageId(Guid guid)
+        {
+            return guid.ToString("N");
         }
 
         private int GetUserKey()
         {
             return _userKey;
         } 
-
-        #endregion
     }
 }

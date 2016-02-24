@@ -1,11 +1,13 @@
-using System;
-using System.Collections.Generic;
-using Microsoft.Data.Entity.Migrations;
-using Microsoft.Data.Entity.Metadata;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace Stage.Manager.Migrations
+using System;
+using Microsoft.Data.Entity.Metadata;
+using Microsoft.Data.Entity.Migrations;
+
+namespace Stage.Database.Migrations
 {
-    public partial class stagesAndMembers : Migration
+    public partial class StagesAndMembers : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -26,7 +28,7 @@ namespace Stage.Manager.Migrations
                     table.PrimaryKey("PK_Stage", x => x.Key);
                 });
             migrationBuilder.CreateTable(
-                name: "StageMemeber",
+                name: "StageMember",
                 columns: table => new
                 {
                     Key = table.Column<int>(nullable: false)
@@ -37,19 +39,31 @@ namespace Stage.Manager.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StageMemeber", x => x.Key);
+                    table.PrimaryKey("PK_StageMember", x => x.Key);
                     table.ForeignKey(
-                        name: "FK_StageMemeber_Stage_StageKey",
+                        name: "FK_StageMember_Stage_StageKey",
                         column: x => x.StageKey,
                         principalTable: "Stage",
                         principalColumn: "Key",
                         onDelete: ReferentialAction.Cascade);
                 });
+            migrationBuilder.CreateIndex(
+                name: "IX_Stage_Id",
+                table: "Stage",
+                column: "Id");
+            migrationBuilder.CreateIndex(
+                name: "IX_StageMember_StageKey",
+                table: "StageMember",
+                column: "StageKey");
+            migrationBuilder.CreateIndex(
+                name: "IX_StageMember_UserKey",
+                table: "StageMember",
+                column: "UserKey");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable("StageMemeber");
+            migrationBuilder.DropTable("StageMember");
             migrationBuilder.DropTable("Stage");
         }
     }

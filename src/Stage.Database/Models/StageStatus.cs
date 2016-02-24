@@ -6,7 +6,7 @@ namespace Stage.Database.Models
     public enum StageStatus
     {
         Active,
-        Commiting,
+        Committing,
         Deleted
     }
 }

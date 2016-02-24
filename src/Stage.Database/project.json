@@ -1,10 +1,4 @@
 {
-  "version": "1.0.0-*",
-  "description": "Stage.Database Class Library",
-  "authors": [ "skofman" ],
-  "tags": [ "" ],
-  "projectUrl": "",
-  "licenseUrl": "",
     "frameworks": {
         "net451": { },
         "dotnet5.4": {

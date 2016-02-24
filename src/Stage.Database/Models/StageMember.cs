@@ -3,7 +3,7 @@
 
 namespace Stage.Database.Models
 {
-    public class StageMemeber
+    public class StageMember
     {
         public int Key { get; set; }
 
