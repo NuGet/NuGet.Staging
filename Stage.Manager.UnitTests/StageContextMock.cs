@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using Microsoft.Data.Entity;
 using Moq;
 using Stage.Database.Models;
@@ -14,15 +13,44 @@ namespace Stage.Manager.UnitTests
 {
     public class StageContextMock : Mock<StageContext>
     {
-        private Dictionary<string, object> tables;
+        private Dictionary<string, object> _tables;
 
 
         public StageContextMock()
         {
+            _tables = new Dictionary<string, object>();
             MockTables();
         }
 
-        // <summary>
+        public static DbSet<S> MockDbSet<S>(IEnumerable<S> table) where S : class
+        {
+            var mockDbSet = new Mock<DbSet<S>>();
+            mockDbSet.As<IQueryable<S>>().Setup(q => q.Provider).Returns(() => table.AsQueryable().Provider);
+            mockDbSet.As<IQueryable<S>>().Setup(q => q.Expression).Returns(() => table.AsQueryable().Expression);
+            mockDbSet.As<IQueryable<S>>().Setup(q => q.ElementType).Returns(() => table.AsQueryable().ElementType);
+            mockDbSet.As<IQueryable<S>>().Setup(q => q.GetEnumerator()).Returns(() => table.AsQueryable().GetEnumerator());
+            if (table is List<S>)
+            {
+                var list = (List<S>)table;
+                mockDbSet.Setup(set => set.Add(It.IsAny<S>(), It.IsAny<GraphBehavior>()))
+                    .Callback<S, GraphBehavior>((s, g) => list.Add(s));
+                mockDbSet.Setup(set => set.AddRange(It.IsAny<IEnumerable<S>>(), It.IsAny<GraphBehavior>()))
+                    .Callback<IEnumerable<S>, GraphBehavior>((s, g) => list.AddRange(s));
+                mockDbSet.Setup(set => set.Remove(It.IsAny<S>())).Callback<S>(t => list.Remove(t));
+                mockDbSet.Setup(set => set.RemoveRange(It.IsAny<IEnumerable<S>>())).Callback<IEnumerable<S>>(
+                    ts =>
+                    {
+                        foreach (var t in ts)
+                        {
+                            list.Remove(t);
+                        }
+                    });
+            }
+
+            return mockDbSet.Object;
+        }
+
+        /// <summary>
         /// Mocks all the DbSet{T} properties that represent tables and views.
         /// </summary>
         private void MockTables()
@@ -38,8 +66,8 @@ namespace Stage.Manager.UnitTests
                 var body = Expression.PropertyOrField(parameter, prop.Name);
                 var lambdaExpression = Expression.Lambda<Func<StageContext, object>>(body, parameter);
                 var method = typeof(StageContextMock).GetMethod("MockDbSet").MakeGenericMethod(dbSetGenericType);
-                this.Setup(lambdaExpression).Returns(method.Invoke(null, new[] { listForFakeTable }));
-                this.tables.Add(prop.Name, listForFakeTable);
+                Setup(lambdaExpression).Returns(method.Invoke(null, new[] { listForFakeTable }));
+                _tables.Add(prop.Name, listForFakeTable);
             }
         }
     }
