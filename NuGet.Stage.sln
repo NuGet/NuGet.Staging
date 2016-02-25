@@ -16,7 +16,7 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Stage.Database", "src\Stage
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{01B6E97F-7B86-4364-AFD3-81881C199117}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Stage.Manager.UnitTests", "Stage.Manager.UnitTests\Stage.Manager.UnitTests.xproj", "{650A5A85-5956-491E-9312-5E25A27D1108}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Stage.Manager.UnitTests", "test\Stage.Manager.UnitTests\Stage.Manager.UnitTests.xproj", "{650A5A85-5956-491E-9312-5E25A27D1108}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
