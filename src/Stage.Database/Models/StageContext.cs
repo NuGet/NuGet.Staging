@@ -13,14 +13,14 @@ namespace Stage.Database.Models
     {
         public DbSet<Stage> Stages { get; set; }
 
-        public DbSet<StageMemeber> StageMembers { get; set; }
+        public DbSet<StageMember> StageMembers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Stage>()
                 .HasKey(s => s.Key);
             modelBuilder.Entity<Stage>()
-                .Property(s => s.Id).IsRequired();
+                .Property(s => s.Id).IsRequired().HasMaxLength(32);
             modelBuilder.Entity<Stage>()
                 .Property(s => s.DisplayName).IsRequired();
             modelBuilder.Entity<Stage>()
@@ -29,17 +29,23 @@ namespace Stage.Database.Models
                 .Property(s => s.ExpirationDate).IsRequired();
             modelBuilder.Entity<Stage>()
                 .Property(s => s.Status).IsRequired();
-            modelBuilder.Entity<Stage>().
-                HasMany(s => s.StageMemebers);
+            modelBuilder.Entity<Stage>()
+                .HasMany(s => s.StageMembers);
+            modelBuilder.Entity<Stage>()
+                .HasIndex(s => s.Id);
 
-            modelBuilder.Entity<StageMemeber>()
+           modelBuilder.Entity<StageMember>()
                 .HasKey(sm => sm.Key);
-            modelBuilder.Entity<StageMemeber>()
+            modelBuilder.Entity<StageMember>()
                 .Property(sm => sm.StageKey).IsRequired();
-            modelBuilder.Entity<StageMemeber>()
+            modelBuilder.Entity<StageMember>()
                 .Property(sm => sm.UserKey).IsRequired();
-            modelBuilder.Entity<StageMemeber>()
+            modelBuilder.Entity<StageMember>()
                 .Property(sm => sm.MemberType).IsRequired();
+            modelBuilder.Entity<StageMember>()
+                .HasIndex(sm => sm.UserKey);
+            modelBuilder.Entity<StageMember>()
+                .HasIndex(sm => sm.StageKey);
         }
     }
 }

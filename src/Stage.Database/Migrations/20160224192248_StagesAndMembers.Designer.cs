@@ -5,11 +5,11 @@ using Microsoft.Data.Entity.Metadata;
 using Microsoft.Data.Entity.Migrations;
 using Stage.Database.Models;
 
-namespace Stage.Manager.Migrations
+namespace Stage.Database.Migrations
 {
     [DbContext(typeof(StageContext))]
-    [Migration("20160223221412_stagesAndMembers")]
-    partial class stagesAndMembers
+    [Migration("20160224192248_StagesAndMembers")]
+    partial class StagesAndMembers
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -30,14 +30,17 @@ namespace Stage.Manager.Migrations
                     b.Property<DateTime>("ExpirationDate");
 
                     b.Property<string>("Id")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasAnnotation("MaxLength", 32);
 
                     b.Property<int>("Status");
 
                     b.HasKey("Key");
+
+                    b.HasIndex("Id");
                 });
 
-            modelBuilder.Entity("Stage.Database.Models.StageMemeber", b =>
+            modelBuilder.Entity("Stage.Database.Models.StageMember", b =>
                 {
                     b.Property<int>("Key")
                         .ValueGeneratedOnAdd();
@@ -49,9 +52,13 @@ namespace Stage.Manager.Migrations
                     b.Property<int>("UserKey");
 
                     b.HasKey("Key");
+
+                    b.HasIndex("StageKey");
+
+                    b.HasIndex("UserKey");
                 });
 
-            modelBuilder.Entity("Stage.Database.Models.StageMemeber", b =>
+            modelBuilder.Entity("Stage.Database.Models.StageMember", b =>
                 {
                     b.HasOne("Stage.Database.Models.Stage")
                         .WithMany()

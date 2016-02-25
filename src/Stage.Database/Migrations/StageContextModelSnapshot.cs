@@ -1,11 +1,13 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using Microsoft.Data.Entity;
 using Microsoft.Data.Entity.Infrastructure;
 using Microsoft.Data.Entity.Metadata;
-using Microsoft.Data.Entity.Migrations;
 using Stage.Database.Models;
 
-namespace Stage.Manager.Migrations
+namespace Stage.Database.Migrations
 {
     [DbContext(typeof(StageContext))]
     partial class StageContextModelSnapshot : ModelSnapshot
@@ -29,14 +31,17 @@ namespace Stage.Manager.Migrations
                     b.Property<DateTime>("ExpirationDate");
 
                     b.Property<string>("Id")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasAnnotation("MaxLength", 32);
 
                     b.Property<int>("Status");
 
                     b.HasKey("Key");
+
+                    b.HasIndex("Id");
                 });
 
-            modelBuilder.Entity("Stage.Database.Models.StageMemeber", b =>
+            modelBuilder.Entity("Stage.Database.Models.StageMember", b =>
                 {
                     b.Property<int>("Key")
                         .ValueGeneratedOnAdd();
@@ -48,9 +53,13 @@ namespace Stage.Manager.Migrations
                     b.Property<int>("UserKey");
 
                     b.HasKey("Key");
+
+                    b.HasIndex("StageKey");
+
+                    b.HasIndex("UserKey");
                 });
 
-            modelBuilder.Entity("Stage.Database.Models.StageMemeber", b =>
+            modelBuilder.Entity("Stage.Database.Models.StageMember", b =>
                 {
                     b.HasOne("Stage.Database.Models.Stage")
                         .WithMany()

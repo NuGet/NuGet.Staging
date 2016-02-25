@@ -61,12 +61,15 @@ namespace Stage.Manager
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder applicationBuilder, IHostingEnvironment hostingEnvironment, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            if (hostingEnvironment.IsEnvironment(_localEnvironmentName))
+            {
+                loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+                loggerFactory.AddDebug();
+            }
 
             // Debug settings for local runs and for dev deployment
             if (hostingEnvironment.IsEnvironment(_localEnvironmentName) || hostingEnvironment.IsDevelopment())
             {
-                loggerFactory.AddDebug();
                 applicationBuilder.UseDeveloperExceptionPage();
             }
 
