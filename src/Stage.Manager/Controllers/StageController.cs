@@ -17,6 +17,7 @@ namespace Stage.Manager.Controllers
     {
         // After this period the stage will expire and be deleted
         public const int DefaultExpirationPeriodDays = 30;
+        public const int MaxDisplayNameLength = 32;
 
         private readonly ILogger<StageController> _logger;
         private readonly StageContext _context;
@@ -61,7 +62,7 @@ namespace Stage.Manager.Controllers
                                 sm.Stage.ExpirationDate,
                                 sm.Stage.DisplayName,
                                 sm.Stage.Status
-                            }));
+                            }).ToList());
         }
 
         // GET api/stage/e92156e2d6a74a19853a3294cf681dfc
@@ -81,7 +82,7 @@ namespace Stage.Manager.Controllers
 
             var stage = _context.Stages.FirstOrDefault(s => s.Id == stageId);
 
-            if (stage == null)
+            if (stage == null || !UserMemberOfStage(stage, userKey))
             {
                 return new HttpNotFoundResult();
             }
@@ -97,12 +98,12 @@ namespace Stage.Manager.Controllers
 
             if (!CheckStageDisplayNameValidity(displayName))
             {
-                return new BadRequestObjectResult("Provide a non-empty display name");
+                return new BadRequestObjectResult(string.Format("Provide a non-empty display name with length up to {0} characters", MaxDisplayNameLength));
             }
 
             var utcNow = DateTime.UtcNow;
 
-            var stage = new Stage.Database.Models.Stage
+            var stage = new Database.Models.Stage
             {
                 StageMembers = new List<StageMember>(new[]
                 {
@@ -141,22 +142,22 @@ namespace Stage.Manager.Controllers
 
             string stageId = GuidToStageId(stageIdGuid);
 
-            // TODO: in the future, just mark the stage as deleted and have a background job perform the actual delete
             var userKey = GetUserKey();
 
             var stage = _context.Stages.FirstOrDefault(s => s.Id == stageId);
 
-            if (stage != null)
+            if (stage == null || !UserMemberOfStage(stage, userKey))
             {
-                _context.Stages.Remove(stage);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation(_messageFormat, userKey, stageId, "Drop was successful");
-                return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id });
+                _logger.LogInformation(_messageFormat, userKey, stageId, "Drop failed, stage not found");
+                return new HttpNotFoundResult();
             }
 
-            _logger.LogInformation(_messageFormat, userKey, stageId, "Drop failed, stage not found");
-            return new HttpNotFoundResult();
+            // TODO: in the future, just mark the stage as deleted and have a background job perform the actual delete
+            _context.Stages.Remove(stage);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation(_messageFormat, userKey, stageId, "Drop was successful");
+            return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id });
         }
 
         // POST api/stage/e92156e2d6a74a19853a3294cf681dfc
@@ -169,12 +170,17 @@ namespace Stage.Manager.Controllers
 
         private bool CheckStageDisplayNameValidity(string displayName)
         {
-            return !string.IsNullOrWhiteSpace(displayName);
+            return !string.IsNullOrWhiteSpace(displayName) && displayName.Length <= MaxDisplayNameLength;
         }
 
         private string GuidToStageId(Guid guid)
         {
             return guid.ToString("N");
+        }
+
+        private bool UserMemberOfStage(Database.Models.Stage stage, int userKey)
+        {
+            return stage.StageMembers.Any(sm => sm.UserKey == userKey);
         }
 
         private int GetUserKey()

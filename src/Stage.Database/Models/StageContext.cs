@@ -11,9 +11,9 @@ namespace Stage.Database.Models
     /// </summary>
     public class StageContext : DbContext
     {
-        public DbSet<Stage> Stages { get; set; }
+        public virtual DbSet<Stage> Stages { get; set; }
 
-        public DbSet<StageMember> StageMembers { get; set; }
+        public virtual DbSet<StageMember> StageMembers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
