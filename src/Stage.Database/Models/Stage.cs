@@ -20,6 +20,8 @@ namespace Stage.Database.Models
 
         public DateTime ExpirationDate { get; set; }
 
-        public List<StageMember> StageMembers { get; set; } 
+        public List<StageMember> Members { get; set; } 
+
+        public List<StagedPackage> Packages { get; set; } 
     }
 }

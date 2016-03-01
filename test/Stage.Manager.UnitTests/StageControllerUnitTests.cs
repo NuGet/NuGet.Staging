@@ -2,15 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Debug;
 using Moq;
 using Stage.Database.Models;
 using Stage.Manager.Controllers;
@@ -34,7 +30,15 @@ namespace Stage.Manager.UnitTests
         {
             // Arrange
             _stageContextMock = new StageContextMock();
-            _stageController = new StageController(new Mock<ILogger<StageController>>().Object, _stageContextMock.Object);
+            
+            var stageControllerMock = new Mock<StageController>(new Mock<ILogger<StageController>>().Object, _stageContextMock.Object)
+            {
+                CallBase = true
+            };
+            stageControllerMock.Setup(x => x.GetStage(It.IsAny<string>()))
+                .Returns((string id) => _stageContextMock.Object.Stages.FirstOrDefault(s => s.Id == id));
+
+            _stageController = stageControllerMock.Object;
         }
 
         [Fact]
@@ -51,8 +55,8 @@ namespace Stage.Manager.UnitTests
 
             stage.DisplayName.Should().Be(_displayName);
             stage.Status.Should().Be(StageStatus.Active);
-            stage.StageMembers.Count().Should().Be(1);
-            stage.StageMembers.First().MemberType.Should().Be(MemberType.Owner);
+            stage.Members.Count().Should().Be(1);
+            stage.Members.First().MemberType.Should().Be(MemberType.Owner);
         }
 
         [Fact]
@@ -183,9 +187,9 @@ namespace Stage.Manager.UnitTests
             IActionResult actionResult = await _stageController.Create(displayName);
 
             var stage = _stageContextMock.Object.Stages.Last();
-            _stageContextMock.Object.StageMembers.AddRange(stage.StageMembers);
+            _stageContextMock.Object.StageMembers.AddRange(stage.Members);
 
-            foreach (var member in stage.StageMembers)
+            foreach (var member in stage.Members)
             {
                 member.Stage = stage;
             }

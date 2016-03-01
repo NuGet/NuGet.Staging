@@ -4,14 +4,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
+using Microsoft.Data.Entity;
 using Microsoft.Extensions.Logging;
 using Stage.Database.Models;
+using static Stage.Manager.Controllers.Messages;
+using static Stage.Manager.StageHelper;
 
 namespace Stage.Manager.Controllers
 {
+
     [Route("api/[controller]")]
     public class StageController : Controller
     {
@@ -22,10 +25,7 @@ namespace Stage.Manager.Controllers
         private readonly ILogger<StageController> _logger;
         private readonly StageContext _context;
 
-        private const string _messageFormat = "User: {UserKey}, Stage: {StageId}, {Message}";
-
-        // Temp user key until we add authentication + authorization
-        private const int _userKey = 101;
+        private const string MessageFormat = "User: {UserKey}, Stage: {StageId}, {Message}";
 
         public StageController(ILogger<StageController> logger, StageContext context)
         {
@@ -69,20 +69,15 @@ namespace Stage.Manager.Controllers
         [HttpGet("{id}")]
         public IActionResult GetDetails(string id)
         {
-            Guid stageIdGuid;
-
-            if (!Guid.TryParse(id, out stageIdGuid))
-            {
-                return new BadRequestObjectResult("Provide a valid stage id Guid");
-            }
-
-            string stageId = GuidToStageId(stageIdGuid);
-
             var userKey = GetUserKey();
 
-            var stage = _context.Stages.FirstOrDefault(s => s.Id == stageId);
+            if (!VerifyStageId(id))
+            {
+                return new BadRequestObjectResult(InvalidStageIdMessage);
+            }
 
-            if (stage == null || !UserMemberOfStage(stage, userKey))
+            var stage = GetStage(id);
+            if (stage == null || !stage.IsUserMemberOfStage(userKey))
             {
                 return new HttpNotFoundResult();
             }
@@ -98,14 +93,14 @@ namespace Stage.Manager.Controllers
 
             if (!CheckStageDisplayNameValidity(displayName))
             {
-                return new BadRequestObjectResult(string.Format("Provide a non-empty display name with length up to {0} characters", MaxDisplayNameLength));
+                return new BadRequestObjectResult(string.Format(InvalidStageDisplayName, MaxDisplayNameLength));
             }
 
             var utcNow = DateTime.UtcNow;
 
             var stage = new Database.Models.Stage
             {
-                StageMembers = new List<StageMember>(new[]
+                Members = new List<StageMember>(new[]
                 {
                     new StageMember()
                     {
@@ -123,7 +118,7 @@ namespace Stage.Manager.Controllers
             _context.Stages.Add(stage);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation(_messageFormat, userKey, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
+            _logger.LogInformation(MessageFormat, userKey, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
 
             // TODO: add feed uri to returned data
             return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id, stage.ExpirationDate, stage.Status });
@@ -133,22 +128,17 @@ namespace Stage.Manager.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Drop(string id)
         {
-            Guid stageIdGuid;
-
-            if (!Guid.TryParse(id, out stageIdGuid))
-            {
-                return new BadRequestObjectResult("Provide a valid stage id Guid");
-            }
-
-            string stageId = GuidToStageId(stageIdGuid);
-
             var userKey = GetUserKey();
 
-            var stage = _context.Stages.FirstOrDefault(s => s.Id == stageId);
-
-            if (stage == null || !UserMemberOfStage(stage, userKey))
+            if (!VerifyStageId(id))
             {
-                _logger.LogInformation(_messageFormat, userKey, stageId, "Drop failed, stage not found");
+                return new BadRequestObjectResult(InvalidStageIdMessage);
+            }
+           
+            var stage = GetStage(id);
+            if (stage == null || !stage.IsUserMemberOfStage(userKey))
+            {
+                _logger.LogInformation(MessageFormat, userKey, id, "Drop failed, stage not found");
                 return new HttpNotFoundResult();
             }
 
@@ -156,7 +146,7 @@ namespace Stage.Manager.Controllers
             _context.Stages.Remove(stage);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation(_messageFormat, userKey, stageId, "Drop was successful");
+            _logger.LogInformation(MessageFormat, userKey, id, "Drop was successful");
             return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id });
         }
 
@@ -173,19 +163,14 @@ namespace Stage.Manager.Controllers
             return !string.IsNullOrWhiteSpace(displayName) && displayName.Length <= MaxDisplayNameLength;
         }
 
-        private string GuidToStageId(Guid guid)
-        {
-            return guid.ToString("N");
-        }
+        private static string GuidToStageId(Guid guid) => guid.ToString("N");
 
-        private bool UserMemberOfStage(Database.Models.Stage stage, int userKey)
-        {
-            return stage.StageMembers.Any(sm => sm.UserKey == userKey);
-        }
+        /// <summary>
+        /// This method is virtual for test purposes. Include is an extension method, and hence, unmockable.
+        /// </summary>
+        public virtual Database.Models.Stage GetStage(string stageId) =>
+            _context.Stages.Include(s => s.Members).Include(s => s.Packages).FirstOrDefault(s => s.Id == stageId);
 
-        private int GetUserKey()
-        {
-            return _userKey;
-        } 
+        private int GetUserKey() => 1;
     }
 }

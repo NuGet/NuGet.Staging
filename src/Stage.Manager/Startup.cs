@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
 using Stage.Database.Models;
 using Stage.Manager.Logging;
+using Stage.Packages;
 using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceCollection;
 
 namespace Stage.Manager
@@ -48,6 +49,7 @@ namespace Stage.Manager
         // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddOptions();
             services.AddApplicationInsightsTelemetry(Configuration);
             services.AddMvc();
 
@@ -56,6 +58,10 @@ namespace Stage.Manager
             services.AddEntityFramework()
                 .AddSqlServer()
                 .AddDbContext<StageContext>(options => options.UseSqlServer(connectionString));
+
+            // IPackageService setup
+            services.AddScoped<IPackageService, DatabasePackageService>();
+            services.Configure<DatabasePackageServiceOptions>(Configuration.GetSection("DatabasePackageServiceOptions"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

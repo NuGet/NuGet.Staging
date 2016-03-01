@@ -4,5 +4,8 @@
     },
     "StageDatabase": {
         "ConnectionString": "Server=(localdb)\\mssqllocaldb;Database=StageDB;Trusted_Connection=True;"
+    },
+    "DatabasePackageServiceOptions": {
+        "DatabaseConnectionString": "Server=tcp:szy5udivcd.database.windows.net,1433;Database=skofman;User ID=skofman@szy5udivcd;Password=pa$$w0rd;Trusted_Connection=False;Encrypt=True;Connection Timeout=30;"
     }
 }
