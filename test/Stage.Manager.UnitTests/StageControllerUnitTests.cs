@@ -30,15 +30,16 @@ namespace Stage.Manager.UnitTests
         {
             // Arrange
             _stageContextMock = new StageContextMock();
-            
-            var stageControllerMock = new Mock<StageController>(new Mock<ILogger<StageController>>().Object, _stageContextMock.Object)
+
+            var stageServiceMock = new Mock<StageService>(_stageContextMock.Object)
             {
                 CallBase = true
             };
-            stageControllerMock.Setup(x => x.GetStage(It.IsAny<string>()))
-                .Returns((string id) => _stageContextMock.Object.Stages.FirstOrDefault(s => s.Id == id));
 
-            _stageController = stageControllerMock.Object;
+            stageServiceMock.Setup(x => x.GetStage(It.IsAny<string>()))
+                .Returns((string id) => _stageContextMock.Object.Stages.FirstOrDefault(x => x.Id == id));
+
+            _stageController = new StageController(new Mock<ILogger<StageController>>().Object, _stageContextMock.Object, stageServiceMock.Object);
         }
 
         [Fact]
@@ -115,16 +116,6 @@ namespace Stage.Manager.UnitTests
             string displayName = (string)result.GetType().GetProperty("DisplayName").GetValue(result);
 
             displayName.Should().Be(_displayName);
-        }
-
-        [Fact]
-        public void WhenGetDetailsIsCalledWithBadId500IsReturned()
-        {
-            // Act
-            IActionResult actionResult = _stageController.GetDetails("not a guid");
-
-            // Assert
-            actionResult.Should().BeOfType<BadRequestObjectResult>();
         }
 
         [Fact]

@@ -64,7 +64,7 @@ namespace Stage.Database.Models
             modelBuilder.Entity<StagedPackage>()
               .Property(sp => sp.NupkgUrl).IsRequired();
             modelBuilder.Entity<StagedPackage>()
-              .Property(sp => sp.PushDate).IsRequired();
+              .Property(sp => sp.Published).IsRequired();
             modelBuilder.Entity<StagedPackage>()
               .Property(sp => sp.StageKey).IsRequired();
             modelBuilder.Entity<StagedPackage>()

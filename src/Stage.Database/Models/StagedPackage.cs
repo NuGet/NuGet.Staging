@@ -19,7 +19,7 @@ namespace Stage.Database.Models
 
         public int UserKey { get; set; }
 
-        public DateTime PushDate { get; set; }
+        public DateTime Published { get; set; }
 
         public string NupkgUrl { get; set; }
     }

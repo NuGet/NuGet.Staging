@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
@@ -13,7 +12,6 @@ using NuGet.Versioning;
 using Stage.Database.Models;
 using Stage.Packages;
 using static Stage.Manager.Controllers.Messages;
-using static Stage.Manager.StageHelper;
 
 namespace Stage.Manager.Controllers
 {
@@ -25,8 +23,9 @@ namespace Stage.Manager.Controllers
         private readonly ILogger<PackageController> _logger;
         private readonly StageContext _context;
         private readonly IPackageService _packageService;
+        private readonly IStageService _stageService;
 
-        public PackageController(ILogger<PackageController> logger, StageContext context, IPackageService packageService)
+        public PackageController(ILogger<PackageController> logger, StageContext context, IPackageService packageService, IStageService stageService)
         {
             if (logger == null)
             {
@@ -43,24 +42,25 @@ namespace Stage.Manager.Controllers
                 throw new ArgumentNullException(nameof(packageService));
             }
 
+            if (stageService == null)
+            {
+                throw new ArgumentNullException(nameof(stageService));
+            }
+
             _logger = logger;
             _context = context;
             _packageService = packageService;
+            _stageService = stageService;
         }
 
-        [HttpPut("{id}")]
-        [HttpPost("{id}")]
+        [HttpPut("{id:guid}")]
+        [HttpPost("{id:guid}")]
         public async Task<IActionResult> PushPackageToStage(string id)
         {
             var userKey = GetUserKey();
 
-            if (!VerifyStageId(id))
-            {
-                return new BadRequestObjectResult(InvalidStageIdMessage);
-            }
-
-            var stage = GetStage(id);
-            if (stage == null || !stage.IsUserMemberOfStage(userKey))
+            var stage = _stageService.GetStage(id);
+            if (stage == null || !_stageService.IsUserMemberOfStage(stage, userKey))
             {
                 return new HttpNotFoundResult();
             }
@@ -91,7 +91,7 @@ namespace Stage.Manager.Controllers
                 string normalizedVersion = version.ToNormalizedString();
 
                 // Check if package exists in the stage
-                if (IsPackageExistsOnStage(stage, registrationId, normalizedVersion))
+                if (_stageService.DoesPackageExistsOnStage(stage, registrationId, normalizedVersion))
                 {
                     return
                         new BadRequestObjectResult(string.Format(PackageExistsOnStageMessage, registrationId,
@@ -110,7 +110,7 @@ namespace Stage.Manager.Controllers
                     NormalizedVersion = normalizedVersion,
                     Version = version.ToString(),
                     UserKey = userKey,
-                    PushDate = DateTime.UtcNow,
+                    Published = DateTime.UtcNow,
                 });
 
                 await _context.SaveChangesAsync();
@@ -127,18 +127,6 @@ namespace Stage.Manager.Controllers
                     : (IActionResult) new HttpStatusCodeResult((int) HttpStatusCode.Created);
             }
         }
-
-        private bool IsPackageExistsOnStage(Database.Models.Stage stage, string registrationId, string version)
-        {
-            return stage.Packages.Any(p => string.Equals(p.Id, registrationId, StringComparison.OrdinalIgnoreCase) &&
-                                           string.Equals(p.NormalizedVersion, version, StringComparison.OrdinalIgnoreCase));
-        }
-
-        /// <summary>
-        /// This method is virtual for test purposes. Include is an extension method, and hence, unmockable.
-        /// </summary>
-        public virtual Database.Models.Stage GetStage(string stageId) =>
-            _context.Stages.Include(s => s.Members).Include(s => s.Packages).FirstOrDefault(s => s.Id == stageId);
 
         private int GetUserKey() => 1;
     }

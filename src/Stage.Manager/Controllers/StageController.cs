@@ -6,11 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
-using Microsoft.Data.Entity;
 using Microsoft.Extensions.Logging;
 using Stage.Database.Models;
 using static Stage.Manager.Controllers.Messages;
-using static Stage.Manager.StageHelper;
 
 namespace Stage.Manager.Controllers
 {
@@ -24,10 +22,11 @@ namespace Stage.Manager.Controllers
 
         private readonly ILogger<StageController> _logger;
         private readonly StageContext _context;
+        private readonly IStageService _stageService;
 
         private const string MessageFormat = "User: {UserKey}, Stage: {StageId}, {Message}";
 
-        public StageController(ILogger<StageController> logger, StageContext context)
+        public StageController(ILogger<StageController> logger, StageContext context, IStageService stageService)
         {
             if (logger == null)
             {
@@ -39,8 +38,14 @@ namespace Stage.Manager.Controllers
                 throw new ArgumentNullException(nameof(context));
             }
 
+            if (stageService == null)
+            {
+                throw new ArgumentNullException(nameof(stageService));
+            }
+
             _logger = logger;
             _context = context;
+            _stageService = stageService;
         }
 
         // GET: api/stage
@@ -66,18 +71,13 @@ namespace Stage.Manager.Controllers
         }
 
         // GET api/stage/e92156e2d6a74a19853a3294cf681dfc
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         public IActionResult GetDetails(string id)
         {
             var userKey = GetUserKey();
 
-            if (!VerifyStageId(id))
-            {
-                return new BadRequestObjectResult(InvalidStageIdMessage);
-            }
-
-            var stage = GetStage(id);
-            if (stage == null || !stage.IsUserMemberOfStage(userKey))
+            var stage = _stageService.GetStage(id);
+            if (stage == null || !_stageService.IsUserMemberOfStage(stage, userKey))
             {
                 return new HttpNotFoundResult();
             }
@@ -125,18 +125,13 @@ namespace Stage.Manager.Controllers
         }
 
         // DELETE api/stage/e92156e2d6a74a19853a3294cf681dfc
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Drop(string id)
         {
             var userKey = GetUserKey();
 
-            if (!VerifyStageId(id))
-            {
-                return new BadRequestObjectResult(InvalidStageIdMessage);
-            }
-           
-            var stage = GetStage(id);
-            if (stage == null || !stage.IsUserMemberOfStage(userKey))
+            var stage = _stageService.GetStage(id);
+            if (stage == null || !_stageService.IsUserMemberOfStage(stage, userKey))
             {
                 _logger.LogInformation(MessageFormat, userKey, id, "Drop failed, stage not found");
                 return new HttpNotFoundResult();
@@ -151,7 +146,7 @@ namespace Stage.Manager.Controllers
         }
 
         // POST api/stage/e92156e2d6a74a19853a3294cf681dfc
-        [HttpPost("{id}")]
+        [HttpPost("{id:guid}")]
         public async Task<IActionResult> Commit(string id)
         {
             // Not implemented
@@ -164,12 +159,6 @@ namespace Stage.Manager.Controllers
         }
 
         private static string GuidToStageId(Guid guid) => guid.ToString("N");
-
-        /// <summary>
-        /// This method is virtual for test purposes. Include is an extension method, and hence, unmockable.
-        /// </summary>
-        public virtual Database.Models.Stage GetStage(string stageId) =>
-            _context.Stages.Include(s => s.Members).Include(s => s.Packages).FirstOrDefault(s => s.Id == stageId);
 
         private int GetUserKey() => 1;
     }

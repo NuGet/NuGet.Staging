@@ -62,6 +62,8 @@ namespace Stage.Manager
             // IPackageService setup
             services.AddScoped<IPackageService, DatabasePackageService>();
             services.Configure<DatabasePackageServiceOptions>(Configuration.GetSection("DatabasePackageServiceOptions"));
+
+            services.AddScoped<IStageService, StageService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
