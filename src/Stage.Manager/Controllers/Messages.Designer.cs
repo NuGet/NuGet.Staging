@@ -105,11 +105,20 @@ namespace Stage.Manager.Controllers {
         }
         
         /// <summary>
-        ///    Looks up a localized string similar to A package with id &apos;{0}&apos; and version &apos;{1} already exists on NuGet.org. Commit of this stage will fail..
+        ///    Looks up a localized string similar to A package with id &apos;{0}&apos; and version &apos;{1}&apos; already exists on NuGet.org. Commit of this stage will fail..
         /// </summary>
         internal static string PackageAlreadyExists {
             get {
                 return ResourceManager.GetString("PackageAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///    Looks up a localized string similar to The NuGet package is invalid. The error encountered was:&apos;{0}&apos;. Correct the error and try again..
+        /// </summary>
+        internal static string PackageErrorMessage {
+            get {
+                return ResourceManager.GetString("PackageErrorMessage", resourceCulture);
             }
         }
         
