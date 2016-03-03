@@ -61,7 +61,7 @@ namespace Stage.Manager.UnitTests
         }
 
         [Fact]
-        public async Task WhenCreateCalledWithInvalidDisplayName500IsReturned()
+        public async Task WhenCreateCalledWithInvalidDisplayName400IsReturned()
         {
             // Act 
             IActionResult actionResult = await _stageController.Create("");
@@ -71,7 +71,7 @@ namespace Stage.Manager.UnitTests
         }
 
         [Fact]
-        public async Task WhenCreateCalledWithLongDisplayName500IsReturned()
+        public async Task WhenCreateCalledWithLongDisplayName400IsReturned()
         {
             // Act 
             IActionResult actionResult = await _stageController.Create("abcdefghijklmnoprstuvwxyzabcdefghijklmnoprstuvwxyz");
@@ -151,15 +151,6 @@ namespace Stage.Manager.UnitTests
 
             _stageContextMock.Object.Stages.Count().Should().Be(1);
             _stageContextMock.Object.Stages.First().Id.Should().Be(stageId2);
-        }
-
-        public async Task WhenDropIsCalledWithBadId500IsReturned()
-        {
-            // Act
-            IActionResult actionResult = await _stageController.Drop("not a guid");
-
-            // Assert
-            actionResult.Should().BeOfType<BadRequestObjectResult>();
         }
 
         [Fact]
