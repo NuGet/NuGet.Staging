@@ -7,7 +7,7 @@ namespace Stage.Packages
 {
     public interface IPackageService
     {
-        Task<bool> IsPackageExistsByIdAndVersionAsync(string id, string version);
+        Task<bool> DoesPackageExistsAsync(string id, string version);
 
         Task<bool> IsUserOwnerOfPackageAsync(int userKey, string packageId);
     }

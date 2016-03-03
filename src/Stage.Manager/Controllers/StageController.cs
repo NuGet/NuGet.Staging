@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
@@ -16,10 +15,6 @@ namespace Stage.Manager.Controllers
     [Route("api/[controller]")]
     public class StageController : Controller
     {
-        // After this period the stage will expire and be deleted
-        public const int DefaultExpirationPeriodDays = 30;
-        public const int MaxDisplayNameLength = 32;
-
         private readonly ILogger<StageController> _logger;
         private readonly StageContext _context;
         private readonly IStageService _stageService;
@@ -91,32 +86,12 @@ namespace Stage.Manager.Controllers
         {
             var userKey = GetUserKey();
 
-            if (!CheckStageDisplayNameValidity(displayName))
+            if (!_stageService.CheckStageDisplayNameValidity(displayName))
             {
-                return new BadRequestObjectResult(string.Format(InvalidStageDisplayName, MaxDisplayNameLength));
+                return new BadRequestObjectResult(string.Format(InvalidStageDisplayName, StageService.MaxDisplayNameLength));
             }
 
-            var utcNow = DateTime.UtcNow;
-
-            var stage = new Database.Models.Stage
-            {
-                Members = new List<StageMember>(new[]
-                {
-                    new StageMember()
-                    {
-                        MemberType = MemberType.Owner,
-                        UserKey = userKey
-                    }
-                }),
-                Id = GuidToStageId(Guid.NewGuid()),
-                DisplayName = displayName,
-                CreationDate = utcNow,
-                ExpirationDate = utcNow.AddDays(DefaultExpirationPeriodDays),
-                Status = StageStatus.Active,
-            };
-
-            _context.Stages.Add(stage);
-            await _context.SaveChangesAsync();
+            var stage = await _stageService.CreateStage(displayName, userKey);
 
             _logger.LogInformation(MessageFormat, userKey, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
 
@@ -137,9 +112,7 @@ namespace Stage.Manager.Controllers
                 return new HttpNotFoundResult();
             }
 
-            // TODO: in the future, just mark the stage as deleted and have a background job perform the actual delete
-            _context.Stages.Remove(stage);
-            await _context.SaveChangesAsync();
+            await _stageService.DropStage(stage);
 
             _logger.LogInformation(MessageFormat, userKey, id, "Drop was successful");
             return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id });
@@ -152,13 +125,6 @@ namespace Stage.Manager.Controllers
             // Not implemented
             return new BadRequestResult();
         }
-
-        private bool CheckStageDisplayNameValidity(string displayName)
-        {
-            return !string.IsNullOrWhiteSpace(displayName) && displayName.Length <= MaxDisplayNameLength;
-        }
-
-        private static string GuidToStageId(Guid guid) => guid.ToString("N");
 
         private int GetUserKey() => 1;
     }

@@ -69,63 +69,63 @@ namespace Stage.Manager.Controllers
             {
                 try
                 {
-                    using (var packageToPush = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
-                    {
-                        NuspecReader nuspec = null;
-                        try
-                        {
-                            nuspec = new NuspecReader(packageToPush.GetNuspec());
-                        }
-                        catch (Exception ex) when (!ex.IsFatal())
-                        {
-                            return new BadRequestObjectResult(string.Format(NuspecErrorMessage, ex.Message));
-                        }
+            using (var packageToPush = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
+            {
+                NuspecReader nuspec = null;
+                try
+                {
+                    nuspec = new NuspecReader(packageToPush.GetNuspec());
+                }
+                catch (Exception ex) when (!ex.IsFatal())
+                {
+                    return new BadRequestObjectResult(string.Format(NuspecErrorMessage, ex.Message));
+                }
 
-                        // Check client version
-                        if (nuspec.GetMinClientVersion() > MaxSupportedMinClientVersion)
-                        {
-                            return
-                                new BadRequestObjectResult(string.Format(MinClientVersionOutOfRangeMessage,
-                                    nuspec.GetMinClientVersion()));
-                        }
+                // Check client version
+                if (nuspec.GetMinClientVersion() > MaxSupportedMinClientVersion)
+                {
+                    return
+                        new BadRequestObjectResult(string.Format(MinClientVersionOutOfRangeMessage,
+                            nuspec.GetMinClientVersion()));
+                }
 
-                        string registrationId = nuspec.GetId();
-                        var version = nuspec.GetVersion();
-                        string normalizedVersion = version.ToNormalizedString();
+                string registrationId = nuspec.GetId();
+                var version = nuspec.GetVersion();
+                string normalizedVersion = version.ToNormalizedString();
 
-                        // Check if package exists in the stage
-                        if (_stageService.DoesPackageExistsOnStage(stage, registrationId, normalizedVersion))
-                        {
-                            return
+                // Check if package exists in the stage
+                if (_stageService.DoesPackageExistsOnStage(stage, registrationId, normalizedVersion))
+                {
+                    return
                                 new ObjectResult(string.Format(PackageExistsOnStageMessage, registrationId,
                                     normalizedVersion, stage.DisplayName)) { StatusCode = (int)HttpStatusCode.Conflict };
-                        }
+                }
 
-                        // Check if user can write to this registration id
-                        if (!await _packageService.IsUserOwnerOfPackageAsync(userKey, registrationId))
-                        {
+                // Check if user can write to this registration id
+                if (!await _packageService.IsUserOwnerOfPackageAsync(userKey, registrationId))
+                {
                             return new ObjectResult(ApiKeyUnauthorizedMessage) { StatusCode = (int)HttpStatusCode.Forbidden };
-                        }
+                }
 
-                        stage.Packages.Add(new StagedPackage()
-                        {
-                            Id = registrationId,
-                            NormalizedVersion = normalizedVersion,
-                            Version = version.ToString(),
-                            UserKey = userKey,
-                            Published = DateTime.UtcNow,
+                stage.Packages.Add(new StagedPackage()
+                {
+                    Id = registrationId,
+                    NormalizedVersion = normalizedVersion,
+                    Version = version.ToString(),
+                    UserKey = userKey,
+                    Published = DateTime.UtcNow,
                             NupkgUrl = "TBD"
-                        });
+                });
 
-                        await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-                        // Check if package exists in the Gallery (warning message if so)
-                        bool packageAlreadyExists =
-                            await _packageService.IsPackageExistsByIdAndVersionAsync(registrationId, normalizedVersion);
+                // Check if package exists in the Gallery (warning message if so)
+                bool packageAlreadyExists =
+                    await _packageService.DoesPackageExistsAsync(registrationId, normalizedVersion);
 
-                        return packageAlreadyExists
-                            ? new ObjectResult(string.Format(PackageAlreadyExists, registrationId, normalizedVersion))
-                            {
+                return packageAlreadyExists
+                    ? new ObjectResult(string.Format(PackageAlreadyExists, registrationId, normalizedVersion))
+                    {
                                 StatusCode = (int)HttpStatusCode.Created
                             }
                             : (IActionResult)new HttpStatusCodeResult((int)HttpStatusCode.Created);
@@ -134,7 +134,7 @@ namespace Stage.Manager.Controllers
                 catch (InvalidDataException ex)
                 {
                     return new BadRequestObjectResult(string.Format(PackageErrorMessage, ex.Message));
-                }
+                    }
                 
             }
         }
