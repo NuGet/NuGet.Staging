@@ -2,32 +2,26 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
 using Stage.Database.Models;
+using static Stage.Manager.Controllers.Messages;
 
 namespace Stage.Manager.Controllers
 {
+
     [Route("api/[controller]")]
     public class StageController : Controller
     {
-        // After this period the stage will expire and be deleted
-        public const int DefaultExpirationPeriodDays = 30;
-        public const int MaxDisplayNameLength = 32;
-
         private readonly ILogger<StageController> _logger;
         private readonly StageContext _context;
+        private readonly IStageService _stageService;
 
-        private const string _messageFormat = "User: {UserKey}, Stage: {StageId}, {Message}";
+        private const string MessageFormat = "User: {UserKey}, Stage: {StageId}, {Message}";
 
-        // Temp user key until we add authentication + authorization
-        private const int _userKey = 101;
-
-        public StageController(ILogger<StageController> logger, StageContext context)
+        public StageController(ILogger<StageController> logger, StageContext context, IStageService stageService)
         {
             if (logger == null)
             {
@@ -39,8 +33,14 @@ namespace Stage.Manager.Controllers
                 throw new ArgumentNullException(nameof(context));
             }
 
+            if (stageService == null)
+            {
+                throw new ArgumentNullException(nameof(stageService));
+            }
+
             _logger = logger;
             _context = context;
+            _stageService = stageService;
         }
 
         // GET: api/stage
@@ -66,23 +66,13 @@ namespace Stage.Manager.Controllers
         }
 
         // GET api/stage/e92156e2d6a74a19853a3294cf681dfc
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         public IActionResult GetDetails(string id)
         {
-            Guid stageIdGuid;
-
-            if (!Guid.TryParse(id, out stageIdGuid))
-            {
-                return new BadRequestObjectResult("Provide a valid stage id Guid");
-            }
-
-            string stageId = GuidToStageId(stageIdGuid);
-
             var userKey = GetUserKey();
 
-            var stage = _context.Stages.FirstOrDefault(s => s.Id == stageId);
-
-            if (stage == null || !UserMemberOfStage(stage, userKey))
+            var stage = _stageService.GetStage(id);
+            if (stage == null || !_stageService.IsUserMemberOfStage(stage, userKey))
             {
                 return new HttpNotFoundResult();
             }
@@ -96,96 +86,46 @@ namespace Stage.Manager.Controllers
         {
             var userKey = GetUserKey();
 
-            if (!CheckStageDisplayNameValidity(displayName))
+            if (!_stageService.CheckStageDisplayNameValidity(displayName))
             {
-                return new BadRequestObjectResult(string.Format("Provide a non-empty display name with length up to {0} characters", MaxDisplayNameLength));
+                return new BadRequestObjectResult(string.Format(InvalidStageDisplayName, StageService.MaxDisplayNameLength));
             }
 
-            var utcNow = DateTime.UtcNow;
+            var stage = await _stageService.CreateStage(displayName, userKey);
 
-            var stage = new Database.Models.Stage
-            {
-                StageMembers = new List<StageMember>(new[]
-                {
-                    new StageMember()
-                    {
-                        MemberType = MemberType.Owner,
-                        UserKey = userKey
-                    }
-                }),
-                Id = GuidToStageId(Guid.NewGuid()),
-                DisplayName = displayName,
-                CreationDate = utcNow,
-                ExpirationDate = utcNow.AddDays(DefaultExpirationPeriodDays),
-                Status = StageStatus.Active,
-            };
-
-            _context.Stages.Add(stage);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation(_messageFormat, userKey, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
+            _logger.LogInformation(MessageFormat, userKey, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
 
             // TODO: add feed uri to returned data
             return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id, stage.ExpirationDate, stage.Status });
         }
 
         // DELETE api/stage/e92156e2d6a74a19853a3294cf681dfc
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Drop(string id)
         {
-            Guid stageIdGuid;
-
-            if (!Guid.TryParse(id, out stageIdGuid))
-            {
-                return new BadRequestObjectResult("Provide a valid stage id Guid");
-            }
-
-            string stageId = GuidToStageId(stageIdGuid);
-
             var userKey = GetUserKey();
 
-            var stage = _context.Stages.FirstOrDefault(s => s.Id == stageId);
-
-            if (stage == null || !UserMemberOfStage(stage, userKey))
+            var stage = _stageService.GetStage(id);
+            if (stage == null || !_stageService.IsUserMemberOfStage(stage, userKey))
             {
-                _logger.LogInformation(_messageFormat, userKey, stageId, "Drop failed, stage not found");
+                _logger.LogInformation(MessageFormat, userKey, id, "Drop failed, stage not found");
                 return new HttpNotFoundResult();
             }
 
-            // TODO: in the future, just mark the stage as deleted and have a background job perform the actual delete
-            _context.Stages.Remove(stage);
-            await _context.SaveChangesAsync();
+            await _stageService.DropStage(stage);
 
-            _logger.LogInformation(_messageFormat, userKey, stageId, "Drop was successful");
+            _logger.LogInformation(MessageFormat, userKey, id, "Drop was successful");
             return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id });
         }
 
         // POST api/stage/e92156e2d6a74a19853a3294cf681dfc
-        [HttpPost("{id}")]
+        [HttpPost("{id:guid}")]
         public async Task<IActionResult> Commit(string id)
         {
             // Not implemented
             return new BadRequestResult();
         }
 
-        private bool CheckStageDisplayNameValidity(string displayName)
-        {
-            return !string.IsNullOrWhiteSpace(displayName) && displayName.Length <= MaxDisplayNameLength;
-        }
-
-        private string GuidToStageId(Guid guid)
-        {
-            return guid.ToString("N");
-        }
-
-        private bool UserMemberOfStage(Database.Models.Stage stage, int userKey)
-        {
-            return stage.StageMembers.Any(sm => sm.UserKey == userKey);
-        }
-
-        private int GetUserKey()
-        {
-            return _userKey;
-        } 
+        private int GetUserKey() => 1;
     }
 }

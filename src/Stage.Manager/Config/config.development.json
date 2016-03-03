@@ -4,5 +4,8 @@
     },
     "StageDatabase": {
         "ConnectionString": ""
+    },
+    "DatabasePackageServiceOptions": {
+        "DatabaseConnectionString": ""
     }
 }

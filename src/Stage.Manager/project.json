@@ -19,6 +19,9 @@
         "EntityFramework.MicrosoftSqlServer": "7.0.0-rc1-final",
         "Stage.Database": "1.0.0-*",
         "EntityFramework.Commands": "7.0.0-rc1-final",
+        "NuGet.Versioning": "3.4.0-beta-663",
+        "Stage.Packages": "1.0.0-*",
+        "NuGet.Packaging": "3.4.0-beta-667",
     },
 
     "commands": {

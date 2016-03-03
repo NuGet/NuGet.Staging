@@ -30,7 +30,9 @@ namespace Stage.Database.Models
             modelBuilder.Entity<Stage>()
                 .Property(s => s.Status).IsRequired();
             modelBuilder.Entity<Stage>()
-                .HasMany(s => s.StageMembers);
+                .HasMany(s => s.Members);
+            modelBuilder.Entity<Stage>()
+                .HasMany(s => s.Packages);
             modelBuilder.Entity<Stage>()
                 .HasIndex(s => s.Id);
 
@@ -43,9 +45,31 @@ namespace Stage.Database.Models
             modelBuilder.Entity<StageMember>()
                 .Property(sm => sm.MemberType).IsRequired();
             modelBuilder.Entity<StageMember>()
+                .HasOne(sm => sm.Stage)
+                .WithMany(s => s.Members);
+            modelBuilder.Entity<StageMember>()
                 .HasIndex(sm => sm.UserKey);
             modelBuilder.Entity<StageMember>()
                 .HasIndex(sm => sm.StageKey);
+
+            // TODO: take consts from common lib
+            modelBuilder.Entity<StagedPackage>()
+                .HasKey(sp => sp.Key);
+            modelBuilder.Entity<StagedPackage>()
+                .Property(sp => sp.Id).IsRequired().HasMaxLength(128);
+            modelBuilder.Entity<StagedPackage>()
+                .Property(sp => sp.Version).IsRequired().HasMaxLength(64);
+            modelBuilder.Entity<StagedPackage>()
+               .Property(sp => sp.NormalizedVersion).IsRequired().HasMaxLength(64);
+            modelBuilder.Entity<StagedPackage>()
+              .Property(sp => sp.NupkgUrl).IsRequired();
+            modelBuilder.Entity<StagedPackage>()
+              .Property(sp => sp.Published).IsRequired();
+            modelBuilder.Entity<StagedPackage>()
+              .Property(sp => sp.StageKey).IsRequired();
+            modelBuilder.Entity<StagedPackage>()
+                .HasIndex(sp => sp.StageKey);
+
         }
     }
 }
