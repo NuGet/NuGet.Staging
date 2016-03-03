@@ -117,7 +117,7 @@ namespace Stage.Manager.Controllers
 
                 // Check if package exists in the Gallery (warning message if so)
                 bool packageAlreadyExists =
-                    await _packageService.IsPackageExistsByIdAndVersionAsync(registrationId, normalizedVersion);
+                    await _packageService.DoesPackageExistsAsync(registrationId, normalizedVersion);
 
                 return packageAlreadyExists
                     ? new ObjectResult(string.Format(PackageAlreadyExists, registrationId, normalizedVersion))

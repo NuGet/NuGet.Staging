@@ -22,7 +22,7 @@ namespace Stage.Packages
             _options = options.Value;
         }
 
-        public async Task<bool> IsPackageExistsByIdAndVersionAsync(string id, string version)
+        public async Task<bool> DoesPackageExistsAsync(string id, string version)
         {
             using (var connection = new SqlConnection(_options.DatabaseConnectionString))
             {
