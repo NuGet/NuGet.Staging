@@ -7,5 +7,9 @@
     },
     "DatabasePackageServiceOptions": {
         "DatabaseConnectionString": ""
+    },
+    "V3": {
+        "StorageAccountConnectionString": "",
+        "Container": "stages"
     }
 }

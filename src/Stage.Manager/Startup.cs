@@ -10,9 +10,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
+using Microsoft.WindowsAzure.Storage;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using Stage.Database.Models;
 using Stage.Manager.Logging;
 using Stage.Packages;
+using Stage.V3;
 using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceCollection;
 
 namespace Stage.Manager
@@ -59,11 +62,31 @@ namespace Stage.Manager
                 .AddSqlServer()
                 .AddDbContext<StageContext>(options => options.UseSqlServer(connectionString));
 
+            ConfigureDependencies(services);
+        }
+
+        private void ConfigureDependencies(IServiceCollection services)
+        {
             // IPackageService setup
             services.AddScoped<IPackageService, DatabasePackageService>();
             services.Configure<DatabasePackageServiceOptions>(Configuration.GetSection("DatabasePackageServiceOptions"));
 
             services.AddScoped<IStageService, StageService>();
+
+            // V3
+            services.Configure<V3ServiceOptions>((options) =>
+            {
+                options.CatalogFolderName = "catalog";
+                options.FlatContainerFolderName = "flatcontainer";
+                options.RegistrationFolderName = "registration";
+            });
+
+            services.AddSingleton<IV3ServiceFactory, V3ServiceFactory>();
+
+            string storageAccountConnectionString = Configuration["V3:StorageAccountConnectionString"];
+            string containerName = Configuration["V3:Container"];
+            CloudStorageAccount account = CloudStorageAccount.Parse(storageAccountConnectionString);
+            services.AddInstance<StorageFactory>(new AzureStorageFactory(account, containerName));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
