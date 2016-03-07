@@ -20,7 +20,7 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Stage.Manager.UnitTests", "
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Stage.Packages", "src\Stage.Packages\Stage.Packages.xproj", "{A167F0CE-0A86-45F6-84F9-2D62D9B2FE7D}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Stage.V3", "src\Stage.V3\Stage.V3.xproj", "{827A7FD1-F523-49DB-B549-DC1761958763}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.V3Respository", "src\NuGet.V3Repository\NuGet.V3Respository.xproj", "{827A7FD1-F523-49DB-B549-DC1761958763}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

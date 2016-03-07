@@ -4,18 +4,19 @@
 using System;
 using Microsoft.Extensions.OptionsModel;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.V3Repository;
 using Stage.V3;
 
 namespace Stage.Manager
 {
     public class V3ServiceFactory : IV3ServiceFactory
     {
-        private readonly IOptions<V3ServiceOptions> _options;
+        private readonly V3ServiceOptions _options;
         private readonly StorageFactory _storageFactory;
 
         public V3ServiceFactory(IOptions<V3ServiceOptions> options, StorageFactory storageFactory)
         {
-            _options = options;
+            _options = options.Value;
             _storageFactory = storageFactory;
         }
 

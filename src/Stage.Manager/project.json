@@ -22,7 +22,7 @@
         "NuGet.Versioning": "3.4.0-beta-663",
         "Stage.Packages": "1.0.0-*",
         "NuGet.Packaging": "3.4.0-beta-667",
-        "Stage.V3": "1.0.0-*",
+        "NuGet.V3Repository": "1.0.0-*"
     },
 
     "commands": {
@@ -34,7 +34,7 @@
     "dnx451": {
         "dependencies": {
         }
-    },
+    }
   },
 
   "exclude": [

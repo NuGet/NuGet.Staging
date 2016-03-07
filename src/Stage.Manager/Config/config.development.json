@@ -8,7 +8,7 @@
     "DatabasePackageServiceOptions": {
         "DatabaseConnectionString": ""
     },
-    "V3": {
+    "PackageRepository": {
         "StorageAccountConnectionString": "",
         "Container": "stages"
     }

@@ -11,6 +11,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.V3Repository;
 using Stage.Database.Models;
 using Stage.Manager.Controllers;
 using Stage.Packages;

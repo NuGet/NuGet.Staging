@@ -4,7 +4,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Stage.V3
+namespace NuGet.V3Repository
 {
     public interface IV3Service
     {

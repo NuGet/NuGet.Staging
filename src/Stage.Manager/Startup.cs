@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.V3Repository;
 using Stage.Database.Models;
 using Stage.Manager.Logging;
 using Stage.Packages;
@@ -83,8 +84,8 @@ namespace Stage.Manager
 
             services.AddSingleton<IV3ServiceFactory, V3ServiceFactory>();
 
-            string storageAccountConnectionString = Configuration["V3:StorageAccountConnectionString"];
-            string containerName = Configuration["V3:Container"];
+            string storageAccountConnectionString = Configuration["PackageRepository:StorageAccountConnectionString"];
+            string containerName = Configuration["PackageRepository:Container"];
             CloudStorageAccount account = CloudStorageAccount.Parse(storageAccountConnectionString);
             services.AddInstance<StorageFactory>(new AzureStorageFactory(account, containerName));
         }

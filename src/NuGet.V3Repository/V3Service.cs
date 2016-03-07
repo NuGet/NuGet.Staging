@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.OptionsModel;
 using NuGet.Services.Metadata.Catalog.Dnx;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using Stage.V3;
 
-namespace Stage.V3
+namespace NuGet.V3Repository
 {
     public class V3ServiceOptions
     {
@@ -26,7 +27,7 @@ namespace Stage.V3
         private readonly DnxMaker _dnxMaker;
         private readonly CancellationToken _cancellationToken = new CancellationToken();
 
-        public V3Service(IOptions<V3ServiceOptions> options, StorageFactory storageFactory)
+        public V3Service(V3ServiceOptions options, StorageFactory storageFactory)
         {
             if (options == null)
             {
@@ -38,7 +39,7 @@ namespace Stage.V3
                 throw new ArgumentNullException(nameof(storageFactory));
             }
 
-            _options = options.Value;
+            _options = options;
             _dnxMaker = new DnxMaker(new AppendingStorageFactory(storageFactory, _options.FlatContainerFolderName));
         }
 
