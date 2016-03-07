@@ -7,5 +7,9 @@
     },
     "DatabasePackageServiceOptions": {
         "DatabaseConnectionString": "Server=(localdb)\\mssqllocaldb;Database=GalleryDB;Trusted_Connection=True;"
+    },
+    "PackageRepository": {
+        "StorageAccountConnectionString": "DefaultEndpointsProtocol=https;AccountName=<account name>;AccountKey=<account key>",
+        "Container": "stages"
     }
 }

@@ -11,9 +11,11 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.V3Repository;
 using Stage.Database.Models;
 using Stage.Manager.Controllers;
 using Stage.Packages;
+using Stage.V3;
 using Xunit;
 
 namespace Stage.Manager.UnitTests
@@ -43,11 +45,15 @@ namespace Stage.Manager.UnitTests
             stageServiceMock.Setup(x => x.GetStage(It.IsAny<string>()))
                 .Returns((string id) => _stageContextMock.Object.Stages.FirstOrDefault(x => x.Id == id));
 
+            var v3FactoryMock = new Mock<IV3ServiceFactory>();
+            v3FactoryMock.Setup(x => x.Create(It.IsAny<string>())).Returns(new Mock<IV3Service>().Object);
+
             _packageController = new PackageController(
                 new Mock<ILogger<PackageController>>().Object,
                 _stageContextMock.Object,
                 _packageServiceMock.Object,
-                stageServiceMock.Object);
+                stageServiceMock.Object,
+                v3FactoryMock.Object);
         }
 
         [Fact]
@@ -165,7 +171,7 @@ namespace Stage.Manager.UnitTests
             ArrangeRequestWithPackage();
             var stage = AddMockStage();
 
-            _packageServiceMock.Setup(x => x.IsPackageExistsByIdAndVersionAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(true));
+            _packageServiceMock.Setup(x => x.DoesPackageExistsAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(true));
 
             // Act
             IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);

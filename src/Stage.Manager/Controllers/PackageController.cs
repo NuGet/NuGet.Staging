@@ -24,8 +24,9 @@ namespace Stage.Manager.Controllers
         private readonly StageContext _context;
         private readonly IPackageService _packageService;
         private readonly IStageService _stageService;
+        private readonly IV3ServiceFactory _v3ServiceFactory;
 
-        public PackageController(ILogger<PackageController> logger, StageContext context, IPackageService packageService, IStageService stageService)
+        public PackageController(ILogger<PackageController> logger, StageContext context, IPackageService packageService, IStageService stageService, IV3ServiceFactory v3ServiceFactory)
         {
             if (logger == null)
             {
@@ -47,10 +48,16 @@ namespace Stage.Manager.Controllers
                 throw new ArgumentNullException(nameof(stageService));
             }
 
+            if (v3ServiceFactory == null)
+            {
+                throw new ArgumentNullException(nameof(v3ServiceFactory));
+            }
+
             _logger = logger;
             _context = context;
             _packageService = packageService;
             _stageService = stageService;
+            _v3ServiceFactory = v3ServiceFactory;
         }
 
         [HttpPut("{id:guid}")]
@@ -84,9 +91,7 @@ namespace Stage.Manager.Controllers
                         // Check client version
                         if (nuspec.GetMinClientVersion() > MaxSupportedMinClientVersion)
                         {
-                            return
-                                new BadRequestObjectResult(string.Format(MinClientVersionOutOfRangeMessage,
-                                    nuspec.GetMinClientVersion()));
+                            return new BadRequestObjectResult(string.Format(MinClientVersionOutOfRangeMessage, nuspec.GetMinClientVersion()));
                         }
 
                         string registrationId = nuspec.GetId();
@@ -96,15 +101,16 @@ namespace Stage.Manager.Controllers
                         // Check if package exists in the stage
                         if (_stageService.DoesPackageExistsOnStage(stage, registrationId, normalizedVersion))
                         {
-                            return
-                                        new ObjectResult(string.Format(PackageExistsOnStageMessage, registrationId,
-                                            normalizedVersion, stage.DisplayName)) { StatusCode = (int)HttpStatusCode.Conflict };
+                            return new ObjectResult(string.Format(PackageExistsOnStageMessage, registrationId, normalizedVersion, stage.DisplayName))
+                            {
+                                StatusCode = (int)HttpStatusCode.Conflict
+                            };
                         }
 
                         // Check if user can write to this registration id
                         if (!await _packageService.IsUserOwnerOfPackageAsync(userKey, registrationId))
                         {
-                                    return new ObjectResult(ApiKeyUnauthorizedMessage) { StatusCode = (int)HttpStatusCode.Forbidden };
+                            return new ObjectResult(ApiKeyUnauthorizedMessage) { StatusCode = (int)HttpStatusCode.Forbidden };
                         }
 
                         stage.Packages.Add(new StagedPackage()
@@ -114,8 +120,10 @@ namespace Stage.Manager.Controllers
                             Version = version.ToString(),
                             UserKey = userKey,
                             Published = DateTime.UtcNow,
-                                    NupkgUrl = "TBD"
+                            NupkgUrl = "TBD"
                         });
+
+                        await AddPackage(id, registrationId, normalizedVersion, packageStream, nuspec.Xml.ToString());
 
                         await _context.SaveChangesAsync();
 
@@ -136,6 +144,12 @@ namespace Stage.Manager.Controllers
                     return new BadRequestObjectResult(string.Format(PackageErrorMessage, ex.Message));
                 }
             }
+        }
+
+        private async Task AddPackage(string stageId, string registrationId, string version, Stream nupkg, string nuspec)
+        {
+            var v3Service = _v3ServiceFactory.Create(stageId);
+            await v3Service.AddPackage(nupkg, nuspec, registrationId, version);
         }
 
         private int GetUserKey() => 1;
