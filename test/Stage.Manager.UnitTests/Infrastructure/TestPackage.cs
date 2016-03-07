@@ -18,6 +18,8 @@ namespace Stage.Manager.UnitTests
 
         public Stream Stream { get; private set; }
 
+        public string Nuspec { get; private set; }
+
         public TestPackage(string id, string version)
         {
             Id = id;
@@ -43,6 +45,8 @@ namespace Stage.Manager.UnitTests
             Stream = CreateTestPackageStream(packageArchive =>
             {
             });
+
+            Nuspec = string.Empty;
 
             return this;
         }
@@ -77,7 +81,7 @@ namespace Stage.Manager.UnitTests
             return packageStream;
         }
 
-        private static void WriteNuspec(
+        private void WriteNuspec(
             Stream stream,
             bool leaveStreamOpen,
             string id,
@@ -100,9 +104,12 @@ namespace Stage.Manager.UnitTests
         {
             using (var streamWriter = new StreamWriter(stream, new UTF8Encoding(false, true), 1024, leaveStreamOpen))
             {
-                streamWriter.WriteLine(@"<?xml version=""1.0""?>
+                Nuspec = @"<?xml version=""1.0""?>
                     <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
-                        <metadata" + (!string.IsNullOrEmpty(minClientVersion) ? @" minClientVersion=""" + minClientVersion + @"""" : string.Empty) + @">
+                        <metadata" +
+                         (!string.IsNullOrEmpty(minClientVersion)
+                             ? @" minClientVersion=""" + minClientVersion + @""""
+                             : string.Empty) + @">
                             <id>" + id + @"</id>
                             <version>" + version + @"</version>
                             <title>" + title + @"</title>
@@ -120,7 +127,8 @@ namespace Stage.Manager.UnitTests
                             <iconUrl>" + (iconUrl?.ToString() ?? string.Empty) + @"</iconUrl>
                             <dependencies>" + WriteDependencies(packageDependencyGroups) + @"</dependencies>
                         </metadata>
-                    </package>");
+                    </package>";
+                streamWriter.WriteLine(Nuspec);
             }
         }
 

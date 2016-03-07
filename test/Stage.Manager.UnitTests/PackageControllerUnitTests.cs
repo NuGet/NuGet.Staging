@@ -10,12 +10,12 @@ using FluentAssertions;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.OptionsModel;
 using Moq;
 using NuGet.V3Repository;
 using Stage.Database.Models;
 using Stage.Manager.Controllers;
 using Stage.Packages;
-using Stage.V3;
 using Xunit;
 
 namespace Stage.Manager.UnitTests
@@ -24,10 +24,12 @@ namespace Stage.Manager.UnitTests
     {
         private const string DefaultRegistrationId = "DefaultId";
         private const string DefaultVersion = "1.0.0";
+        private const string BaseAddress = "http://nuget.org/";
 
         private StageContextMock _stageContextMock;
         private PackageController _packageController;
         private Mock<IPackageService> _packageServiceMock;
+        private TestStorageFactory _testStorageFactory;
 
         public PackageControllerUnitTests()
         {
@@ -45,15 +47,25 @@ namespace Stage.Manager.UnitTests
             stageServiceMock.Setup(x => x.GetStage(It.IsAny<string>()))
                 .Returns((string id) => _stageContextMock.Object.Stages.FirstOrDefault(x => x.Id == id));
 
-            var v3FactoryMock = new Mock<IV3ServiceFactory>();
-            v3FactoryMock.Setup(x => x.Create(It.IsAny<string>())).Returns(new Mock<IV3Service>().Object);
+            var options = new Mock<IOptions<V3ServiceOptions>>();
+
+
+            options.Setup(x => x.Value).Returns(new V3ServiceOptions
+            {
+                CatalogFolderName = "catalog",
+                FlatContainerFolderName = "flatcontainer",
+                RegistrationFolderName = "registration",
+            });
+
+            _testStorageFactory = new TestStorageFactory((string s) => new MemoryStorage(new Uri(BaseAddress + s)));
+            var v3Factory = new V3ServiceFactory(options.Object, _testStorageFactory);
 
             _packageController = new PackageController(
                 new Mock<ILogger<PackageController>>().Object,
                 _stageContextMock.Object,
                 _packageServiceMock.Object,
                 stageServiceMock.Object,
-                v3FactoryMock.Object);
+                v3Factory);
         }
 
         [Fact]
@@ -73,6 +85,14 @@ namespace Stage.Manager.UnitTests
             stage.Packages.First().NormalizedVersion.Should().Be(DefaultVersion);
 
             actionResult.Should().BeOfType<HttpStatusCodeResult>();
+
+            _testStorageFactory.CreatedStorages.Any().Should().BeTrue();
+            ((MemoryStorage) _testStorageFactory.CreatedStorages.Values.First()).Content.Count()
+                .Should()
+                .BeGreaterThan(0, "Files should exist");
+            _testStorageFactory.CreatedStorages.Keys.Any(x => !x.StartsWith($"{stage.Id}"))
+                .Should()
+                .BeFalse("No files should be outside of stage folder");
         }
 
         [Fact]
