@@ -13,7 +13,7 @@ namespace Stage.Manager.UnitTests
 {
     public class StageContextMock : Mock<StageContext>
     {
-        private Dictionary<string, object> _tables;
+        private readonly Dictionary<string, object> _tables;
 
 
         public StageContextMock()
