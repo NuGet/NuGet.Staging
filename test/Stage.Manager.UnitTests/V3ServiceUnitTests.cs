@@ -4,6 +4,8 @@
 using System;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
 using NuGet.V3Repository;
 using Xunit;
 
@@ -30,7 +32,7 @@ namespace Stage.Manager.UnitTests
             };
 
             _storageFactory = new TestStorageFactory((string s) => new MemoryStorage(new Uri(BaseAddress + s)));
-            _v3Service = new V3Service(_options, _storageFactory);
+            _v3Service = new V3Service(_options, _storageFactory, new Mock<ILogger<V3Service>>().Object);
         }
 
         [Fact]
@@ -41,7 +43,8 @@ namespace Stage.Manager.UnitTests
             var testPackage = new TestPackage(RegistrationId, "1.0.0").WithDefaultData();
 
             // Act
-            await _v3Service.AddPackage(testPackage.Stream, testPackage.Nuspec, testPackage.Id, testPackage.Version);
+            var metadata = _v3Service.ParsePackageStream(testPackage.Stream);
+            await _v3Service.AddPackage(testPackage.Stream, metadata);
 
             // Assert
             string flatContainerPath = $"{_options.FlatContainerFolderName}/{RegistrationId}";

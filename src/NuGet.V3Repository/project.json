@@ -1,11 +1,12 @@
-﻿{
+{
     "frameworks": {
         "net451": {
         }
     },
-    "dependencies": {
-        "NuGet.Packaging": "3.4.0-beta-695",
-        "NuGet.Services.Metadata.Catalog": "3.0.1951-r-searchcloud",
-        "Microsoft.Extensions.OptionsModel": "1.0.0-rc1-final"
-    }
+  "dependencies": {
+    "NuGet.Packaging": "3.4.0-beta-695",
+    "NuGet.Services.Metadata.Catalog": "3.0.1951-r-searchcloud",
+    "Microsoft.Extensions.OptionsModel": "1.0.0-rc1-final",
+    "Microsoft.Extensions.Logging": "1.0.0-rc1-final",
+  }
 }

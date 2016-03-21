@@ -16,7 +16,6 @@ using NuGet.V3Repository;
 using Stage.Database.Models;
 using Stage.Manager.Logging;
 using Stage.Packages;
-using Stage.V3;
 using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceCollection;
 
 namespace Stage.Manager
