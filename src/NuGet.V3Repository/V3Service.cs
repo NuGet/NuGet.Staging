@@ -83,7 +83,6 @@ namespace NuGet.V3Repository
 
             // Registration
             _registrationStorageFactory = new AppendingStorageFactory(storageFactory, _options.RegistrationFolderName);
-            RegistrationMakerCatalogItem.PackagesContainer = _options.FlatContainerFolderName;
         }
 
         public IPackageMetadata ParsePackageStream(Stream stream)
@@ -106,6 +105,7 @@ namespace NuGet.V3Repository
 
             Tuple<string, IGraph> catalogItem = await AddToCatalog(v3PackageMetadata, id, version);
 
+            RegistrationMakerCatalogItem.GetPackagePath = (s1, s2) => packageLocations.Item2.ToString();
             await RegistrationMaker.Process(
                 new RegistrationKey(id),
                 new Dictionary<string, IGraph> {{ catalogItem.Item1, catalogItem.Item2 }},
