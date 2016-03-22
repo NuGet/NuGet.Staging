@@ -16,6 +16,7 @@ namespace Stage.V3
         {
             _innerFactory = factory;
             _pathToAppend = pathToAppend;
+            BaseAddress = new Uri($"{factory.BaseAddress}/{_pathToAppend}");
         }
 
         public override Storage Create(string name = null)

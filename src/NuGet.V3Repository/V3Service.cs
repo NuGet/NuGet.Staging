@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -12,9 +13,10 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Dnx;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Metadata.Catalog.Registration;
 using Stage.V3;
+using VDS.RDF;
 
 namespace NuGet.V3Repository
 {
@@ -45,6 +47,8 @@ namespace NuGet.V3Repository
         private readonly DnxMaker _dnxMaker;
         private readonly ILogger<V3Service> _logger;
         private readonly Storage _catalogStorage;
+        private readonly StorageFactory _registrationStorageFactory;
+        private readonly StorageFactory _flatContainerStorageFactory;
 
         private static readonly DateTime _dateTimeMinValueUtc = new DateTime(0L, DateTimeKind.Utc);
 
@@ -66,12 +70,19 @@ namespace NuGet.V3Repository
             }
 
             _options = options;
-            _dnxMaker = new DnxMaker(new AppendingStorageFactory(storageFactory, _options.FlatContainerFolderName));
+
+            // Flat container 
+            _flatContainerStorageFactory = new AppendingStorageFactory(storageFactory, _options.FlatContainerFolderName);
+            _dnxMaker = new DnxMaker(_flatContainerStorageFactory);
             _logger = logger;
 
             // Catalog
             var catalogStorageFactory = new AppendingStorageFactory(storageFactory, _options.CatalogFolderName);
             _catalogStorage = catalogStorageFactory.Create();
+
+            // Registration
+            _registrationStorageFactory = new AppendingStorageFactory(storageFactory, _options.RegistrationFolderName);
+            RegistrationMakerCatalogItem.PackagesContainer = _options.FlatContainerFolderName;
         }
 
         public IPackageMetadata ParsePackageStream(Stream stream)
@@ -83,26 +94,44 @@ namespace NuGet.V3Repository
 
         public async Task<Uri> AddPackage(Stream stream, IPackageMetadata packageMetadata)
         {
+            // TODO: need to lock the stage before applying changes
+
             V3PackageMetadata v3PackageMetadata = (V3PackageMetadata) packageMetadata;
             var nuspec = new NuspecReader(v3PackageMetadata.Nuspec);
 
             string id = nuspec.GetId();
             string version = nuspec.GetVersion().ToNormalizedString();
 
-            _logger.LogInformation($"Adding package: {id}, {version}");
+            var packageLocations = await AddToFlatContainer(stream, packageMetadata, id, version);
 
-            Tuple<Uri, Uri> packageLocations = await _dnxMaker.AddPackage(stream, packageMetadata.Nuspec.ToString(), id, version, CancellationToken.None);
+            Tuple<string, IGraph> catalogItem = await AddToCatalog(v3PackageMetadata, id, version);
 
-            _logger.LogInformation($"Package {id}, {version} was added to flat container");
-
-            await AddToCatalog(v3PackageMetadata);
-
-            _logger.LogInformation($"Package {id}, {version} was added to catalog");
+            await RegistrationMaker.Process(
+                new RegistrationKey(id),
+                new Dictionary<string, IGraph> {{ catalogItem.Item1, catalogItem.Item2 }},
+                _registrationStorageFactory,
+                _flatContainerStorageFactory.BaseAddress,
+                64,
+                128,
+                unlistShouldDelete: true,
+                cancellationToken: CancellationToken.None);
 
             return packageLocations.Item2;
         }
 
-        private async Task AddToCatalog(V3PackageMetadata packageMetadata)
+        private async Task<Tuple<Uri, Uri>> AddToFlatContainer(Stream stream, IPackageMetadata packageMetadata, string id, string version)
+        {
+            _logger.LogInformation($"Adding package: {id}, {version}");
+
+            Tuple<Uri, Uri> packageLocations =
+                await _dnxMaker.AddPackage(stream, packageMetadata.Nuspec.ToString(), id, version, CancellationToken.None);
+
+            _logger.LogInformation($"Package {id}, {version} was added to flat container");
+
+            return packageLocations;
+        }
+
+        private async Task<Tuple<string, IGraph>> AddToCatalog(V3PackageMetadata packageMetadata, string id, string version)
         {
             DateTime timestamp = DateTime.UtcNow;
             DateTime lastDeleted = _dateTimeMinValueUtc;
@@ -121,7 +150,11 @@ namespace NuGet.V3Repository
 
             var commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, new CommitMetadata(timestamp, timestamp, lastDeleted));
 
-            await writer.Commit(commitMetadata, CancellationToken.None);
+            var savedItems = await writer.Commit(commitMetadata, CancellationToken.None);
+
+            _logger.LogInformation($"Package {id}, {version} was added to catalog");
+
+            return new Tuple<string, IGraph>(savedItems.First(), catalogItem.CreateContentGraph(new CatalogContext()));
         }
 
 
