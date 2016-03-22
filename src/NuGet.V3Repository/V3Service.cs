@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Dnx;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Metadata.Catalog.Registration;
 using Stage.V3;
@@ -87,8 +88,7 @@ namespace NuGet.V3Repository
 
         public IPackageMetadata ParsePackageStream(Stream stream)
         {
-            var nupkgMetadata = GetNupkgMetadata(stream);
-
+            var nupkgMetadata = Utils.GetNupkgMetadata(stream);
             return new V3PackageMetadata(nupkgMetadata);
         }
 
@@ -174,60 +174,6 @@ namespace NuGet.V3Repository
             }
 
             return null;
-        }
-        
-        /// Copies
-        
-        public static NupkgMetadata GetNupkgMetadata(Stream stream)
-        {
-            var nupkgMetadata = new NupkgMetadata
-            {
-                PackageSize = stream.Length,
-                PackageHash = Utils.GenerateHash(stream)
-            };
-
-            stream.Seek(0, SeekOrigin.Begin);
-
-            using (ZipArchive package = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
-            {
-                nupkgMetadata.Nuspec = Utils.GetNuspec(package);
-
-                if (nupkgMetadata.Nuspec == null)
-                {
-                    throw new InvalidDataException("Unable to find nuspec");
-                }
-
-                nupkgMetadata.Entries = GetEntries(package);
-
-                return nupkgMetadata;
-            }
-        }
-
-        public static IEnumerable<PackageEntry> GetEntries(ZipArchive package)
-        {
-            IList<PackageEntry> result = new List<PackageEntry>();
-
-            foreach (ZipArchiveEntry entry in package.Entries)
-            {
-                if (entry.FullName.EndsWith("/.rels", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (entry.FullName.EndsWith("[Content_Types].xml", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (entry.FullName.EndsWith(".psmdcp", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                result.Add(new PackageEntry(entry));
-            }
-
-            return result;
         }
     }
 }
