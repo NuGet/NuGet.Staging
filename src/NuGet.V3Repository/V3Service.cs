@@ -30,7 +30,7 @@ namespace NuGet.V3Repository
         public string CatalogFolderName { get; set; }
     }
 
-    public class V3PackageMetadata : IPackageMetadata
+    internal class V3PackageMetadata : IPackageMetadata
     {
         public V3PackageMetadata(NupkgMetadata metadata)
         {
@@ -38,8 +38,8 @@ namespace NuGet.V3Repository
         }
 
         public XDocument Nuspec => NupkgMetadata.Nuspec;
-        
-        internal NupkgMetadata NupkgMetadata { get; set; }
+
+        public NupkgMetadata NupkgMetadata { get; set; }
     }
 
     public class V3Service : IV3Service
@@ -95,20 +95,21 @@ namespace NuGet.V3Repository
         {
             // TODO: need to lock the stage before applying changes
 
-            V3PackageMetadata v3PackageMetadata = (V3PackageMetadata) packageMetadata;
+            var v3PackageMetadata = (V3PackageMetadata) packageMetadata;
             var nuspec = new NuspecReader(v3PackageMetadata.Nuspec);
 
             string id = nuspec.GetId();
             string version = nuspec.GetVersion().ToNormalizedString();
 
+            // TODO: consider closing the steam after save to flat container is done
             var packageLocations = await AddToFlatContainer(stream, packageMetadata, id, version);
+            
+            Tuple<Uri, IGraph> catalogItem = await AddToCatalog(v3PackageMetadata, id, version);
 
-            Tuple<string, IGraph> catalogItem = await AddToCatalog(v3PackageMetadata, id, version);
-
-            RegistrationMakerCatalogItem.GetPackagePath = (s1, s2) => packageLocations.Item2.ToString();
+            RegistrationMakerCatalogItem.GetPackagePath = (s1, s2) => packageLocations.Nupkg.ToString();
             await RegistrationMaker.Process(
                 new RegistrationKey(id),
-                new Dictionary<string, IGraph> {{ catalogItem.Item1, catalogItem.Item2 }},
+                new Dictionary<string, IGraph> {{ catalogItem.Item1.ToString(), catalogItem.Item2 }},
                 _registrationStorageFactory,
                 _flatContainerStorageFactory.BaseAddress,
                 64,
@@ -116,14 +117,14 @@ namespace NuGet.V3Repository
                 unlistShouldDelete: true,
                 cancellationToken: CancellationToken.None);
 
-            return packageLocations.Item2;
+            return packageLocations.Nupkg;
         }
 
-        private async Task<Tuple<Uri, Uri>> AddToFlatContainer(Stream stream, IPackageMetadata packageMetadata, string id, string version)
+        private async Task<DnxMaker.DnxEntry> AddToFlatContainer(Stream stream, IPackageMetadata packageMetadata, string id, string version)
         {
             _logger.LogInformation($"Adding package: {id}, {version}");
 
-            Tuple<Uri, Uri> packageLocations =
+            var packageLocations =
                 await _dnxMaker.AddPackage(stream, packageMetadata.Nuspec.ToString(), id, version, CancellationToken.None);
 
             _logger.LogInformation($"Package {id}, {version} was added to flat container");
@@ -131,7 +132,7 @@ namespace NuGet.V3Repository
             return packageLocations;
         }
 
-        private async Task<Tuple<string, IGraph>> AddToCatalog(V3PackageMetadata packageMetadata, string id, string version)
+        private async Task<Tuple<Uri, IGraph>> AddToCatalog(V3PackageMetadata packageMetadata, string id, string version)
         {
             DateTime timestamp = DateTime.UtcNow;
             DateTime lastDeleted = _dateTimeMinValueUtc;
@@ -154,7 +155,7 @@ namespace NuGet.V3Repository
 
             _logger.LogInformation($"Package {id}, {version} was added to catalog");
 
-            return new Tuple<string, IGraph>(savedItems.First(), catalogItem.CreateContentGraph(new CatalogContext()));
+            return new Tuple<Uri, IGraph>(savedItems.First(), catalogItem.CreateContentGraph(new CatalogContext()));
         }
 
 

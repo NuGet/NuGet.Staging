@@ -18,6 +18,21 @@ namespace Stage.Manager
 
         public V3ServiceFactory(IOptions<V3ServiceOptions> options, StorageFactory storageFactory, ILogger<V3Service> logger)
         {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (storageFactory == null)
+            {
+                throw new ArgumentNullException(nameof(storageFactory));
+            }
+
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             _options = options.Value;
             _storageFactory = storageFactory;
             _logger = logger;
