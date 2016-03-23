@@ -5,9 +5,11 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Newtonsoft.Json.Linq;
 using Stage.Database.Models;
 using Stage.Manager.Controllers;
 using Xunit;
@@ -39,7 +41,10 @@ namespace Stage.Manager.UnitTests
             stageServiceMock.Setup(x => x.GetStage(It.IsAny<string>()))
                 .Returns((string id) => _stageContextMock.Object.Stages.FirstOrDefault(x => x.Id == id));
 
-            _stageController = new StageController(new Mock<ILogger<StageController>>().Object, _stageContextMock.Object, stageServiceMock.Object);
+            _stageController = new StageController(
+                new Mock<ILogger<StageController>>().Object,
+                _stageContextMock.Object,
+                stageServiceMock.Object);
         }
 
         [Fact]
@@ -161,6 +166,29 @@ namespace Stage.Manager.UnitTests
 
             // Assert
             actionResult.Should().BeOfType<HttpNotFoundResult>();
+        }
+
+        [Fact]
+        public void WhenIndexIsCalledJsonIsReturned()
+        {
+            // Arrange
+            var actionContext = new ActionContext();
+            var mockHttpContext = new Mock<HttpContext>();
+            var mockRequest = new Mock<HttpRequest>();
+
+            mockRequest.Setup(x => x.Scheme).Returns("http");
+            mockRequest.Setup(x => x.Host).Returns(new HostString("stage.nuget.org"));
+            mockHttpContext.Setup(x => x.Request).Returns(mockRequest.Object);
+            actionContext.HttpContext = mockHttpContext.Object;
+            _stageController.ActionContext = actionContext;
+
+            // Act
+            IActionResult actionResult = _stageController.Index(Guid.NewGuid().ToString());
+
+            // Assert
+            actionResult.Should().BeOfType<JsonResult>();
+            var jsonResult = (JsonResult) actionResult;
+            ((JObject) jsonResult.Value).ToString().Should().NotBeEmpty();
         }
 
 
