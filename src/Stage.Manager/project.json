@@ -19,10 +19,12 @@
         "EntityFramework.MicrosoftSqlServer": "7.0.0-rc1-final",
         "Stage.Database": "1.0.0-*",
         "EntityFramework.Commands": "7.0.0-rc1-final",
-        "NuGet.Versioning": "3.4.0-beta-663",
         "Stage.Packages": "1.0.0-*",
-        "NuGet.Packaging": "3.4.0-beta-667",
-        "NuGet.V3Repository": "1.0.0-*"
+        "NuGet.Packaging": "3.5.0-beta-1068",
+        "NuGet.V3Repository": "1.0.0-*",
+        "Newtonsoft.Json": "8.0.3",
+        "NuGet.Protocol.Core.v3": "3.5.0-beta-1034",
+        "NuGet.Versioning": "3.5.0-beta-1068"
     },
 
     "commands": {

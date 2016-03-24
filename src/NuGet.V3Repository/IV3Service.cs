@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -8,6 +9,8 @@ namespace NuGet.V3Repository
 {
     public interface IV3Service
     {
-        Task AddPackage(Stream packageStream, string nuspec, string id, string version);
+        IPackageMetadata ParsePackageStream(Stream stream);
+
+        Task<Uri> AddPackage(Stream stream, IPackageMetadata metadata);
     }
 }

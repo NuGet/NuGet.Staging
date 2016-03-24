@@ -1,12 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.V3Repository;
+using System.Xml.Linq;
 
-namespace Stage.Manager
+namespace NuGet.V3Repository
 {
-    public interface IV3ServiceFactory
+    public interface IPackageMetadata
     {
-        IV3Service Create(string stageName);
+        XDocument Nuspec { get; }
     }
 }

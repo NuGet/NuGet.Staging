@@ -58,7 +58,7 @@ namespace Stage.Manager.UnitTests
             });
 
             _testStorageFactory = new TestStorageFactory((string s) => new MemoryStorage(new Uri(BaseAddress + s)));
-            var v3Factory = new V3ServiceFactory(options.Object, _testStorageFactory);
+            var v3Factory = new V3ServiceFactory(options.Object, _testStorageFactory, new Mock<ILogger<V3Service>>().Object);
 
             _packageController = new PackageController(
                 new Mock<ILogger<PackageController>>().Object,

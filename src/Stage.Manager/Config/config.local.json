@@ -10,6 +10,5 @@
     },
     "PackageRepository": {
         "StorageAccountConnectionString": "DefaultEndpointsProtocol=https;AccountName=<account name>;AccountKey=<account key>",
-        "Container": "stages"
     }
 }

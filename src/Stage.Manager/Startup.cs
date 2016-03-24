@@ -16,7 +16,6 @@ using NuGet.V3Repository;
 using Stage.Database.Models;
 using Stage.Manager.Logging;
 using Stage.Packages;
-using Stage.V3;
 using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceCollection;
 
 namespace Stage.Manager
@@ -75,19 +74,18 @@ namespace Stage.Manager
             services.AddScoped<IStageService, StageService>();
 
             // V3
-            services.Configure<V3ServiceOptions>((options) =>
+            services.Configure<V3ServiceOptions>(options =>
             {
-                options.CatalogFolderName = "catalog";
-                options.FlatContainerFolderName = "flatcontainer";
-                options.RegistrationFolderName = "registration";
+                options.CatalogFolderName = Constants.CatalogFolderName;
+                options.FlatContainerFolderName = Constants.FlatContainerFolderName;
+                options.RegistrationFolderName = Constants.RegistrationFolderName;
             });
 
             services.AddSingleton<IV3ServiceFactory, V3ServiceFactory>();
 
             string storageAccountConnectionString = Configuration["PackageRepository:StorageAccountConnectionString"];
-            string containerName = Configuration["PackageRepository:Container"];
             CloudStorageAccount account = CloudStorageAccount.Parse(storageAccountConnectionString);
-            services.AddInstance<StorageFactory>(new AzureStorageFactory(account, containerName));
+            services.AddInstance<StorageFactory>(new AzureStorageFactory(account, Constants.StagesContainerName));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

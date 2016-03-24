@@ -16,6 +16,10 @@ namespace Stage.V3
         {
             _innerFactory = factory;
             _pathToAppend = pathToAppend;
+
+            BaseAddress = _innerFactory.BaseAddress.ToString().EndsWith("/") ? 
+                            new Uri($"{factory.BaseAddress}{_pathToAppend}") :
+                            new Uri($"{factory.BaseAddress}/{_pathToAppend}");
         }
 
         public override Storage Create(string name = null)

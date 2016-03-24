@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
 using Stage.Database.Models;
+using Stage.Manager.V3;
 using static Stage.Manager.Controllers.Messages;
 
 namespace Stage.Manager.Controllers
@@ -18,6 +19,7 @@ namespace Stage.Manager.Controllers
         private readonly ILogger<StageController> _logger;
         private readonly StageContext _context;
         private readonly IStageService _stageService;
+        private readonly StageIndexBuilder _stageIndexBuilder = new StageIndexBuilder();
 
         private const string MessageFormat = "User: {UserKey}, Stage: {StageId}, {Message}";
 
@@ -124,6 +126,13 @@ namespace Stage.Manager.Controllers
         {
             // Not implemented
             return new BadRequestResult();
+        }
+
+        [HttpGet("{id:guid}/index.json")]
+        public IActionResult Index(string id)
+        {
+            var index = _stageIndexBuilder.CreateIndex(Request.Scheme, Request.Host.Value, id);
+            return Json(index);
         }
 
         private int GetUserKey() => 1;

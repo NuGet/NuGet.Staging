@@ -9,7 +9,6 @@
         "DatabaseConnectionString": ""
     },
     "PackageRepository": {
-        "StorageAccountConnectionString": "",
-        "Container": "stages"
+        "StorageAccountConnectionString": ""
     }
 }
