@@ -106,7 +106,7 @@ namespace NuGet.V3Repository
             
             Tuple<Uri, IGraph> catalogItem = await AddToCatalog(v3PackageMetadata, id, version);
 
-            RegistrationMakerCatalogItem.GetPackagePath = (s1, s2) => packageLocations.Nupkg.ToString();
+            RegistrationMakerCatalogItem.PackagePathProvider = new FlatContainerPathProvider(packageLocations.Nupkg.ToString());
             await RegistrationMaker.Process(
                 new RegistrationKey(id),
                 new Dictionary<string, IGraph> {{ catalogItem.Item1.ToString(), catalogItem.Item2 }},
@@ -114,7 +114,6 @@ namespace NuGet.V3Repository
                 _flatContainerStorageFactory.BaseAddress,
                 64,
                 128,
-                unlistShouldDelete: true,
                 cancellationToken: CancellationToken.None);
 
             return packageLocations.Nupkg;
@@ -175,6 +174,21 @@ namespace NuGet.V3Repository
             }
 
             return null;
+        }
+
+        class FlatContainerPathProvider : IPackagePathProvider
+        {
+            private string _path;
+
+            public FlatContainerPathProvider(string path)
+            {
+                _path = path;
+            }
+
+            public string GetPackagePath(string id, string version)
+            {
+                return _path;
+            }
         }
     }
 }
