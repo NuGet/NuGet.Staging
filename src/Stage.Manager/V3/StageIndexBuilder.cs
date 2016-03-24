@@ -16,9 +16,9 @@ namespace Stage.Manager.V3
         /// <param name="stageId">Stage id</param>
         public JObject CreateIndex(string scheme, string host, string stageId)
         {
-            var stageFolderPath = $"{scheme}://{host}/{Constants.StagesConatinerName}/{stageId}";
+            var stageFolderPath = $"{scheme}://{host}/{Constants.StagesContainerName}/{stageId}";
 
-            dynamic index = new JObject
+            var index = new JObject
             {
                 {"version", "3.0.0-beta.1"},
                 {"@context", new JObject

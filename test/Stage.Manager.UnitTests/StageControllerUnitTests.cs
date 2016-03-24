@@ -10,6 +10,7 @@ using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
+using NuGet.Protocol.Core.v3;
 using Stage.Database.Models;
 using Stage.Manager.Controllers;
 using Xunit;
@@ -189,8 +190,13 @@ namespace Stage.Manager.UnitTests
             actionResult.Should().BeOfType<JsonResult>();
             var jsonResult = (JsonResult) actionResult;
             ((JObject) jsonResult.Value).ToString().Should().NotBeEmpty();
+            var jsonObj = (JObject) jsonResult.Value;
+            jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.SearchQueryService[0]).Should().NotBeEmpty();
+            jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.SearchAutocompleteService).Should().NotBeEmpty();
+            jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.RegistrationsBaseUrl[0]).Should().NotBeEmpty();
+            jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.PackageBaseAddress).Should().NotBeEmpty();
+            jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.PackagePublish).Should().NotBeEmpty();
         }
-
 
         private async Task<string> AddMockStage(string displayName)
         {

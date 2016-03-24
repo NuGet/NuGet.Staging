@@ -85,7 +85,7 @@ namespace Stage.Manager
 
             string storageAccountConnectionString = Configuration["PackageRepository:StorageAccountConnectionString"];
             CloudStorageAccount account = CloudStorageAccount.Parse(storageAccountConnectionString);
-            services.AddInstance<StorageFactory>(new AzureStorageFactory(account, Constants.StagesConatinerName));
+            services.AddInstance<StorageFactory>(new AzureStorageFactory(account, Constants.StagesContainerName));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

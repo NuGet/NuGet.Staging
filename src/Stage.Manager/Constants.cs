@@ -5,7 +5,7 @@ namespace Stage.Manager
 {
     public static class Constants
     {
-        public const string StagesConatinerName = "stages";
+        public const string StagesContainerName = "stages";
         public const string RegistrationFolderName = "registration";
         public const string CatalogFolderName = "catalog";
         public const string FlatContainerFolderName = "flatcontainer";
