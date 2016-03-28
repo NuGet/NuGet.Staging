@@ -45,7 +45,7 @@ namespace Stage.Manager.UnitTests
 
             // Act
             var metadata = _v3Service.ParsePackageStream(testPackage.Stream);
-            Uri nupkgLocation = await _v3Service.AddPackage(testPackage.Stream, metadata);
+            var nupkgLocation = await _v3Service.AddPackage(testPackage.Stream, metadata);
 
             // Assert
             string flatContainerPath = $"{_options.FlatContainerFolderName}/{testPackage.Id}";
@@ -87,7 +87,7 @@ namespace Stage.Manager.UnitTests
 
             // Act
             var metadata = _v3Service.ParsePackageStream(testPackage.Stream);
-            Uri nupkgLocation = await _v3Service.AddPackage(testPackage.Stream, metadata);
+            var nupkgLocation = await _v3Service.AddPackage(testPackage.Stream, metadata);
 
             // Assert
             string registrationPath = $"{_options.RegistrationFolderName}/{testPackage.Id}";

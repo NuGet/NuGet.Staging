@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -123,6 +122,7 @@ namespace NuGet.V3Repository
         {
             _logger.LogInformation($"Adding package: {id}, {version}");
 
+            stream.Position = 0;
             var packageLocations =
                 await _dnxMaker.AddPackage(stream, packageMetadata.Nuspec.ToString(), id, version, CancellationToken.None);
 
