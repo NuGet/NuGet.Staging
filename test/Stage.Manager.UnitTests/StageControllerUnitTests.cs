@@ -11,8 +11,10 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Protocol.Core.v3;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using Stage.Database.Models;
 using Stage.Manager.Controllers;
+using Stage.Manager.Search;
 using Xunit;
 
 namespace Stage.Manager.UnitTests
@@ -45,7 +47,9 @@ namespace Stage.Manager.UnitTests
             _stageController = new StageController(
                 new Mock<ILogger<StageController>>().Object,
                 _stageContextMock.Object,
-                stageServiceMock.Object);
+                stageServiceMock.Object,
+                new Mock<StorageFactory>().Object, 
+                new Mock<ISearchService>().Object);
         }
 
         [Fact]
@@ -62,7 +66,7 @@ namespace Stage.Manager.UnitTests
 
             stage.DisplayName.Should().Be(_displayName);
             stage.Status.Should().Be(StageStatus.Active);
-            stage.Members.Count().Should().Be(1);
+            stage.Members.Count.Should().Be(1);
             stage.Members.First().MemberType.Should().Be(MemberType.Owner);
         }
 
@@ -192,8 +196,10 @@ namespace Stage.Manager.UnitTests
             ((JObject) jsonResult.Value).ToString().Should().NotBeEmpty();
             var jsonObj = (JObject) jsonResult.Value;
             jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.SearchQueryService[0]).Should().NotBeEmpty();
+            jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.SearchQueryService[1]).Should().NotBeEmpty();
             jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.SearchAutocompleteService).Should().NotBeEmpty();
             jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.RegistrationsBaseUrl[0]).Should().NotBeEmpty();
+            jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.RegistrationsBaseUrl[1]).Should().NotBeEmpty();
             jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.PackageBaseAddress).Should().NotBeEmpty();
             jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.PackagePublish).Should().NotBeEmpty();
         }

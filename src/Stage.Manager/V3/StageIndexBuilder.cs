@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Newtonsoft.Json.Linq;
 using NuGet.Protocol.Core.v3;
 
@@ -14,9 +15,10 @@ namespace Stage.Manager.V3
         /// <param name="host">The host service.</param>
         /// <param name="scheme">http/https</param>
         /// <param name="stageId">Stage id</param>
-        public JObject CreateIndex(string scheme, string host, string stageId)
+        public JObject CreateIndex(string scheme, string host, string stageId, Uri v3BaseAddess)
         {
-            var stageFolderPath = $"{scheme}://{host}/{Constants.StagesContainerName}/{stageId}";
+            var stageFolderPath = $"{v3BaseAddess}{stageId}";
+            var stageControllerPath = $"{scheme}://{host}/api/stage/{stageId}";
 
             var index = new JObject
             {
@@ -29,9 +31,11 @@ namespace Stage.Manager.V3
                 },
                 {"resources", new JArray
                     {
-                        CreateResource(string.Empty, ServiceTypes.SearchQueryService[0],  "Search endpoint"),
-                        CreateResource(string.Empty, ServiceTypes.SearchAutocompleteService, "Autocomplete endpoint"),
+                        CreateResource($"{stageControllerPath}/query", ServiceTypes.SearchQueryService[0],  "Search endpoint"),
+                        CreateResource($"{stageControllerPath}/query", ServiceTypes.SearchQueryService[1],  "Search endpoint"),
+                        CreateResource($"{stageControllerPath}/autocomplete", ServiceTypes.SearchAutocompleteService, "Autocomplete endpoint"),
                         CreateResource($"{stageFolderPath}/{Constants.RegistrationFolderName}/", ServiceTypes.RegistrationsBaseUrl[0], "Registration blobs Uri"),
+                        CreateResource($"{stageFolderPath}/{Constants.RegistrationFolderName}/", ServiceTypes.RegistrationsBaseUrl[1], "Registration blobs Uri"),
                         CreateResource($"{stageFolderPath}/{Constants.FlatContainerFolderName}/", ServiceTypes.PackageBaseAddress, "Packages base uri"),
                         CreateResource($"{scheme}://{host}/api/package/{stageId}", ServiceTypes.PackagePublish, "Package publishing endpoint"),
                     }

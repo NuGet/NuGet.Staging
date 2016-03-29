@@ -15,6 +15,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.V3Repository;
 using Stage.Database.Models;
 using Stage.Manager.Logging;
+using Stage.Manager.Search;
 using Stage.Packages;
 using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceCollection;
 
@@ -86,6 +87,9 @@ namespace Stage.Manager
             string storageAccountConnectionString = Configuration["PackageRepository:StorageAccountConnectionString"];
             CloudStorageAccount account = CloudStorageAccount.Parse(storageAccountConnectionString);
             services.AddInstance<StorageFactory>(new AzureStorageFactory(account, Constants.StagesContainerName));
+
+            // Search
+            services.AddScoped<ISearchService, DummySearchService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
