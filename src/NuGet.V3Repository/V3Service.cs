@@ -100,7 +100,7 @@ namespace NuGet.V3Repository
             string id = nuspec.GetId();
             string version = nuspec.GetVersion().ToNormalizedString();
 
-            // TODO: consider closing the steam after save to flat container is done
+            // TODO: consider closing the stream after save to flat container is done
             var packageLocations = await AddToFlatContainer(stream, packageMetadata, id, version);
             
             Tuple<Uri, IGraph> catalogItem = await AddToCatalog(v3PackageMetadata, id, version);
@@ -122,13 +122,19 @@ namespace NuGet.V3Repository
         {
             _logger.LogInformation($"Adding package: {id}, {version}");
 
-            stream.Position = 0;
-            var packageLocations =
-                await _dnxMaker.AddPackage(stream, packageMetadata.Nuspec.ToString(), id, version, CancellationToken.None);
+            // This is a workaround for this issue: https://github.com/Azure/azure-storage-net/issues/202
+            // When resolved, we can save directly from the stream
+            var data = new byte[stream.Length];
+            using (var ms = new MemoryStream(data, writable: true))
+            {
+                await stream.CopyToAsync(ms);
+                var packageLocations =
+                    await _dnxMaker.AddPackage(ms, packageMetadata.Nuspec.ToString(), id, version, CancellationToken.None);
 
-            _logger.LogInformation($"Package {id}, {version} was added to flat container");
+                _logger.LogInformation($"Package {id}, {version} was added to flat container");
 
-            return packageLocations;
+                return packageLocations;
+            }
         }
 
         private async Task<Tuple<Uri, IGraph>> AddToCatalog(V3PackageMetadata packageMetadata, string id, string version)
