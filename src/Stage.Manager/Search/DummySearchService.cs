@@ -33,7 +33,7 @@ namespace Stage.Manager.Search
             {
                 foreach (var package in stage.Packages)
                 {
-                    var item = GetPackageItem(package, stageId);
+                    var item = GetPackageItem(package);
                     dataItems.Add(item);
                 }
             }
@@ -56,9 +56,9 @@ namespace Stage.Manager.Search
             return Task.FromResult(obj);
         }
 
-        private JObject GetPackageItem(StagedPackage package, string stageId)
+        private JObject GetPackageItem(StagedPackage package)
         {
-            Uri registrationBaseAddress = new Uri(BaseAddress, $"registration/{stageId}");
+            Uri registrationBaseAddress = new Uri(BaseAddress, $"{Constants.RegistrationFolderName}/");
 
             return new JObject
             {
@@ -91,12 +91,12 @@ namespace Stage.Manager.Search
 
         private Uri GetRegistrationVersionUri(StagedPackage package, Uri registrationBaseAddress)
         {
-            return new Uri(registrationBaseAddress, $"{package.Id}/{package.NormalizedVersion}");
+            return new Uri(registrationBaseAddress, $"{package.Id.ToLowerInvariant()}/{package.NormalizedVersion}.json");
         }
 
         private Uri GetRegistrationIndexUri(StagedPackage package, Uri registrationBaseAddress)
         {
-            return new Uri(registrationBaseAddress, $"{package.Id}/index.json");
+            return new Uri(registrationBaseAddress, $"{package.Id.ToLowerInvariant()}/index.json");
         }
     }
 }
