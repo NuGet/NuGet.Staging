@@ -69,18 +69,7 @@ namespace Stage.Manager.Controllers
             var userMemberships = _context.StageMembers.Where(sm => sm.UserKey == userKey);
 
             return
-                new HttpOkObjectResult(
-                    userMemberships.Select(
-                        sm =>
-                            new
-                            {
-                                sm.MemberType,
-                                sm.Stage.Id,
-                                sm.Stage.CreationDate,
-                                sm.Stage.ExpirationDate,
-                                sm.Stage.DisplayName,
-                                sm.Stage.Status
-                            }).ToList());
+                new HttpOkObjectResult(userMemberships.Select(sm => GetStageData(sm.Stage, sm, false)).ToList());
         }
 
         // GET api/stage/e92156e2d6a74a19853a3294cf681dfc
@@ -95,7 +84,7 @@ namespace Stage.Manager.Controllers
                 return new HttpNotFoundResult();
             }
 
-            return new HttpOkObjectResult(new { stage.Id, stage.DisplayName, stage.CreationDate, stage.ExpirationDate, stage.Status });
+            return new HttpOkObjectResult(GetStageData(stage, stage.Members.First(x => x.UserKey == userKey), includePackages: true));
         }
 
         // POST api/stage
@@ -113,8 +102,7 @@ namespace Stage.Manager.Controllers
 
             _logger.LogInformation(MessageFormat, userKey, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
 
-            // TODO: add feed uri to returned data
-            return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id, stage.ExpirationDate, stage.Status });
+            return new HttpOkObjectResult(GetStageData(stage, stage.Members.First(), includePackages: false));
         }
 
         // DELETE api/stage/e92156e2d6a74a19853a3294cf681dfc
@@ -131,9 +119,10 @@ namespace Stage.Manager.Controllers
             }
 
             await _stageService.DropStage(stage);
+            stage.Status = StageStatus.Deleted;
 
             _logger.LogInformation(MessageFormat, userKey, id, "Drop was successful");
-            return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id });
+            return new HttpOkObjectResult(GetStageData(stage, stage.Members.First(x => x.UserKey == userKey), includePackages: false));
         }
 
         // POST api/stage/e92156e2d6a74a19853a3294cf681dfc
@@ -171,6 +160,37 @@ namespace Stage.Manager.Controllers
             return new JsonResult(searchResult);
         }
 
+        private object GetStageData(Database.Models.Stage stage, StageMember member, bool includePackages)
+        {
+            dynamic sd = new
+            {
+                stage.Id,
+                stage.DisplayName,
+                stage.CreationDate,
+                stage.ExpirationDate,
+                Status = stage.Status.ToString(),
+                MemberType = member.MemberType.ToString(),
+                Feed = $"{Request.Scheme}://{Request.Host.Value}/api/stage/{stage.Id}/index.json",
+            };
+
+            if (!includePackages)
+            {
+                return sd;
+            }
+
+            var packages = stage.Packages.Select(package => new
+            {
+                package.Id,
+                package.Version,
+            }).ToArray();
+
+            return new
+            {
+                Metadata = sd,
+                Packages = packages,
+                PackageCount = packages.Length
+            };
+        }
 
         private int GetUserKey() => 1;
     }
