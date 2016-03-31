@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace Stage.V3
@@ -17,9 +16,7 @@ namespace Stage.V3
             _innerFactory = factory;
             _pathToAppend = pathToAppend;
 
-            BaseAddress = _innerFactory.BaseAddress.ToString().EndsWith("/") ? 
-                            new Uri($"{factory.BaseAddress}{_pathToAppend}") :
-                            new Uri($"{factory.BaseAddress}/{_pathToAppend}");
+            BaseAddress = new Uri(factory.BaseAddress, $"{_pathToAppend}/");
         }
 
         public override Storage Create(string name = null)

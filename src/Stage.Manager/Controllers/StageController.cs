@@ -153,7 +153,7 @@ namespace Stage.Manager.Controllers
 
             if (_searchService is DummySearchService)
             {
-                ((DummySearchService) _searchService).BaseAddress = new Uri($"{Request.Scheme}://{Request.Host.Value}");
+                ((DummySearchService) _searchService).BaseAddress = new Uri(_storageFactory.BaseAddress, $"{id}/");
             }
 
             var searchResult = await _searchService.Search(id, Request.QueryString.Value);
