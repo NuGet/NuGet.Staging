@@ -18,7 +18,6 @@
         }
     },
     "dependencies": {
-        "FluentAssertions": "4.2.2",
         "Microsoft.Extensions.OptionsModel": "1.0.0-rc1-final",
         "Newtonsoft.Json": "8.0.3",
     }

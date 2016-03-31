@@ -12,7 +12,9 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Protocol.Core.v3;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using Stage.Authentication;
 using Stage.Database.Models;
+using Stage.Manager.Authentication;
 using Stage.Manager.Controllers;
 using Stage.Manager.Search;
 using Xunit;
@@ -26,10 +28,12 @@ namespace Stage.Manager.UnitTests
     /// </summary>
     public class StageControllerUnitTests
     {
-        const string _displayName = "display name";
+        private const string DisplayName = "display name";
+        private const int UserKey = 3;
 
         private StageController _stageController;
         private StageContextMock _stageContextMock;
+        private Mock<IAuthenticationService> _mockAuthenticationService;
 
         public StageControllerUnitTests()
         {
@@ -44,19 +48,30 @@ namespace Stage.Manager.UnitTests
             stageServiceMock.Setup(x => x.GetStage(It.IsAny<string>()))
                 .Returns((string id) => _stageContextMock.Object.Stages.FirstOrDefault(x => x.Id == id));
 
+            var mockCredentialExtractor = new Mock<IAuthenticationCredentialsExtractor>();
+            mockCredentialExtractor.Setup(x => x.GetCredentials(It.IsAny<HttpRequest>())).Returns(new Mock<ICredentials>().Object);
+
+            var userInfo = new Mock<IUserInformation>();
+            userInfo.SetupProperty(x => x.UserKey, UserKey);
+
+            _mockAuthenticationService = new Mock<IAuthenticationService>();
+            _mockAuthenticationService.Setup(x => x.Authenticate(It.IsAny<ICredentials>())).Returns(Task.FromResult(userInfo.Object));
+
             _stageController = new StageController(
                 new Mock<ILogger<StageController>>().Object,
                 _stageContextMock.Object,
                 stageServiceMock.Object,
                 new Mock<StorageFactory>().Object, 
-                new Mock<ISearchService>().Object);
+                new Mock<ISearchService>().Object,
+                _mockAuthenticationService.Object,
+                mockCredentialExtractor.Object);
         }
 
         [Fact]
         public async Task WhenCreateIsCalledNewStageIsAdded()
         {
             // Act 
-            IActionResult actionResult =  await _stageController.Create(_displayName);
+            IActionResult actionResult =  await _stageController.Create(DisplayName);
 
             // Assert
             actionResult.Should().BeOfType<HttpOkObjectResult>();
@@ -64,10 +79,24 @@ namespace Stage.Manager.UnitTests
 
             Database.Models.Stage stage = _stageContextMock.Object.Stages.First();
 
-            stage.DisplayName.Should().Be(_displayName);
+            stage.DisplayName.Should().Be(DisplayName);
             stage.Status.Should().Be(StageStatus.Active);
             stage.Members.Count.Should().Be(1);
             stage.Members.First().MemberType.Should().Be(MemberType.Owner);
+            stage.Members.First().UserKey.Should().Be(UserKey);
+        }
+
+        [Fact]
+        public async Task WhenCreateIsCalledAndAuthenticationFails401IsReturned()
+        {
+            // Arrange
+            _mockAuthenticationService.Setup(x => x.Authenticate(It.IsAny<ICredentials>())).Returns(Task.FromResult((IUserInformation)null));
+
+            // Act
+            IActionResult actionResult = await _stageController.Create(DisplayName);
+
+            // Assert
+            actionResult.Should().BeOfType<HttpUnauthorizedResult>();
         }
 
         [Fact]
@@ -98,7 +127,7 @@ namespace Stage.Manager.UnitTests
             await AddMockStage("second");
 
             // Act
-            IActionResult actionResult = _stageController.ListUserStages();
+            IActionResult actionResult =await _stageController.ListUserStages();
 
             // Assert
             actionResult.Should().BeOfType<HttpOkObjectResult>();
@@ -114,7 +143,7 @@ namespace Stage.Manager.UnitTests
         {
             // Arrange
             await AddMockStage("first");
-            string secondStageId = await AddMockStage(_displayName);
+            string secondStageId = await AddMockStage(DisplayName);
 
             // Act
             IActionResult actionResult = _stageController.GetDetails(secondStageId);
@@ -125,7 +154,7 @@ namespace Stage.Manager.UnitTests
             object result = (actionResult as HttpOkObjectResult).Value;
             string displayName = (string)result.GetType().GetProperty("DisplayName").GetValue(result);
 
-            displayName.Should().Be(_displayName);
+            displayName.Should().Be(DisplayName);
         }
 
         [Fact]
@@ -171,6 +200,37 @@ namespace Stage.Manager.UnitTests
 
             // Assert
             actionResult.Should().BeOfType<HttpNotFoundResult>();
+        }
+
+        [Fact]
+        public async Task WhenDropIsCalledAndAuthenticationFails401IsReturned()
+        {
+            // Arrange
+            _mockAuthenticationService.Setup(x => x.Authenticate(It.IsAny<ICredentials>())).Returns(Task.FromResult((IUserInformation)null));
+
+            // Act
+            IActionResult actionResult = await _stageController.Drop("anystring");
+
+            // Assert
+            actionResult.Should().BeOfType<HttpUnauthorizedResult>();
+        }
+
+        [Fact]
+        public async Task WhenDropIsCalledWithUnauthorizedUser401IsReturned()
+        {
+            // Arrange
+            string stageId = await AddMockStage("stage");
+
+            var userInfo = new Mock<IUserInformation>();
+            userInfo.SetupProperty(x => x.UserKey, UserKey+1);
+
+            _mockAuthenticationService.Setup(x => x.Authenticate(It.IsAny<ICredentials>())).Returns(Task.FromResult(userInfo.Object));
+
+            // Act
+            IActionResult actionResult = await _stageController.Drop(stageId);
+
+            // Assert
+            actionResult.Should().BeOfType<HttpUnauthorizedResult>();
         }
 
         [Fact]

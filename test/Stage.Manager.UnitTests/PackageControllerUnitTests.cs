@@ -13,7 +13,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.OptionsModel;
 using Moq;
 using NuGet.V3Repository;
+using Stage.Authentication;
 using Stage.Database.Models;
+using Stage.Manager.Authentication;
 using Stage.Manager.Controllers;
 using Stage.Packages;
 using Xunit;
@@ -25,11 +27,13 @@ namespace Stage.Manager.UnitTests
         private const string DefaultRegistrationId = "DefaultId";
         private const string DefaultVersion = "1.0.0";
         private const string BaseAddress = "http://nuget.org/";
+        private const int UserKey = 2;
 
         private StageContextMock _stageContextMock;
         private PackageController _packageController;
         private Mock<IPackageService> _packageServiceMock;
         private TestStorageFactory _testStorageFactory;
+        private Mock<IAuthenticationService> _mockAuthenticationService;
 
         public PackageControllerUnitTests()
         {
@@ -60,12 +64,23 @@ namespace Stage.Manager.UnitTests
             _testStorageFactory = new TestStorageFactory((string s) => new MemoryStorage(new Uri(BaseAddress + s)));
             var v3Factory = new V3ServiceFactory(options.Object, _testStorageFactory, new Mock<ILogger<V3Service>>().Object);
 
+            var mockCredentialExtractor = new Mock<IAuthenticationCredentialsExtractor>();
+            mockCredentialExtractor.Setup(x => x.GetCredentials(It.IsAny<HttpRequest>())).Returns(new Mock<ICredentials>().Object);
+
+            var userInfo = new Mock<IUserInformation>();
+            userInfo.SetupProperty(x => x.UserKey, UserKey);
+
+            _mockAuthenticationService = new Mock<IAuthenticationService>();
+            _mockAuthenticationService.Setup(x => x.Authenticate(It.IsAny<ICredentials>())).Returns(Task.FromResult(userInfo.Object));
+
             _packageController = new PackageController(
                 new Mock<ILogger<PackageController>>().Object,
                 _stageContextMock.Object,
                 _packageServiceMock.Object,
                 stageServiceMock.Object,
-                v3Factory);
+                v3Factory,
+                _mockAuthenticationService.Object,
+                mockCredentialExtractor.Object);
         }
 
         [Fact]
@@ -167,7 +182,7 @@ namespace Stage.Manager.UnitTests
         }
 
         [Fact]
-        public async Task WhenPushIsCalledAndUserIsNotOwner403IsReturned()
+        public async Task WhenPushIsCalledAndUserIsNotOwnerOfPackage403IsReturned()
         {
             // Arrange
             ArrangeRequestWithPackage();
@@ -197,7 +212,7 @@ namespace Stage.Manager.UnitTests
             IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
 
             // Assert
-            stage.Packages.Count().Should().Be(1);
+            stage.Packages.Count.Should().Be(1);
 
             actionResult.Should().BeOfType<ObjectResult>();
             var objectResult = actionResult as ObjectResult;
@@ -205,6 +220,37 @@ namespace Stage.Manager.UnitTests
             ((string) objectResult.Value).Should().Contain(DefaultRegistrationId);
         }
 
+        [Fact]
+        public async Task WhenPushIsCalledAndAuthenticationFails401IsReturned()
+        {
+            // Arrange
+            _mockAuthenticationService.Setup(x => x.Authenticate(It.IsAny<ICredentials>())).Returns(Task.FromResult((IUserInformation)null));
+            var stage = AddMockStage();
+
+            // Act
+            IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
+
+            // Assert
+            actionResult.Should().BeOfType<HttpUnauthorizedResult>();
+        }
+
+        [Fact]
+        public async Task WhenPushIsCalledAndUserIsNotOwnerOfStage401IsReturned()
+        {
+            // Arrange
+            var stage = AddMockStage();
+
+            var userInfo = new Mock<IUserInformation>();
+            userInfo.SetupProperty(x => x.UserKey, UserKey + 1);
+
+            _mockAuthenticationService.Setup(x => x.Authenticate(It.IsAny<ICredentials>())).Returns(Task.FromResult(userInfo.Object));
+
+            // Act
+            IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
+
+            // Assert
+            actionResult.Should().BeOfType<HttpUnauthorizedResult>();
+        }
 
         private void ArrangeRequestWithPackage(string id = DefaultRegistrationId, string version = DefaultVersion)
         {
@@ -239,7 +285,7 @@ namespace Stage.Manager.UnitTests
                 Key = 1,
                 MemberType = MemberType.Owner,
                 StageKey = stageKey,
-                UserKey = 1
+                UserKey = UserKey
             };
 
             var stage = new Database.Models.Stage
