@@ -126,13 +126,13 @@ namespace Stage.Manager.UnitTests
             // Assert
             actionResult.Should().BeOfType<HttpOkObjectResult>();
 
-            object result = (actionResult as HttpOkObjectResult).Value;
-            object metadata = result.GetType().GetProperty("Metadata").GetValue(result);
-            var packages = (object[])result.GetType().GetProperty("Packages").GetValue(result);
+            var result = (actionResult as HttpOkObjectResult).Value;
+            result.Should().BeOfType<StageController.ExternalStageDetailed>();
 
-            string displayName = (string)metadata.GetType().GetProperty("DisplayName").GetValue(metadata);
-            displayName.Should().Be(_displayName);
-            packages.Length.Should().Be(1);
+            var stageDetails = result as StageController.ExternalStageDetailed;
+
+            stageDetails.Metadata.DisplayName.Should().Be(_displayName);
+            stageDetails.Packages.Count.Should().Be(1);
         }
 
         [Fact]

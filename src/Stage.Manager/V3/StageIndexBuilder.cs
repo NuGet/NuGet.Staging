@@ -15,10 +15,10 @@ namespace Stage.Manager.V3
         /// <param name="host">The host service.</param>
         /// <param name="scheme">http/https</param>
         /// <param name="stageId">Stage id</param>
-        public JObject CreateIndex(string scheme, string host, string stageId, Uri v3BaseAddess)
+        public JObject CreateIndex(string baseAddress, string stageId, Uri v3BaseAddess)
         {
             var stageFolderPath = $"{v3BaseAddess}{stageId}";
-            var stageControllerPath = $"{scheme}://{host}/api/stage/{stageId}";
+            var stageControllerPath = $"{baseAddress}/api/stage/{stageId}";
 
             var index = new JObject
             {
@@ -37,7 +37,7 @@ namespace Stage.Manager.V3
                         CreateResource($"{stageFolderPath}/{Constants.RegistrationFolderName}/", ServiceTypes.RegistrationsBaseUrl[0], "Registration blobs Uri"),
                         CreateResource($"{stageFolderPath}/{Constants.RegistrationFolderName}/", ServiceTypes.RegistrationsBaseUrl[1], "Registration blobs Uri"),
                         CreateResource($"{stageFolderPath}/{Constants.FlatContainerFolderName}/", ServiceTypes.PackageBaseAddress, "Packages base uri"),
-                        CreateResource($"{scheme}://{host}/api/package/{stageId}", ServiceTypes.PackagePublish, "Package publishing endpoint"),
+                        CreateResource($"{baseAddress}/api/package/{stageId}", ServiceTypes.PackagePublish, "Package publishing endpoint"),
                     }
                 }
             };

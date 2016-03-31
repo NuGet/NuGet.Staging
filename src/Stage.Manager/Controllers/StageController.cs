@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.IdentityModel.Protocols.WSTrust;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
@@ -136,7 +138,7 @@ namespace Stage.Manager.Controllers
         [HttpGet("{id:guid}/index.json")]
         public IActionResult Index(string id)
         {
-            var index = _stageIndexBuilder.CreateIndex(Request.Scheme, Request.Host.Value, id, _storageFactory.BaseAddress);
+            var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), id, _storageFactory.BaseAddress);
             return Json(index);
         }
 
@@ -162,15 +164,15 @@ namespace Stage.Manager.Controllers
 
         private object GetStageData(Database.Models.Stage stage, StageMember member, bool includePackages)
         {
-            dynamic sd = new
+            var sd = new ExternalStageMetadata
             {
-                stage.Id,
-                stage.DisplayName,
-                stage.CreationDate,
-                stage.ExpirationDate,
+                Id = stage.Id,
+                DisplayName = stage.DisplayName,
+                CreationDate = stage.CreationDate,
+                ExpirationDate = stage.ExpirationDate,
                 Status = stage.Status.ToString(),
                 MemberType = member.MemberType.ToString(),
-                Feed = $"{Request.Scheme}://{Request.Host.Value}/api/stage/{stage.Id}/index.json",
+                Feed = $"{GetBaseAddress()}/api/stage/{stage.Id}/index.json",
             };
 
             if (!includePackages)
@@ -178,20 +180,49 @@ namespace Stage.Manager.Controllers
                 return sd;
             }
 
-            var packages = stage.Packages.Select(package => new
+            var packages = stage.Packages.Select(package => new ExternalPackage
             {
-                package.Id,
-                package.Version,
-            }).ToArray();
+                Id = package.Id,
+                Version = package.Version,
+            }).ToList();
 
-            return new
+            return new ExternalStageDetailed
             {
                 Metadata = sd,
                 Packages = packages,
-                PackageCount = packages.Length
+                PackagesCount = packages.Count
             };
         }
 
         private int GetUserKey() => 1;
+
+        private string GetBaseAddress()
+        {
+            return $"{Request.Scheme}://{Request.Host.Value}";
+        }
+
+        public class ExternalStageDetailed
+        {
+            public int PackagesCount { get; set; }
+            public List<ExternalPackage> Packages { get; set; }
+            public ExternalStageMetadata Metadata { get; set; }
+        }
+
+        public class ExternalStageMetadata
+        {
+            public string Id { get; set; }
+            public string DisplayName { get; set; }
+            public string Status { get; set; }
+            public DateTime CreationDate { get; set; }
+            public DateTime ExpirationDate { get; set; }
+            public string MemberType { get; set; }
+            public string Feed { get; set; }
+        }
+
+        public class ExternalPackage
+        {
+            public string Id { get; set; }
+            public string Version { get; set; }
+        }
     }
 }
