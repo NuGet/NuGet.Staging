@@ -4,19 +4,18 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Persistence;
-using Stage.Authentication;
 using Stage.Database.Models;
-using Stage.Manager.Authentication;
 using Stage.Manager.Search;
 using Stage.Manager.V3;
 using static Stage.Manager.Controllers.Messages;
 
 namespace Stage.Manager.Controllers
 {
-
+    [Authorize]
     [Route("api/[controller]")]
     public class StageController : Controller
     {
@@ -26,14 +25,11 @@ namespace Stage.Manager.Controllers
         private readonly StageIndexBuilder _stageIndexBuilder = new StageIndexBuilder();
         private readonly ISearchService _searchService;
         private readonly StorageFactory _storageFactory;
-        private readonly IAuthenticationService _authenticationService;
-        private readonly IAuthenticationCredentialsExtractor _authenticationCredentialsExtractor;
 
         private const string MessageFormat = "User: {UserKey}, Stage: {StageId}, {Message}";
 
         public StageController(ILogger<StageController> logger, StageContext context, IStageService stageService,
-                               StorageFactory storageFactory, ISearchService searchService, IAuthenticationService authenticationService,
-                               IAuthenticationCredentialsExtractor authenticationCredentialsExtractor)
+                               StorageFactory storageFactory, ISearchService searchService)
         {
             if (logger == null)
             {
@@ -60,36 +56,19 @@ namespace Stage.Manager.Controllers
                 throw new ArgumentNullException(nameof(storageFactory));
             }
 
-            if (authenticationService == null)
-            {
-                throw new ArgumentNullException(nameof(authenticationService));
-            }
-
-            if (authenticationCredentialsExtractor == null)
-            {
-                throw new ArgumentNullException(nameof(authenticationCredentialsExtractor));
-            }
-
             _logger = logger;
             _context = context;
             _stageService = stageService;
             _searchService = searchService;
             _storageFactory = storageFactory;
-            _authenticationService = authenticationService;
-            _authenticationCredentialsExtractor = authenticationCredentialsExtractor;
         }
 
         // GET: api/stage
         [HttpGet]
         public async Task<IActionResult> ListUserStages()
         {
-            var userInformation = await GetUserInformation();
-            if (userInformation == null)
-            {
-                return new HttpUnauthorizedResult();
-            }
-
-            var userMemberships = _context.StageMembers.Where(sm => sm.UserKey == userInformation.UserKey);
+            var userKey = GetUserKey();
+            var userMemberships = _context.StageMembers.Where(sm => sm.UserKey == userKey);
 
             return
                 new HttpOkObjectResult(
@@ -108,6 +87,7 @@ namespace Stage.Manager.Controllers
 
         // GET api/stage/e92156e2d6a74a19853a3294cf681dfc
         [HttpGet("{id:guid}")]
+        [AllowAnonymous]
         public IActionResult GetDetails(string id)
         {
             var stage = _stageService.GetStage(id);
@@ -123,20 +103,15 @@ namespace Stage.Manager.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody]string displayName)
         {
-            var userInformation = await GetUserInformation();
-            if (userInformation == null)
-            {
-                return new HttpUnauthorizedResult();
-            }
-
             if (!_stageService.CheckStageDisplayNameValidity(displayName))
             {
                 return new BadRequestObjectResult(string.Format(InvalidStageDisplayName, StageService.MaxDisplayNameLength));
             }
 
-            var stage = await _stageService.CreateStage(displayName, userInformation.UserKey);
+            var userKey = GetUserKey();
+            var stage = await _stageService.CreateStage(displayName, userKey);
 
-            _logger.LogInformation(MessageFormat, userInformation.UserKey, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
+            _logger.LogInformation(MessageFormat, userKey, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
 
             // TODO: add feed uri to returned data
             return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id, stage.ExpirationDate, stage.Status });
@@ -146,28 +121,23 @@ namespace Stage.Manager.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Drop(string id)
         {
-            var userInformation = await GetUserInformation();
-            if (userInformation == null)
-            {
-                return new HttpUnauthorizedResult();
-            }
-
+            var userKey = GetUserKey();
             var stage = _stageService.GetStage(id);
 
             if (stage == null)
             {
-                _logger.LogInformation(MessageFormat, userInformation.UserKey, id, "Drop failed, stage not found");
+                _logger.LogInformation(MessageFormat, userKey, id, "Drop failed, stage not found");
                 return new HttpNotFoundResult();
             }
 
-            if (!_stageService.IsUserMemberOfStage(stage, userInformation.UserKey))
+            if (!_stageService.IsUserMemberOfStage(stage, userKey))
             {
                 return new HttpUnauthorizedResult();
             }
 
             await _stageService.DropStage(stage);
 
-            _logger.LogInformation(MessageFormat, userInformation.UserKey, id, "Drop was successful");
+            _logger.LogInformation(MessageFormat, userKey, id, "Drop was successful");
             return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id });
         }
 
@@ -179,6 +149,7 @@ namespace Stage.Manager.Controllers
             return new BadRequestResult();
         }
 
+        [AllowAnonymous]
         [HttpGet("{id:guid}/index.json")]
         public IActionResult Index(string id)
         {
@@ -186,6 +157,7 @@ namespace Stage.Manager.Controllers
             return Json(index);
         }
 
+        [AllowAnonymous]
         [HttpGet("{id:guid}/query")]
         public async Task<IActionResult> Query(string id)
         {
@@ -204,16 +176,9 @@ namespace Stage.Manager.Controllers
             return new JsonResult(searchResult);
         }
 
-        private async Task<IUserInformation> GetUserInformation()
+        private int GetUserKey()
         {
-            var credentials = _authenticationCredentialsExtractor.GetCredentials(Request);
-
-            if (credentials != null)
-            {
-                return await _authenticationService.Authenticate(credentials);
-            }
-
-            return null;
+            return int.Parse(HttpContext.User.Identity.Name);
         }
     }
 }

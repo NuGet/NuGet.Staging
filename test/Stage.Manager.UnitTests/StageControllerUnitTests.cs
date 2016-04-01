@@ -12,9 +12,7 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Protocol.Core.v3;
 using NuGet.Services.Metadata.Catalog.Persistence;
-using Stage.Authentication;
 using Stage.Database.Models;
-using Stage.Manager.Authentication;
 using Stage.Manager.Controllers;
 using Stage.Manager.Search;
 using Xunit;
@@ -33,7 +31,6 @@ namespace Stage.Manager.UnitTests
 
         private StageController _stageController;
         private StageContextMock _stageContextMock;
-        private Mock<IAuthenticationService> _mockAuthenticationService;
 
         public StageControllerUnitTests()
         {
@@ -48,23 +45,14 @@ namespace Stage.Manager.UnitTests
             stageServiceMock.Setup(x => x.GetStage(It.IsAny<string>()))
                 .Returns((string id) => _stageContextMock.Object.Stages.FirstOrDefault(x => x.Id == id));
 
-            var mockCredentialExtractor = new Mock<IAuthenticationCredentialsExtractor>();
-            mockCredentialExtractor.Setup(x => x.GetCredentials(It.IsAny<HttpRequest>())).Returns(new Mock<ICredentials>().Object);
-
-            var userInfo = new Mock<IUserInformation>();
-            userInfo.SetupProperty(x => x.UserKey, UserKey);
-
-            _mockAuthenticationService = new Mock<IAuthenticationService>();
-            _mockAuthenticationService.Setup(x => x.Authenticate(It.IsAny<ICredentials>())).Returns(Task.FromResult(userInfo.Object));
-
             _stageController = new StageController(
                 new Mock<ILogger<StageController>>().Object,
                 _stageContextMock.Object,
                 stageServiceMock.Object,
-                new Mock<StorageFactory>().Object, 
-                new Mock<ISearchService>().Object,
-                _mockAuthenticationService.Object,
-                mockCredentialExtractor.Object);
+                new Mock<StorageFactory>().Object,
+                new Mock<ISearchService>().Object);
+
+            _stageController.SetupUser(UserKey);
         }
 
         [Fact]
@@ -87,16 +75,9 @@ namespace Stage.Manager.UnitTests
         }
 
         [Fact]
-        public async Task WhenCreateIsCalledAndAuthenticationFails401IsReturned()
+        public void VerifyCreateRequiresAuthentication()
         {
-            // Arrange
-            _mockAuthenticationService.Setup(x => x.Authenticate(It.IsAny<ICredentials>())).Returns(Task.FromResult((IUserInformation)null));
-
-            // Act
-            IActionResult actionResult = await _stageController.Create(DisplayName);
-
-            // Assert
-            actionResult.Should().BeOfType<HttpUnauthorizedResult>();
+            AuthorizationTest.IsAuthorized(_stageController, "Create", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
@@ -139,6 +120,12 @@ namespace Stage.Manager.UnitTests
         }
 
         [Fact]
+        public void VerifyListRequiresAuthentication()
+        {
+            AuthorizationTest.IsAuthorized(_stageController, "ListUserStages", methodTypes: null).Should().BeTrue();
+        }
+
+        [Fact]
         public async Task WhenGetDetailsIsCalledDetailsAreReturned()
         {
             // Arrange
@@ -155,6 +142,12 @@ namespace Stage.Manager.UnitTests
             string displayName = (string)result.GetType().GetProperty("DisplayName").GetValue(result);
 
             displayName.Should().Be(DisplayName);
+        }
+
+        [Fact]
+        public void VerifyGetDetailsIsAnonymous()
+        {
+            AuthorizationTest.IsAnonymous(_stageController, "GetDetails", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
@@ -203,16 +196,9 @@ namespace Stage.Manager.UnitTests
         }
 
         [Fact]
-        public async Task WhenDropIsCalledAndAuthenticationFails401IsReturned()
+        public void VerifyDropRequiresAuthentication()
         {
-            // Arrange
-            _mockAuthenticationService.Setup(x => x.Authenticate(It.IsAny<ICredentials>())).Returns(Task.FromResult((IUserInformation)null));
-
-            // Act
-            IActionResult actionResult = await _stageController.Drop("anystring");
-
-            // Assert
-            actionResult.Should().BeOfType<HttpUnauthorizedResult>();
+            AuthorizationTest.IsAuthorized(_stageController, "Drop", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
@@ -221,11 +207,7 @@ namespace Stage.Manager.UnitTests
             // Arrange
             string stageId = await AddMockStage("stage");
 
-            var userInfo = new Mock<IUserInformation>();
-            userInfo.SetupProperty(x => x.UserKey, UserKey+1);
-
-            _mockAuthenticationService.Setup(x => x.Authenticate(It.IsAny<ICredentials>())).Returns(Task.FromResult(userInfo.Object));
-
+            _stageController.SetupUser(UserKey + 1);
             // Act
             IActionResult actionResult = await _stageController.Drop(stageId);
 
@@ -263,6 +245,19 @@ namespace Stage.Manager.UnitTests
             jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.PackageBaseAddress).Should().NotBeEmpty();
             jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.PackagePublish).Should().NotBeEmpty();
         }
+
+        [Fact]
+        public void VerifyIndexIsAnonymous()
+        {
+            AuthorizationTest.IsAnonymous(_stageController, "Index", methodTypes: null).Should().BeTrue();
+        }
+
+        [Fact]
+        public void VerifyQueryIsAnonymous()
+        {
+            AuthorizationTest.IsAnonymous(_stageController, "Query", methodTypes: null).Should().BeTrue();
+        }
+
 
         private async Task<string> AddMockStage(string displayName)
         {

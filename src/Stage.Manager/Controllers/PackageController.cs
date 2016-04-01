@@ -2,21 +2,20 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
 using NuGet.Packaging;
 using NuGet.Versioning;
-using Stage.Authentication;
 using Stage.Database.Models;
-using Stage.Manager.Authentication;
 using Stage.Packages;
 using static Stage.Manager.Controllers.Messages;
 
 namespace Stage.Manager.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     public class PackageController : Controller
     {
@@ -27,11 +26,9 @@ namespace Stage.Manager.Controllers
         private readonly IPackageService _packageService;
         private readonly IStageService _stageService;
         private readonly IV3ServiceFactory _v3ServiceFactory;
-        private readonly IAuthenticationService _authenticationService;
-        private readonly IAuthenticationCredentialsExtractor _authenticationCredentialsExtractor;
 
         public PackageController(ILogger<PackageController> logger, StageContext context, IPackageService packageService, IStageService stageService,
-                                IV3ServiceFactory v3ServiceFactory, IAuthenticationService authenticationService, IAuthenticationCredentialsExtractor authenticationCredentialsExtractor)
+                                IV3ServiceFactory v3ServiceFactory)
         {
             if (logger == null)
             {
@@ -58,42 +55,25 @@ namespace Stage.Manager.Controllers
                 throw new ArgumentNullException(nameof(v3ServiceFactory));
             }
 
-            if (authenticationService == null)
-            {
-                throw new ArgumentNullException(nameof(authenticationService));
-            }
-
-            if (authenticationCredentialsExtractor == null)
-            {
-                throw new ArgumentNullException(nameof(authenticationCredentialsExtractor));
-            }
-
             _logger = logger;
             _context = context;
             _packageService = packageService;
             _stageService = stageService;
             _v3ServiceFactory = v3ServiceFactory;
-            _authenticationService = authenticationService;
-            _authenticationCredentialsExtractor = authenticationCredentialsExtractor;
         }
 
         [HttpPut("{id:guid}")]
         [HttpPost("{id:guid}")]
         public async Task<IActionResult> PushPackageToStage(string id)
         {
-            var userInformation = await GetUserInformation();
-            if (userInformation == null)
-            {
-                return new HttpUnauthorizedResult();
-            }
-
+            var userKey = GetUserKey();
             var stage = _stageService.GetStage(id);
             if (stage == null)
             {
                 return new HttpNotFoundResult();
             }
 
-            if (!_stageService.IsUserMemberOfStage(stage, userInformation.UserKey))
+            if (!_stageService.IsUserMemberOfStage(stage, userKey))
             {
                 return new HttpUnauthorizedResult();
             }
@@ -143,7 +123,7 @@ namespace Stage.Manager.Controllers
                 }
 
                 // Check if user can write to this registration id
-                if (!await _packageService.IsUserOwnerOfPackageAsync(userInformation.UserKey, registrationId))
+                if (!await _packageService.IsUserOwnerOfPackageAsync(userKey, registrationId))
                 {
                     return new ObjectResult(ApiKeyUnauthorizedMessage) { StatusCode = (int)HttpStatusCode.Forbidden };
                 }
@@ -155,7 +135,7 @@ namespace Stage.Manager.Controllers
                     Id = registrationId,
                     NormalizedVersion = normalizedVersion,
                     Version = version.ToString(),
-                    UserKey = userInformation.UserKey,
+                    UserKey = userKey,
                     Published = DateTime.UtcNow,
                     NupkgUrl = nupkgUri.ToString()
                 });
@@ -174,16 +154,9 @@ namespace Stage.Manager.Controllers
                     : (IActionResult)new HttpStatusCodeResult((int)HttpStatusCode.Created);
             }
         }
-        private async Task<IUserInformation> GetUserInformation()
+        private int GetUserKey()
         {
-            var credentials = _authenticationCredentialsExtractor.GetCredentials(Request);
-
-            if (credentials != null)
-            {
-                return await _authenticationService.Authenticate(credentials);
-            }
-
-            return null;
+            return int.Parse(HttpContext.User.Identity.Name);
         }
     }
 }

@@ -8,14 +8,9 @@ using Microsoft.Extensions.OptionsModel;
 
 namespace Stage.Authentication
 {
-    public class ApiKeyCredentials : ICredentials
+    public class ApiKeyCredentials
     {
         public string ApiKey { get; set; }
-    }
-
-    public class UserInformation : IUserInformation
-    {
-        public int UserKey { get; set; }
     }
 
     public class ApiKeyAuthenticationServiceOptions
@@ -23,7 +18,7 @@ namespace Stage.Authentication
         public string DatabaseConnectionString { get; set; }
     }
 
-    public class ApiKeyAuthenticationService : IAuthenticationService
+    public class ApiKeyAuthenticationService
     {
         private readonly ApiKeyAuthenticationServiceOptions _options;
 
@@ -37,11 +32,11 @@ namespace Stage.Authentication
             _options = options.Value;
         }
 
-        public async Task<IUserInformation> Authenticate(ICredentials credentials)
+        public async Task<UserInformation> Authenticate(ApiKeyCredentials credentials)
         {
-            if (!(credentials is ApiKeyCredentials))
+            if (credentials == null)
             {
-                    throw new ArgumentException("ApiKeyCredentials type expected", nameof(credentials));
+                return null;
             }
 
             using (var connection = new SqlConnection(_options.DatabaseConnectionString))

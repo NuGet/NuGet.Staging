@@ -13,9 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.OptionsModel;
 using Moq;
 using NuGet.V3Repository;
-using Stage.Authentication;
 using Stage.Database.Models;
-using Stage.Manager.Authentication;
 using Stage.Manager.Controllers;
 using Stage.Packages;
 using Xunit;
@@ -33,7 +31,7 @@ namespace Stage.Manager.UnitTests
         private PackageController _packageController;
         private Mock<IPackageService> _packageServiceMock;
         private TestStorageFactory _testStorageFactory;
-        private Mock<IAuthenticationService> _mockAuthenticationService;
+        private Mock<HttpContext> _httpContextMock; 
 
         public PackageControllerUnitTests()
         {
@@ -64,23 +62,14 @@ namespace Stage.Manager.UnitTests
             _testStorageFactory = new TestStorageFactory((string s) => new MemoryStorage(new Uri(BaseAddress + s)));
             var v3Factory = new V3ServiceFactory(options.Object, _testStorageFactory, new Mock<ILogger<V3Service>>().Object);
 
-            var mockCredentialExtractor = new Mock<IAuthenticationCredentialsExtractor>();
-            mockCredentialExtractor.Setup(x => x.GetCredentials(It.IsAny<HttpRequest>())).Returns(new Mock<ICredentials>().Object);
-
-            var userInfo = new Mock<IUserInformation>();
-            userInfo.SetupProperty(x => x.UserKey, UserKey);
-
-            _mockAuthenticationService = new Mock<IAuthenticationService>();
-            _mockAuthenticationService.Setup(x => x.Authenticate(It.IsAny<ICredentials>())).Returns(Task.FromResult(userInfo.Object));
-
             _packageController = new PackageController(
                 new Mock<ILogger<PackageController>>().Object,
                 _stageContextMock.Object,
                 _packageServiceMock.Object,
                 stageServiceMock.Object,
-                v3Factory,
-                _mockAuthenticationService.Object,
-                mockCredentialExtractor.Object);
+                v3Factory);
+
+            _httpContextMock = _packageController.SetupUser(UserKey);
         }
 
         [Fact]
@@ -221,17 +210,10 @@ namespace Stage.Manager.UnitTests
         }
 
         [Fact]
-        public async Task WhenPushIsCalledAndAuthenticationFails401IsReturned()
+        public void VerifyPushRequiresAuthentication()
         {
-            // Arrange
-            _mockAuthenticationService.Setup(x => x.Authenticate(It.IsAny<ICredentials>())).Returns(Task.FromResult((IUserInformation)null));
-            var stage = AddMockStage();
-
-            // Act
-            IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
-
             // Assert
-            actionResult.Should().BeOfType<HttpUnauthorizedResult>();
+            AuthorizationTest.IsAuthorized(_packageController, "PushPackageToStage", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
@@ -240,10 +222,7 @@ namespace Stage.Manager.UnitTests
             // Arrange
             var stage = AddMockStage();
 
-            var userInfo = new Mock<IUserInformation>();
-            userInfo.SetupProperty(x => x.UserKey, UserKey + 1);
-
-            _mockAuthenticationService.Setup(x => x.Authenticate(It.IsAny<ICredentials>())).Returns(Task.FromResult(userInfo.Object));
+            _packageController.SetupUser(UserKey + 1);
 
             // Act
             IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
@@ -260,8 +239,6 @@ namespace Stage.Manager.UnitTests
 
         private void ArrangeRequestFileFromStream(Stream stream)
         {
-            var actionContext = new ActionContext();
-            var mockHttpContext = new Mock<HttpContext>();
             var mockRequest = new Mock<HttpRequest>();
             var mockForm = new Mock<IFormCollection>();
             var formFileCollection = new Mock<IFormFileCollection>();
@@ -271,9 +248,7 @@ namespace Stage.Manager.UnitTests
             formFileCollection.Setup(x => x[It.IsAny<int>()]).Returns(formFileMock.Object);
             mockForm.Setup(x => x.Files).Returns(formFileCollection.Object);
             mockRequest.Setup(x => x.Form).Returns(mockForm.Object);
-            mockHttpContext.Setup(x => x.Request).Returns(mockRequest.Object);
-            actionContext.HttpContext = mockHttpContext.Object;
-            _packageController.ActionContext = actionContext;
+            _httpContextMock.Setup(x => x.Request).Returns(mockRequest.Object);
         }
 
         private Database.Models.Stage AddMockStage()

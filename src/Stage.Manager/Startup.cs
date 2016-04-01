@@ -95,8 +95,7 @@ namespace Stage.Manager
 
             // Authentication
             services.Configure<ApiKeyAuthenticationServiceOptions>(Configuration.GetSection("ApiKeyAuthenticationServiceOptions"));
-            services.AddSingleton<IAuthenticationCredentialsExtractor, ApiKeyCredentialsExtractor>();
-            services.AddSingleton<IAuthenticationService, ApiKeyAuthenticationService>();
+            services.AddSingleton<ApiKeyAuthenticationService, ApiKeyAuthenticationService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -123,6 +122,7 @@ namespace Stage.Manager
             // Exception middleware should be added after error page and any other error handling middleware
             applicationBuilder.UseApplicationInsightsExceptionTelemetry();
 
+            applicationBuilder.UseApiKeyAuthentication();
             applicationBuilder.UseMvc();
 
             loggerFactory.AddApplicationInsights(applicationBuilder.ApplicationServices.GetService<TelemetryClient>());

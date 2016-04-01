@@ -3,7 +3,8 @@
 
 namespace Stage.Authentication
 {
-    public interface ICredentials
+    public class UserInformation
     {
+        public int UserKey { get; set; }
     }
 }
