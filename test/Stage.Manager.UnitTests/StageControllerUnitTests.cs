@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -50,6 +51,8 @@ namespace Stage.Manager.UnitTests
                 stageServiceMock.Object,
                 new Mock<StorageFactory>().Object, 
                 new Mock<ISearchService>().Object);
+
+            MockRequest();
         }
 
         [Fact]
@@ -115,6 +118,7 @@ namespace Stage.Manager.UnitTests
             // Arrange
             await AddMockStage("first");
             string secondStageId = await AddMockStage(_displayName);
+            AddMockPackage(secondStageId, "package");
 
             // Act
             IActionResult actionResult = _stageController.GetDetails(secondStageId);
@@ -122,10 +126,13 @@ namespace Stage.Manager.UnitTests
             // Assert
             actionResult.Should().BeOfType<HttpOkObjectResult>();
 
-            object result = (actionResult as HttpOkObjectResult).Value;
-            string displayName = (string)result.GetType().GetProperty("DisplayName").GetValue(result);
+            var result = (actionResult as HttpOkObjectResult).Value;
+            result.Should().BeOfType<StageController.ExternalStageDetailed>();
 
-            displayName.Should().Be(_displayName);
+            var stageDetails = result as StageController.ExternalStageDetailed;
+
+            stageDetails.Metadata.DisplayName.Should().Be(_displayName);
+            stageDetails.Packages.Count.Should().Be(1);
         }
 
         [Fact]
@@ -176,17 +183,6 @@ namespace Stage.Manager.UnitTests
         [Fact]
         public void WhenIndexIsCalledJsonIsReturned()
         {
-            // Arrange
-            var actionContext = new ActionContext();
-            var mockHttpContext = new Mock<HttpContext>();
-            var mockRequest = new Mock<HttpRequest>();
-
-            mockRequest.Setup(x => x.Scheme).Returns("http");
-            mockRequest.Setup(x => x.Host).Returns(new HostString("stage.nuget.org"));
-            mockHttpContext.Setup(x => x.Request).Returns(mockRequest.Object);
-            actionContext.HttpContext = mockHttpContext.Object;
-            _stageController.ActionContext = actionContext;
-
             // Act
             IActionResult actionResult = _stageController.Index(Guid.NewGuid().ToString());
 
@@ -204,6 +200,19 @@ namespace Stage.Manager.UnitTests
             jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.PackagePublish).Should().NotBeEmpty();
         }
 
+        private void MockRequest()
+        {
+            var actionContext = new ActionContext();
+            var mockHttpContext = new Mock<HttpContext>();
+            var mockRequest = new Mock<HttpRequest>();
+
+            mockRequest.Setup(x => x.Scheme).Returns("http");
+            mockRequest.Setup(x => x.Host).Returns(new HostString("stage.nuget.org"));
+            mockHttpContext.Setup(x => x.Request).Returns(mockRequest.Object);
+            actionContext.HttpContext = mockHttpContext.Object;
+            _stageController.ActionContext = actionContext;
+        }
+
         private async Task<string> AddMockStage(string displayName)
         {
             IActionResult actionResult = await _stageController.Create(displayName);
@@ -215,9 +224,19 @@ namespace Stage.Manager.UnitTests
             {
                 member.Stage = stage;
             }
-
+            stage.Packages = new List<StagedPackage>();
             object result = (actionResult as HttpOkObjectResult).Value;
             return (string)result.GetType().GetProperty("Id").GetValue(result);
+        }
+
+        private void AddMockPackage(string stageId, string packageId)
+        {
+            var stage = _stageContextMock.Object.Stages.First(x => x.Id == stageId);
+            stage.Packages.Add(new StagedPackage
+            {
+                Id = packageId,
+                Version = "1.0.0"
+            });
         }
     }
 }

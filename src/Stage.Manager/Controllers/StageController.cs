@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.IdentityModel.Protocols.WSTrust;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
@@ -69,18 +71,7 @@ namespace Stage.Manager.Controllers
             var userMemberships = _context.StageMembers.Where(sm => sm.UserKey == userKey);
 
             return
-                new HttpOkObjectResult(
-                    userMemberships.Select(
-                        sm =>
-                            new
-                            {
-                                sm.MemberType,
-                                sm.Stage.Id,
-                                sm.Stage.CreationDate,
-                                sm.Stage.ExpirationDate,
-                                sm.Stage.DisplayName,
-                                sm.Stage.Status
-                            }).ToList());
+                new HttpOkObjectResult(userMemberships.Select(sm => GetStageData(sm.Stage, sm, false)).ToList());
         }
 
         // GET api/stage/e92156e2d6a74a19853a3294cf681dfc
@@ -95,7 +86,7 @@ namespace Stage.Manager.Controllers
                 return new HttpNotFoundResult();
             }
 
-            return new HttpOkObjectResult(new { stage.Id, stage.DisplayName, stage.CreationDate, stage.ExpirationDate, stage.Status });
+            return new HttpOkObjectResult(GetStageData(stage, stage.Members.First(x => x.UserKey == userKey), includePackages: true));
         }
 
         // POST api/stage
@@ -113,8 +104,7 @@ namespace Stage.Manager.Controllers
 
             _logger.LogInformation(MessageFormat, userKey, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
 
-            // TODO: add feed uri to returned data
-            return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id, stage.ExpirationDate, stage.Status });
+            return new HttpOkObjectResult(GetStageData(stage, stage.Members.First(), includePackages: false));
         }
 
         // DELETE api/stage/e92156e2d6a74a19853a3294cf681dfc
@@ -131,9 +121,10 @@ namespace Stage.Manager.Controllers
             }
 
             await _stageService.DropStage(stage);
+            stage.Status = StageStatus.Deleted;
 
             _logger.LogInformation(MessageFormat, userKey, id, "Drop was successful");
-            return new HttpOkObjectResult(new { stage.DisplayName, stage.CreationDate, stage.Id });
+            return new HttpOkObjectResult(GetStageData(stage, stage.Members.First(x => x.UserKey == userKey), includePackages: false));
         }
 
         // POST api/stage/e92156e2d6a74a19853a3294cf681dfc
@@ -147,7 +138,7 @@ namespace Stage.Manager.Controllers
         [HttpGet("{id:guid}/index.json")]
         public IActionResult Index(string id)
         {
-            var index = _stageIndexBuilder.CreateIndex(Request.Scheme, Request.Host.Value, id, _storageFactory.BaseAddress);
+            var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), id, _storageFactory.BaseAddress);
             return Json(index);
         }
 
@@ -171,7 +162,67 @@ namespace Stage.Manager.Controllers
             return new JsonResult(searchResult);
         }
 
+        private object GetStageData(Database.Models.Stage stage, StageMember member, bool includePackages)
+        {
+            var sd = new ExternalStageMetadata
+            {
+                Id = stage.Id,
+                DisplayName = stage.DisplayName,
+                CreationDate = stage.CreationDate,
+                ExpirationDate = stage.ExpirationDate,
+                Status = stage.Status.ToString(),
+                MemberType = member.MemberType.ToString(),
+                Feed = $"{GetBaseAddress()}/api/stage/{stage.Id}/index.json",
+            };
+
+            if (!includePackages)
+            {
+                return sd;
+            }
+
+            var packages = stage.Packages.Select(package => new ExternalPackage
+            {
+                Id = package.Id,
+                Version = package.Version,
+            }).ToList();
+
+            return new ExternalStageDetailed
+            {
+                Metadata = sd,
+                Packages = packages,
+                PackagesCount = packages.Count
+            };
+        }
 
         private int GetUserKey() => 1;
+
+        private string GetBaseAddress()
+        {
+            return $"{Request.Scheme}://{Request.Host.Value}";
+        }
+
+        public class ExternalStageDetailed
+        {
+            public int PackagesCount { get; set; }
+            public List<ExternalPackage> Packages { get; set; }
+            public ExternalStageMetadata Metadata { get; set; }
+        }
+
+        public class ExternalStageMetadata
+        {
+            public string Id { get; set; }
+            public string DisplayName { get; set; }
+            public string Status { get; set; }
+            public DateTime CreationDate { get; set; }
+            public DateTime ExpirationDate { get; set; }
+            public string MemberType { get; set; }
+            public string Feed { get; set; }
+        }
+
+        public class ExternalPackage
+        {
+            public string Id { get; set; }
+            public string Version { get; set; }
+        }
     }
 }
