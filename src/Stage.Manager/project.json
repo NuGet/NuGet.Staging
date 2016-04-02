@@ -26,7 +26,6 @@
         "NuGet.Protocol.Core.v3": "3.5.0-beta-1034",
         "NuGet.Versioning": "3.5.0-beta-1068",
         "Stage.Authentication": "1.0.0-*",
-        "Microsoft.AspNet.Identity": "3.0.0-rc1-final"
     },
 
     "commands": {

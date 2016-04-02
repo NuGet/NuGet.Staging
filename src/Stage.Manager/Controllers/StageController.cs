@@ -66,7 +66,7 @@ namespace Stage.Manager.Controllers
 
         // GET: api/stage
         [HttpGet]
-        public async Task<IActionResult> ListUserStages()
+        public IActionResult ListUserStages()
         {
             var userKey = GetUserKey();
             var userMemberships = _context.StageMembers.Where(sm => sm.UserKey == userKey);

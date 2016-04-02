@@ -110,7 +110,7 @@ namespace Stage.Manager.UnitTests
             await AddMockStage("second");
 
             // Act
-            IActionResult actionResult = await _stageController.ListUserStages();
+            IActionResult actionResult = _stageController.ListUserStages();
 
             // Assert
             actionResult.Should().BeOfType<HttpOkObjectResult>();
