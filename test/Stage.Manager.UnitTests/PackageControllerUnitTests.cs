@@ -69,7 +69,7 @@ namespace Stage.Manager.UnitTests
                 stageServiceMock.Object,
                 v3Factory);
 
-            _httpContextMock = _packageController.SetupUser(UserKey);
+            _httpContextMock = _packageController.WithMockHttpContext().WithUser(UserKey);
         }
 
         [Fact]
@@ -104,7 +104,7 @@ namespace Stage.Manager.UnitTests
         {
             // Arrange
             byte[] data = new byte[100];
-            ArrangeRequestFileFromStream(new MemoryStream(data));
+            _httpContextMock.WithFile(new MemoryStream(data));
 
             var stage = AddMockStage();
 
@@ -120,7 +120,7 @@ namespace Stage.Manager.UnitTests
         {
             // Arrange
             var package = new TestPackage(DefaultRegistrationId, DefaultVersion).WithInvalidNuspec();
-            ArrangeRequestFileFromStream(package.Stream);
+            _httpContextMock.WithFile(package.Stream);
 
             var stage = AddMockStage();
 
@@ -136,7 +136,7 @@ namespace Stage.Manager.UnitTests
         {
             // Arrange
             var package = new TestPackage(DefaultRegistrationId, DefaultVersion).WithMinClientVersion("9.9.9");
-            ArrangeRequestFileFromStream(package.Stream);
+            _httpContextMock.WithFile(package.Stream);
 
             var stage = AddMockStage();
 
@@ -154,12 +154,12 @@ namespace Stage.Manager.UnitTests
             var stage = AddMockStage();
 
             var package = new TestPackage(DefaultRegistrationId, DefaultVersion).WithDefaultData();
-            ArrangeRequestFileFromStream(package.Stream);
+            _httpContextMock.WithFile(package.Stream);
 
             await _packageController.PushPackageToStage(stage.Id);
 
             var samePackage = new TestPackage(DefaultRegistrationId, DefaultVersion).WithDefaultData();
-            ArrangeRequestFileFromStream(samePackage.Stream);
+            _httpContextMock.WithFile(samePackage.Stream);
 
             // Act
             IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
@@ -222,7 +222,7 @@ namespace Stage.Manager.UnitTests
             // Arrange
             var stage = AddMockStage();
 
-            _packageController.SetupUser(UserKey + 1);
+            _httpContextMock.WithUser(UserKey + 1);
 
             // Act
             IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
@@ -234,21 +234,7 @@ namespace Stage.Manager.UnitTests
         private void ArrangeRequestWithPackage(string id = DefaultRegistrationId, string version = DefaultVersion)
         {
             var testPackage = new TestPackage(id, version).WithDefaultData();
-            ArrangeRequestFileFromStream(testPackage.Stream);
-        }
-
-        private void ArrangeRequestFileFromStream(Stream stream)
-        {
-            var mockRequest = new Mock<HttpRequest>();
-            var mockForm = new Mock<IFormCollection>();
-            var formFileCollection = new Mock<IFormFileCollection>();
-            var formFileMock = new Mock<IFormFile>();
-
-            formFileMock.Setup(x => x.OpenReadStream()).Returns(stream);
-            formFileCollection.Setup(x => x[It.IsAny<int>()]).Returns(formFileMock.Object);
-            mockForm.Setup(x => x.Files).Returns(formFileCollection.Object);
-            mockRequest.Setup(x => x.Form).Returns(mockForm.Object);
-            _httpContextMock.Setup(x => x.Request).Returns(mockRequest.Object);
+            _httpContextMock.WithFile(testPackage.Stream);
         }
 
         private Database.Models.Stage AddMockStage()

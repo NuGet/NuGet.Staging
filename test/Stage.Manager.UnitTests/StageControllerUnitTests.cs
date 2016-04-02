@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -31,6 +32,7 @@ namespace Stage.Manager.UnitTests
 
         private StageController _stageController;
         private StageContextMock _stageContextMock;
+        private Mock<HttpContext> _httpContextMock;
 
         public StageControllerUnitTests()
         {
@@ -52,7 +54,7 @@ namespace Stage.Manager.UnitTests
                 new Mock<StorageFactory>().Object,
                 new Mock<ISearchService>().Object);
 
-            _stageController.SetupUser(UserKey);
+            _httpContextMock = _stageController.WithMockHttpContext().WithUser(UserKey).WithBaseAddress();
         }
 
         [Fact]
@@ -108,15 +110,15 @@ namespace Stage.Manager.UnitTests
             await AddMockStage("second");
 
             // Act
-            IActionResult actionResult =await _stageController.ListUserStages();
+            IActionResult actionResult = await _stageController.ListUserStages();
 
             // Assert
             actionResult.Should().BeOfType<HttpOkObjectResult>();
 
             object result = (actionResult as HttpOkObjectResult).Value;
-            int count = (int)result.GetType().GetProperty("Count").GetValue(result);
-
-            count.Should().Be(2);
+            result.Should().BeOfType<List<StageController.ListViewStage>>();
+            var stages = result as List<StageController.ListViewStage>;
+            stages.Count.Should().Be(2);
         }
 
         [Fact]
@@ -131,17 +133,21 @@ namespace Stage.Manager.UnitTests
             // Arrange
             await AddMockStage("first");
             string secondStageId = await AddMockStage(DisplayName);
-
+            AddMockPackage(secondStageId, "package");
+            
             // Act
             IActionResult actionResult = _stageController.GetDetails(secondStageId);
 
             // Assert
             actionResult.Should().BeOfType<HttpOkObjectResult>();
 
-            object result = (actionResult as HttpOkObjectResult).Value;
-            string displayName = (string)result.GetType().GetProperty("DisplayName").GetValue(result);
+            var result = (actionResult as HttpOkObjectResult).Value;
+            result.Should().BeOfType<StageController.DetailedViewStage>();
 
-            displayName.Should().Be(DisplayName);
+            var stageDetails = result as StageController.DetailedViewStage;
+
+            stageDetails.DisplayName.Should().Be(DisplayName);
+            stageDetails.Packages.Count.Should().Be(1);
         }
 
         [Fact]
@@ -207,7 +213,7 @@ namespace Stage.Manager.UnitTests
             // Arrange
             string stageId = await AddMockStage("stage");
 
-            _stageController.SetupUser(UserKey + 1);
+            _httpContextMock.WithUser(UserKey + 1);
             // Act
             IActionResult actionResult = await _stageController.Drop(stageId);
 
@@ -218,17 +224,6 @@ namespace Stage.Manager.UnitTests
         [Fact]
         public void WhenIndexIsCalledJsonIsReturned()
         {
-            // Arrange
-            var actionContext = new ActionContext();
-            var mockHttpContext = new Mock<HttpContext>();
-            var mockRequest = new Mock<HttpRequest>();
-
-            mockRequest.Setup(x => x.Scheme).Returns("http");
-            mockRequest.Setup(x => x.Host).Returns(new HostString("stage.nuget.org"));
-            mockHttpContext.Setup(x => x.Request).Returns(mockRequest.Object);
-            actionContext.HttpContext = mockHttpContext.Object;
-            _stageController.ActionContext = actionContext;
-
             // Act
             IActionResult actionResult = _stageController.Index(Guid.NewGuid().ToString());
 
@@ -270,9 +265,19 @@ namespace Stage.Manager.UnitTests
             {
                 member.Stage = stage;
             }
-
+            stage.Packages = new List<StagedPackage>();
             object result = (actionResult as HttpOkObjectResult).Value;
             return (string)result.GetType().GetProperty("Id").GetValue(result);
+        }
+
+        private void AddMockPackage(string stageId, string packageId)
+        {
+            var stage = _stageContextMock.Object.Stages.First(x => x.Id == stageId);
+            stage.Packages.Add(new StagedPackage
+            {
+                Id = packageId,
+                Version = "1.0.0"
+            });
         }
     }
 }
