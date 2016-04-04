@@ -10,5 +10,8 @@
     },
     "PackageRepository": {
         "StorageAccountConnectionString": ""
+    },
+    "ApiKeyAuthenticationServiceOptions": {
+        "DatabaseConnectionString": ""
     }
 }

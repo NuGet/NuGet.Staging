@@ -3,10 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Protocols.WSTrust;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Mvc;
+using Microsoft.Data.Entity;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Stage.Database.Models;
@@ -16,7 +17,7 @@ using static Stage.Manager.Controllers.Messages;
 
 namespace Stage.Manager.Controllers
 {
-
+    [Authorize]
     [Route("api/[controller]")]
     public class StageController : Controller
     {
@@ -29,7 +30,8 @@ namespace Stage.Manager.Controllers
 
         private const string MessageFormat = "User: {UserKey}, Stage: {StageId}, {Message}";
 
-        public StageController(ILogger<StageController> logger, StageContext context, IStageService stageService, StorageFactory storageFactory, ISearchService searchService)
+        public StageController(ILogger<StageController> logger, StageContext context, IStageService stageService,
+                               StorageFactory storageFactory, ISearchService searchService)
         {
             if (logger == null)
             {
@@ -68,43 +70,41 @@ namespace Stage.Manager.Controllers
         public IActionResult ListUserStages()
         {
             var userKey = GetUserKey();
-            var userMemberships = _context.StageMembers.Where(sm => sm.UserKey == userKey);
+            var userMemberships = _context.StageMembers.Where(sm => sm.UserKey == userKey).Include(sm => sm.Stage).ToList();
+            var stageViews = userMemberships.Select(sm => new ListViewStage(sm.Stage, sm, GetBaseAddress())).ToList();
 
-            return
-                new HttpOkObjectResult(userMemberships.Select(sm => GetStageData(sm.Stage, sm, false)).ToList());
+            return new HttpOkObjectResult(stageViews);
         }
 
         // GET api/stage/e92156e2d6a74a19853a3294cf681dfc
         [HttpGet("{id:guid}")]
+        [AllowAnonymous]
         public IActionResult GetDetails(string id)
         {
-            var userKey = GetUserKey();
-
             var stage = _stageService.GetStage(id);
-            if (stage == null || !_stageService.IsUserMemberOfStage(stage, userKey))
+            if (stage == null)
             {
                 return new HttpNotFoundResult();
             }
 
-            return new HttpOkObjectResult(GetStageData(stage, stage.Members.First(x => x.UserKey == userKey), includePackages: true));
+            return new HttpOkObjectResult(new DetailedViewStage(stage, GetBaseAddress()));
         }
 
         // POST api/stage
-        [HttpPost()]
+        [HttpPost]
         public async Task<IActionResult> Create([FromBody]string displayName)
         {
-            var userKey = GetUserKey();
-
             if (!_stageService.CheckStageDisplayNameValidity(displayName))
             {
                 return new BadRequestObjectResult(string.Format(InvalidStageDisplayName, StageService.MaxDisplayNameLength));
             }
 
+            var userKey = GetUserKey();
             var stage = await _stageService.CreateStage(displayName, userKey);
 
             _logger.LogInformation(MessageFormat, userKey, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
 
-            return new HttpOkObjectResult(GetStageData(stage, stage.Members.First(), includePackages: false));
+            return new HttpOkObjectResult(new ListViewStage(stage, stage.Members.First(), GetBaseAddress()));
         }
 
         // DELETE api/stage/e92156e2d6a74a19853a3294cf681dfc
@@ -112,19 +112,24 @@ namespace Stage.Manager.Controllers
         public async Task<IActionResult> Drop(string id)
         {
             var userKey = GetUserKey();
-
             var stage = _stageService.GetStage(id);
-            if (stage == null || !_stageService.IsUserMemberOfStage(stage, userKey))
+
+            if (stage == null)
             {
                 _logger.LogInformation(MessageFormat, userKey, id, "Drop failed, stage not found");
                 return new HttpNotFoundResult();
+            }
+
+            if (!_stageService.IsUserMemberOfStage(stage, userKey))
+            {
+                return new HttpUnauthorizedResult();
             }
 
             await _stageService.DropStage(stage);
             stage.Status = StageStatus.Deleted;
 
             _logger.LogInformation(MessageFormat, userKey, id, "Drop was successful");
-            return new HttpOkObjectResult(GetStageData(stage, stage.Members.First(x => x.UserKey == userKey), includePackages: false));
+            return new HttpOkObjectResult(new ViewStage(stage, GetBaseAddress()));
         }
 
         // POST api/stage/e92156e2d6a74a19853a3294cf681dfc
@@ -135,6 +140,7 @@ namespace Stage.Manager.Controllers
             return new BadRequestResult();
         }
 
+        [AllowAnonymous]
         [HttpGet("{id:guid}/index.json")]
         public IActionResult Index(string id)
         {
@@ -142,13 +148,12 @@ namespace Stage.Manager.Controllers
             return Json(index);
         }
 
+        [AllowAnonymous]
         [HttpGet("{id:guid}/query")]
         public async Task<IActionResult> Query(string id)
         {
-            var userKey = GetUserKey();
-
             var stage = _stageService.GetStage(id);
-            if (stage == null || !_stageService.IsUserMemberOfStage(stage, userKey))
+            if (stage == null)
             {
                 return new HttpNotFoundResult();
             }
@@ -162,67 +167,83 @@ namespace Stage.Manager.Controllers
             return new JsonResult(searchResult);
         }
 
-        private object GetStageData(Database.Models.Stage stage, StageMember member, bool includePackages)
+        private int GetUserKey()
         {
-            var sd = new ExternalStageMetadata
-            {
-                Id = stage.Id,
-                DisplayName = stage.DisplayName,
-                CreationDate = stage.CreationDate,
-                ExpirationDate = stage.ExpirationDate,
-                Status = stage.Status.ToString(),
-                MemberType = member.MemberType.ToString(),
-                Feed = $"{GetBaseAddress()}/api/stage/{stage.Id}/index.json",
-            };
-
-            if (!includePackages)
-            {
-                return sd;
-            }
-
-            var packages = stage.Packages.Select(package => new ExternalPackage
-            {
-                Id = package.Id,
-                Version = package.Version,
-            }).ToList();
-
-            return new ExternalStageDetailed
-            {
-                Metadata = sd,
-                Packages = packages,
-                PackagesCount = packages.Count
-            };
+            return int.Parse(HttpContext.User.Identity.Name);
         }
-
-        private int GetUserKey() => 1;
 
         private string GetBaseAddress()
         {
             return $"{Request.Scheme}://{Request.Host.Value}";
         }
 
-        public class ExternalStageDetailed
+        public class DetailedViewStage : ViewStage
         {
+            public DetailedViewStage(Database.Models.Stage stage, string baseAddress) : base(stage, baseAddress)
+            {
+                Packages = new List<ViewPackage>(stage.Packages.Select(package => new ViewPackage(package)));
+                PackagesCount = Packages.Count;
+                Members = new List<ViewMember>(stage.Members.Select(member => new ViewMember(member)));
+            }
+
             public int PackagesCount { get; set; }
-            public List<ExternalPackage> Packages { get; set; }
-            public ExternalStageMetadata Metadata { get; set; }
+            public List<ViewPackage> Packages { get; set; }
+            public List<ViewMember> Members { get; set; } 
         }
 
-        public class ExternalStageMetadata
+        public class ListViewStage : ViewStage
+        {
+            public ListViewStage(Database.Models.Stage stage, StageMember member, string baseAddress) : base(stage, baseAddress)
+            {
+                MemberType = member.MemberType.ToString();
+            }
+
+            public string MemberType { get; set; }
+        }
+        
+        public class ViewStage
         {
             public string Id { get; set; }
             public string DisplayName { get; set; }
             public string Status { get; set; }
             public DateTime CreationDate { get; set; }
             public DateTime ExpirationDate { get; set; }
-            public string MemberType { get; set; }
             public string Feed { get; set; }
+
+            public ViewStage(Database.Models.Stage stage, string baseAddress)
+            {
+                Id = stage.Id;
+                DisplayName = stage.DisplayName;
+                CreationDate = stage.CreationDate;
+                ExpirationDate = stage.ExpirationDate;
+                Status = stage.Status.ToString();
+                Feed = $"{baseAddress}/api/stage/{stage.Id}/index.json";
+            }
         }
 
-        public class ExternalPackage
+        public class ViewPackage
         {
+            public ViewPackage(StagedPackage package)
+            {
+                Id = package.Id;
+                Version = package.Version;
+            }
+
             public string Id { get; set; }
             public string Version { get; set; }
+        }
+
+        public class ViewMember
+        {
+            public ViewMember(StageMember member)
+            {
+                Name = member.UserKey.ToString();
+                MemberType = member.MemberType.ToString();
+            }
+
+            // TODO: now this is user key, but change to actual user name
+            public string Name { get; set; }
+            public string MemberType { get; set; }
         }
     }
 }

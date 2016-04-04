@@ -9,6 +9,9 @@
         "DatabaseConnectionString": "Server=(localdb)\\mssqllocaldb;Database=GalleryDB;Trusted_Connection=True;"
     },
     "PackageRepository": {
-        "StorageAccountConnectionString": "DefaultEndpointsProtocol=https;AccountName=<account name>;AccountKey=<account key>",
+        "StorageAccountConnectionString": "DefaultEndpointsProtocol=https;AccountName=<account name>;AccountKey=<account key>"
+    },
+    "ApiKeyAuthenticationServiceOptions": {
+        "DatabaseConnectionString": "Server=(localdb)\\mssqllocaldb;Database=GalleryDB;Trusted_Connection=True;"
     }
 }

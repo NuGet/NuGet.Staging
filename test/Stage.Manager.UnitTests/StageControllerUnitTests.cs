@@ -27,10 +27,12 @@ namespace Stage.Manager.UnitTests
     /// </summary>
     public class StageControllerUnitTests
     {
-        const string _displayName = "display name";
+        private const string DisplayName = "display name";
+        private const int UserKey = 3;
 
         private StageController _stageController;
         private StageContextMock _stageContextMock;
+        private Mock<HttpContext> _httpContextMock;
 
         public StageControllerUnitTests()
         {
@@ -49,17 +51,17 @@ namespace Stage.Manager.UnitTests
                 new Mock<ILogger<StageController>>().Object,
                 _stageContextMock.Object,
                 stageServiceMock.Object,
-                new Mock<StorageFactory>().Object, 
+                new Mock<StorageFactory>().Object,
                 new Mock<ISearchService>().Object);
 
-            MockRequest();
+            _httpContextMock = _stageController.WithMockHttpContext().WithUser(UserKey).WithBaseAddress();
         }
 
         [Fact]
         public async Task WhenCreateIsCalledNewStageIsAdded()
         {
             // Act 
-            IActionResult actionResult =  await _stageController.Create(_displayName);
+            IActionResult actionResult =  await _stageController.Create(DisplayName);
 
             // Assert
             actionResult.Should().BeOfType<HttpOkObjectResult>();
@@ -67,10 +69,17 @@ namespace Stage.Manager.UnitTests
 
             Database.Models.Stage stage = _stageContextMock.Object.Stages.First();
 
-            stage.DisplayName.Should().Be(_displayName);
+            stage.DisplayName.Should().Be(DisplayName);
             stage.Status.Should().Be(StageStatus.Active);
             stage.Members.Count.Should().Be(1);
             stage.Members.First().MemberType.Should().Be(MemberType.Owner);
+            stage.Members.First().UserKey.Should().Be(UserKey);
+        }
+
+        [Fact]
+        public void VerifyCreateRequiresAuthentication()
+        {
+            AuthorizationTest.IsAuthorized(_stageController, "Create", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
@@ -107,9 +116,15 @@ namespace Stage.Manager.UnitTests
             actionResult.Should().BeOfType<HttpOkObjectResult>();
 
             object result = (actionResult as HttpOkObjectResult).Value;
-            int count = (int)result.GetType().GetProperty("Count").GetValue(result);
+            result.Should().BeOfType<List<StageController.ListViewStage>>();
+            var stages = result as List<StageController.ListViewStage>;
+            stages.Count.Should().Be(2);
+        }
 
-            count.Should().Be(2);
+        [Fact]
+        public void VerifyListRequiresAuthentication()
+        {
+            AuthorizationTest.IsAuthorized(_stageController, "ListUserStages", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
@@ -117,9 +132,9 @@ namespace Stage.Manager.UnitTests
         {
             // Arrange
             await AddMockStage("first");
-            string secondStageId = await AddMockStage(_displayName);
+            string secondStageId = await AddMockStage(DisplayName);
             AddMockPackage(secondStageId, "package");
-
+            
             // Act
             IActionResult actionResult = _stageController.GetDetails(secondStageId);
 
@@ -127,12 +142,18 @@ namespace Stage.Manager.UnitTests
             actionResult.Should().BeOfType<HttpOkObjectResult>();
 
             var result = (actionResult as HttpOkObjectResult).Value;
-            result.Should().BeOfType<StageController.ExternalStageDetailed>();
+            result.Should().BeOfType<StageController.DetailedViewStage>();
 
-            var stageDetails = result as StageController.ExternalStageDetailed;
+            var stageDetails = result as StageController.DetailedViewStage;
 
-            stageDetails.Metadata.DisplayName.Should().Be(_displayName);
+            stageDetails.DisplayName.Should().Be(DisplayName);
             stageDetails.Packages.Count.Should().Be(1);
+        }
+
+        [Fact]
+        public void VerifyGetDetailsIsAnonymous()
+        {
+            AuthorizationTest.IsAnonymous(_stageController, "GetDetails", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
@@ -181,6 +202,26 @@ namespace Stage.Manager.UnitTests
         }
 
         [Fact]
+        public void VerifyDropRequiresAuthentication()
+        {
+            AuthorizationTest.IsAuthorized(_stageController, "Drop", methodTypes: null).Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task WhenDropIsCalledWithUnauthorizedUser401IsReturned()
+        {
+            // Arrange
+            string stageId = await AddMockStage("stage");
+
+            _httpContextMock.WithUser(UserKey + 1);
+            // Act
+            IActionResult actionResult = await _stageController.Drop(stageId);
+
+            // Assert
+            actionResult.Should().BeOfType<HttpUnauthorizedResult>();
+        }
+
+        [Fact]
         public void WhenIndexIsCalledJsonIsReturned()
         {
             // Act
@@ -200,18 +241,18 @@ namespace Stage.Manager.UnitTests
             jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.PackagePublish).Should().NotBeEmpty();
         }
 
-        private void MockRequest()
+        [Fact]
+        public void VerifyIndexIsAnonymous()
         {
-            var actionContext = new ActionContext();
-            var mockHttpContext = new Mock<HttpContext>();
-            var mockRequest = new Mock<HttpRequest>();
-
-            mockRequest.Setup(x => x.Scheme).Returns("http");
-            mockRequest.Setup(x => x.Host).Returns(new HostString("stage.nuget.org"));
-            mockHttpContext.Setup(x => x.Request).Returns(mockRequest.Object);
-            actionContext.HttpContext = mockHttpContext.Object;
-            _stageController.ActionContext = actionContext;
+            AuthorizationTest.IsAnonymous(_stageController, "Index", methodTypes: null).Should().BeTrue();
         }
+
+        [Fact]
+        public void VerifyQueryIsAnonymous()
+        {
+            AuthorizationTest.IsAnonymous(_stageController, "Query", methodTypes: null).Should().BeTrue();
+        }
+
 
         private async Task<string> AddMockStage(string displayName)
         {

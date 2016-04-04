@@ -25,11 +25,13 @@ namespace Stage.Manager.UnitTests
         private const string DefaultRegistrationId = "DefaultId";
         private const string DefaultVersion = "1.0.0";
         private const string BaseAddress = "http://nuget.org/";
+        private const int UserKey = 2;
 
         private StageContextMock _stageContextMock;
         private PackageController _packageController;
         private Mock<IPackageService> _packageServiceMock;
         private TestStorageFactory _testStorageFactory;
+        private Mock<HttpContext> _httpContextMock; 
 
         public PackageControllerUnitTests()
         {
@@ -66,6 +68,8 @@ namespace Stage.Manager.UnitTests
                 _packageServiceMock.Object,
                 stageServiceMock.Object,
                 v3Factory);
+
+            _httpContextMock = _packageController.WithMockHttpContext().WithUser(UserKey);
         }
 
         [Fact]
@@ -100,7 +104,7 @@ namespace Stage.Manager.UnitTests
         {
             // Arrange
             byte[] data = new byte[100];
-            ArrangeRequestFileFromStream(new MemoryStream(data));
+            _httpContextMock.WithFile(new MemoryStream(data));
 
             var stage = AddMockStage();
 
@@ -116,7 +120,7 @@ namespace Stage.Manager.UnitTests
         {
             // Arrange
             var package = new TestPackage(DefaultRegistrationId, DefaultVersion).WithInvalidNuspec();
-            ArrangeRequestFileFromStream(package.Stream);
+            _httpContextMock.WithFile(package.Stream);
 
             var stage = AddMockStage();
 
@@ -132,7 +136,7 @@ namespace Stage.Manager.UnitTests
         {
             // Arrange
             var package = new TestPackage(DefaultRegistrationId, DefaultVersion).WithMinClientVersion("9.9.9");
-            ArrangeRequestFileFromStream(package.Stream);
+            _httpContextMock.WithFile(package.Stream);
 
             var stage = AddMockStage();
 
@@ -150,12 +154,12 @@ namespace Stage.Manager.UnitTests
             var stage = AddMockStage();
 
             var package = new TestPackage(DefaultRegistrationId, DefaultVersion).WithDefaultData();
-            ArrangeRequestFileFromStream(package.Stream);
+            _httpContextMock.WithFile(package.Stream);
 
             await _packageController.PushPackageToStage(stage.Id);
 
             var samePackage = new TestPackage(DefaultRegistrationId, DefaultVersion).WithDefaultData();
-            ArrangeRequestFileFromStream(samePackage.Stream);
+            _httpContextMock.WithFile(samePackage.Stream);
 
             // Act
             IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
@@ -167,7 +171,7 @@ namespace Stage.Manager.UnitTests
         }
 
         [Fact]
-        public async Task WhenPushIsCalledAndUserIsNotOwner403IsReturned()
+        public async Task WhenPushIsCalledAndUserIsNotOwnerOfPackage403IsReturned()
         {
             // Arrange
             ArrangeRequestWithPackage();
@@ -197,7 +201,7 @@ namespace Stage.Manager.UnitTests
             IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
 
             // Assert
-            stage.Packages.Count().Should().Be(1);
+            stage.Packages.Count.Should().Be(1);
 
             actionResult.Should().BeOfType<ObjectResult>();
             var objectResult = actionResult as ObjectResult;
@@ -205,29 +209,32 @@ namespace Stage.Manager.UnitTests
             ((string) objectResult.Value).Should().Contain(DefaultRegistrationId);
         }
 
+        [Fact]
+        public void VerifyPushRequiresAuthentication()
+        {
+            // Assert
+            AuthorizationTest.IsAuthorized(_packageController, "PushPackageToStage", methodTypes: null).Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task WhenPushIsCalledAndUserIsNotOwnerOfStage401IsReturned()
+        {
+            // Arrange
+            var stage = AddMockStage();
+
+            _httpContextMock.WithUser(UserKey + 1);
+
+            // Act
+            IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
+
+            // Assert
+            actionResult.Should().BeOfType<HttpUnauthorizedResult>();
+        }
 
         private void ArrangeRequestWithPackage(string id = DefaultRegistrationId, string version = DefaultVersion)
         {
             var testPackage = new TestPackage(id, version).WithDefaultData();
-            ArrangeRequestFileFromStream(testPackage.Stream);
-        }
-
-        private void ArrangeRequestFileFromStream(Stream stream)
-        {
-            var actionContext = new ActionContext();
-            var mockHttpContext = new Mock<HttpContext>();
-            var mockRequest = new Mock<HttpRequest>();
-            var mockForm = new Mock<IFormCollection>();
-            var formFileCollection = new Mock<IFormFileCollection>();
-            var formFileMock = new Mock<IFormFile>();
-
-            formFileMock.Setup(x => x.OpenReadStream()).Returns(stream);
-            formFileCollection.Setup(x => x[It.IsAny<int>()]).Returns(formFileMock.Object);
-            mockForm.Setup(x => x.Files).Returns(formFileCollection.Object);
-            mockRequest.Setup(x => x.Form).Returns(mockForm.Object);
-            mockHttpContext.Setup(x => x.Request).Returns(mockRequest.Object);
-            actionContext.HttpContext = mockHttpContext.Object;
-            _packageController.ActionContext = actionContext;
+            _httpContextMock.WithFile(testPackage.Stream);
         }
 
         private Database.Models.Stage AddMockStage()
@@ -239,7 +246,7 @@ namespace Stage.Manager.UnitTests
                 Key = 1,
                 MemberType = MemberType.Owner,
                 StageKey = stageKey,
-                UserKey = 1
+                UserKey = UserKey
             };
 
             var stage = new Database.Models.Stage

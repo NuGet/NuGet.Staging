@@ -2,13 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
 using NuGet.Packaging;
-using NuGet.V3Repository;
 using NuGet.Versioning;
 using Stage.Database.Models;
 using Stage.Packages;
@@ -16,6 +15,7 @@ using static Stage.Manager.Controllers.Messages;
 
 namespace Stage.Manager.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     public class PackageController : Controller
     {
@@ -27,7 +27,8 @@ namespace Stage.Manager.Controllers
         private readonly IStageService _stageService;
         private readonly IV3ServiceFactory _v3ServiceFactory;
 
-        public PackageController(ILogger<PackageController> logger, StageContext context, IPackageService packageService, IStageService stageService, IV3ServiceFactory v3ServiceFactory)
+        public PackageController(ILogger<PackageController> logger, StageContext context, IPackageService packageService, IStageService stageService,
+                                IV3ServiceFactory v3ServiceFactory)
         {
             if (logger == null)
             {
@@ -66,11 +67,15 @@ namespace Stage.Manager.Controllers
         public async Task<IActionResult> PushPackageToStage(string id)
         {
             var userKey = GetUserKey();
-
             var stage = _stageService.GetStage(id);
-            if (stage == null || !_stageService.IsUserMemberOfStage(stage, userKey))
+            if (stage == null)
             {
                 return new HttpNotFoundResult();
+            }
+
+            if (!_stageService.IsUserMemberOfStage(stage, userKey))
+            {
+                return new HttpUnauthorizedResult();
             }
 
             using (var packageStream = this.Request.Form.Files[0].OpenReadStream())
@@ -149,7 +154,9 @@ namespace Stage.Manager.Controllers
                     : (IActionResult)new HttpStatusCodeResult((int)HttpStatusCode.Created);
             }
         }
-     
-        private int GetUserKey() => 1;
+        private int GetUserKey()
+        {
+            return int.Parse(HttpContext.User.Identity.Name);
+        }
     }
 }
