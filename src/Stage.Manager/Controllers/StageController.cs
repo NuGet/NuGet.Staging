@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Mvc;
+using Microsoft.Data.Entity;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Stage.Database.Models;
@@ -69,10 +70,10 @@ namespace Stage.Manager.Controllers
         public IActionResult ListUserStages()
         {
             var userKey = GetUserKey();
-            var userMemberships = _context.StageMembers.Where(sm => sm.UserKey == userKey);
+            var userMemberships = _context.StageMembers.Where(sm => sm.UserKey == userKey).Include(sm => sm.Stage).ToList();
+            var stageViews = userMemberships.Select(sm => new ListViewStage(sm.Stage, sm, GetBaseAddress())).ToList();
 
-            return
-                new HttpOkObjectResult(userMemberships.Select(sm => new ListViewStage(sm.Stage, sm, GetBaseAddress())).ToList());
+            return new HttpOkObjectResult(stageViews);
         }
 
         // GET api/stage/e92156e2d6a74a19853a3294cf681dfc
