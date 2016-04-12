@@ -5,8 +5,9 @@
     "StageDatabase": {
         "ConnectionString": "Server=(localdb)\\mssqllocaldb;Database=StageDB;Trusted_Connection=True;"
     },
-    "DatabasePackageServiceOptions": {
-        "DatabaseConnectionString": "Server=(localdb)\\mssqllocaldb;Database=GalleryDB;Trusted_Connection=True;"
+    "InternalPackageServiceOptions": {
+        "DatabaseConnectionString": "Server=(localdb)\\mssqllocaldb;Database=GalleryDB;Trusted_Connection=True;",
+        "ServiceBusConnectionString": "Endpoint=sb://nugetlocal.servicebus.windows.net/;SharedAccessKeyName=;SharedAccessKey=;EntityPath=batchpush"
     },
     "PackageRepository": {
         "StorageAccountConnectionString": "DefaultEndpointsProtocol=https;AccountName=<account name>;AccountKey=<account key>"

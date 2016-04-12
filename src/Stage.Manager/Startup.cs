@@ -71,8 +71,8 @@ namespace Stage.Manager
         private void ConfigureDependencies(IServiceCollection services)
         {
             // IPackageService setup
-            services.AddScoped<IPackageService, DatabasePackageService>();
-            services.Configure<DatabasePackageServiceOptions>(Configuration.GetSection("DatabasePackageServiceOptions"));
+            services.AddScoped<IPackageService, InternalPackageService>();
+            services.Configure<InternalPackageServiceOptions>(Configuration.GetSection("InternalPackageServiceOptions"));
 
             services.AddScoped<IStageService, StageService>();
 

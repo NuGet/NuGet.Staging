@@ -2,17 +2,17 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Mvc;
-using Microsoft.Data.Entity;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Stage.Database.Models;
 using Stage.Manager.Search;
 using Stage.Manager.V3;
+using Stage.Packages;
 using static Stage.Manager.Controllers.Messages;
 
 namespace Stage.Manager.Controllers
@@ -22,25 +22,20 @@ namespace Stage.Manager.Controllers
     public class StageController : Controller
     {
         private readonly ILogger<StageController> _logger;
-        private readonly StageContext _context;
         private readonly IStageService _stageService;
         private readonly StageIndexBuilder _stageIndexBuilder = new StageIndexBuilder();
         private readonly ISearchService _searchService;
         private readonly StorageFactory _storageFactory;
+        private readonly IPackageService _packageService;
 
         private const string MessageFormat = "User: {UserKey}, Stage: {StageId}, {Message}";
 
-        public StageController(ILogger<StageController> logger, StageContext context, IStageService stageService,
-                               StorageFactory storageFactory, ISearchService searchService)
+        public StageController(ILogger<StageController> logger, IStageService stageService,
+                               StorageFactory storageFactory, ISearchService searchService, IPackageService packageService)
         {
             if (logger == null)
             {
                 throw new ArgumentNullException(nameof(logger));
-            }
-
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
             }
 
             if (stageService == null)
@@ -58,11 +53,16 @@ namespace Stage.Manager.Controllers
                 throw new ArgumentNullException(nameof(storageFactory));
             }
 
+            if (packageService == null)
+            {
+                throw new ArgumentNullException(nameof(packageService));
+            }
+
             _logger = logger;
-            _context = context;
             _stageService = stageService;
             _searchService = searchService;
             _storageFactory = storageFactory;
+            _packageService = packageService;
         }
 
         // GET: api/stage
@@ -70,7 +70,7 @@ namespace Stage.Manager.Controllers
         public IActionResult ListUserStages()
         {
             var userKey = GetUserKey();
-            var userMemberships = _context.StageMembers.Where(sm => sm.UserKey == userKey).Include(sm => sm.Stage).ToList();
+            var userMemberships =_stageService.GetUserMemberships(userKey).ToList();
             var stageViews = userMemberships.Select(sm => new ListViewStage(sm.Stage, sm, GetBaseAddress())).ToList();
 
             return new HttpOkObjectResult(stageViews);
@@ -125,6 +125,11 @@ namespace Stage.Manager.Controllers
                 return new HttpUnauthorizedResult();
             }
 
+            if (stage.Status == StageStatus.Committing)
+            {
+                return new BadRequestObjectResult(string.Format(CommitInProgressMessage, stage.DisplayName));
+            }
+
             await _stageService.DropStage(stage);
             stage.Status = StageStatus.Deleted;
 
@@ -136,8 +141,71 @@ namespace Stage.Manager.Controllers
         [HttpPost("{id:guid}")]
         public async Task<IActionResult> Commit(string id)
         {
-            // Not implemented
-            return new BadRequestResult();
+            // TODO: this method must not be executed concurrently for the same stage, this will cause commit to
+            // be triggered twice, and unexpected behavior. Will need to add a stage level lock to protect this.
+             
+            var userKey = GetUserKey();
+            var stage = _stageService.GetStage(id);
+
+            if (stage == null)
+            {
+                _logger.LogInformation(MessageFormat, userKey, id, "Drop failed, stage not found");
+                return new HttpNotFoundResult();
+            }
+
+            if (!_stageService.IsUserMemberOfStage(stage, userKey))
+            {
+                return new HttpUnauthorizedResult();
+            }
+
+            if (stage.Packages.Count == 0)
+            {
+                return new BadRequestObjectResult(string.Format(EmptyStageCommitMessage, stage.DisplayName));
+            }
+
+            // 1. Check stage status - if already commiting, return error 
+            if (stage.Status == StageStatus.Committing)
+            {
+                return new ObjectResult(string.Format(CommitInProgressMessage, stage.DisplayName))
+                {
+                    StatusCode = (int) HttpStatusCode.Conflict
+                };
+            }
+
+            // 2. Prepare push metadata - all data needed for push without access to stage DB
+            var pushData = CreatePackageBatchPushData(stage);
+
+            // 3. Give to a PackageManager component
+            string trackingId = await _packageService.PushBatchAsync(pushData);
+
+            // 4. Save tracking id in the DB
+            await _stageService.CommitStage(stage, trackingId);
+
+            _logger.LogInformation(MessageFormat, userKey, id, "Commit initiated successfully");
+
+            return new HttpStatusCodeResult((int) HttpStatusCode.Created);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("{id:guid}/commit")]
+        public IActionResult GetCommitProgress(string id)
+        {
+            var stage = _stageService.GetStage(id);
+            if (stage == null)
+            {
+                return new HttpNotFoundResult();
+            }
+
+            var commit = _stageService.GetCommit(stage);
+
+            if (commit == null)
+            {
+                return new BadRequestResult();
+            }
+
+            var commitProgressView = CreateViewStageCommitProgress(stage, commit);
+
+            return new HttpOkObjectResult(commitProgressView);
         }
 
         [AllowAnonymous]
@@ -177,73 +245,52 @@ namespace Stage.Manager.Controllers
             return $"{Request.Scheme}://{Request.Host.Value}";
         }
 
-        public class DetailedViewStage : ViewStage
+        private PackageBatchPushData CreatePackageBatchPushData(Database.Models.Stage stage)
         {
-            public DetailedViewStage(Database.Models.Stage stage, string baseAddress) : base(stage, baseAddress)
-            {
-                Packages = new List<ViewPackage>(stage.Packages.Select(package => new ViewPackage(package)));
-                PackagesCount = Packages.Count;
-                Members = new List<ViewMember>(stage.Members.Select(member => new ViewMember(member)));
-            }
-
-            public int PackagesCount { get; set; }
-            public List<ViewPackage> Packages { get; set; }
-            public List<ViewMember> Members { get; set; } 
+            return
+                new PackageBatchPushData
+                {
+                    PackagePushDataList = stage.Packages.Select(
+                        p => new PackagePushData
+                        {
+                            Id = p.Id,
+                            Version = p.Version,
+                            NupkgPath = p.NupkgUrl,
+                            UserKey = p.UserKey.ToString()
+                        }).ToList(),
+                    StageId = stage.Id
+                };
         }
 
-        public class ListViewStage : ViewStage
+        private ViewStageCommitProgress CreateViewStageCommitProgress(Database.Models.Stage stage, StageCommit commit)
         {
-            public ListViewStage(Database.Models.Stage stage, StageMember member, string baseAddress) : base(stage, baseAddress)
+            BatchPushProgressReport progressReport = _stageService.GetCommitProgress(commit);
+            var commitProgressView = new ViewStageCommitProgress(stage, GetBaseAddress());
+
+            if (progressReport != null)
             {
-                MemberType = member.MemberType.ToString();
+                commitProgressView.CommitStatus = progressReport.Status.ToString();
+                commitProgressView.ErrorMessage = progressReport.FailureDetails;
+                commitProgressView.PackageProgressList =
+                    progressReport.PackagePushProgressReports.Select(p => new ViewPackageCommitProgress
+                    {
+                        Id = p.Id,
+                        Version = p.Version,
+                        Progress = p.Status.ToString()
+                    }).ToList();
+            }
+            else
+            {
+                commitProgressView.CommitStatus = commit.Status.ToString();
+                commitProgressView.PackageProgressList = stage.Packages.Select(p => new ViewPackageCommitProgress
+                {
+                    Id = p.Id,
+                    Version = p.Version,
+                    Progress = PushProgressStatus.Pending.ToString()
+                }).ToList();
             }
 
-            public string MemberType { get; set; }
-        }
-        
-        public class ViewStage
-        {
-            public string Id { get; set; }
-            public string DisplayName { get; set; }
-            public string Status { get; set; }
-            public DateTime CreationDate { get; set; }
-            public DateTime ExpirationDate { get; set; }
-            public string Feed { get; set; }
-
-            public ViewStage(Database.Models.Stage stage, string baseAddress)
-            {
-                Id = stage.Id;
-                DisplayName = stage.DisplayName;
-                CreationDate = stage.CreationDate;
-                ExpirationDate = stage.ExpirationDate;
-                Status = stage.Status.ToString();
-                Feed = $"{baseAddress}/api/stage/{stage.Id}/index.json";
-            }
-        }
-
-        public class ViewPackage
-        {
-            public ViewPackage(StagedPackage package)
-            {
-                Id = package.Id;
-                Version = package.Version;
-            }
-
-            public string Id { get; set; }
-            public string Version { get; set; }
-        }
-
-        public class ViewMember
-        {
-            public ViewMember(StageMember member)
-            {
-                Name = member.UserKey.ToString();
-                MemberType = member.MemberType.ToString();
-            }
-
-            // TODO: now this is user key, but change to actual user name
-            public string Name { get; set; }
-            public string MemberType { get; set; }
+            return commitProgressView;
         }
     }
 }

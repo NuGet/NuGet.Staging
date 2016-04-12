@@ -231,6 +231,20 @@ namespace Stage.Manager.UnitTests
             actionResult.Should().BeOfType<HttpUnauthorizedResult>();
         }
 
+        [Fact]
+        public async Task WhenPushIsCalledAndStageIsCommiting400IsReturned()
+        {
+            // Arrange
+            var stage = AddMockStage();
+            stage.Status = StageStatus.Committing;
+
+            // Act
+            IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
+
+            // Assert
+            actionResult.Should().BeOfType<BadRequestObjectResult>();
+        }
+
         private void ArrangeRequestWithPackage(string id = DefaultRegistrationId, string version = DefaultVersion)
         {
             var testPackage = new TestPackage(id, version).WithDefaultData();

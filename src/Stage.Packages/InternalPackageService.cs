@@ -4,21 +4,28 @@
 using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.OptionsModel;
+using Microsoft.ServiceBus.Messaging;
+using Newtonsoft.Json;
 
 namespace Stage.Packages
 {
-    public class DatabasePackageServiceOptions
+    public class InternalPackageServiceOptions
     {
         public string DatabaseConnectionString { get; set; }
+
+        public string ServiceBusConnectionString { get; set; }
     }
 
-    public class DatabasePackageService : IPackageService
+    public class InternalPackageService : IPackageService
     {
-        private readonly DatabasePackageServiceOptions _options;
+        private readonly InternalPackageServiceOptions _options;
+        private readonly Lazy<TopicClient> _topicClient;
 
-        public DatabasePackageService(IOptions<DatabasePackageServiceOptions> options)
+        public InternalPackageService(IOptions<InternalPackageServiceOptions> options)
         {
             if (options == null)
             {
@@ -26,6 +33,7 @@ namespace Stage.Packages
             }
 
             _options = options.Value;
+            _topicClient = new Lazy<TopicClient>(() => TopicClient.CreateFromConnectionString(_options.ServiceBusConnectionString));
         }
 
         public async Task<bool> DoesPackageExistsAsync(string id, string version)
@@ -90,6 +98,20 @@ namespace Stage.Packages
                     return scalar != null;
                 }
             }
+        }
+
+        public async Task<string> PushBatchAsync(PackageBatchPushData data)
+        {
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
+            string json = JsonConvert.SerializeObject(data);
+
+            await _topicClient.Value.SendAsync(new BrokeredMessage(new MemoryStream(Encoding.ASCII.GetBytes(json))));
+
+            return "MockId";
         }
     }
 }

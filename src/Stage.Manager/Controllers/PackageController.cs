@@ -78,6 +78,11 @@ namespace Stage.Manager.Controllers
                 return new HttpUnauthorizedResult();
             }
 
+            if (!_stageService.IsStageEditAllowed(stage))
+            {
+                return new BadRequestObjectResult(string.Format(StageEditNotAllowed, stage.DisplayName));
+            }
+
             using (var packageStream = this.Request.Form.Files[0].OpenReadStream())
             {
                 var v3Service = _v3ServiceFactory.Create(stage.Id);

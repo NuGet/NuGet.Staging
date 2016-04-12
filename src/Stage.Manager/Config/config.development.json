@@ -5,8 +5,9 @@
     "StageDatabase": {
         "ConnectionString": ""
     },
-    "DatabasePackageServiceOptions": {
-        "DatabaseConnectionString": ""
+    "InternalPackageServiceOptions": {
+        "DatabaseConnectionString": "",
+        "ServiceBusConnectionString": ""
     },
     "PackageRepository": {
         "StorageAccountConnectionString": ""

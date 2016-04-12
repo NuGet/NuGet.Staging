@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.Entity;
+using Newtonsoft.Json;
 using Stage.Database.Models;
+using Stage.Packages;
 
 namespace Stage.Manager
 {
@@ -49,12 +51,16 @@ namespace Stage.Manager
             return stage;
         }
 
+        // TODO: improve performance by NOT including all stage data
         public virtual Database.Models.Stage GetStage(string stageId) =>
-            _context.Stages.Include(s => s.Members).Include(s => s.Packages).FirstOrDefault(s => s.Id == stageId);
+            _context.Stages.Include(s => s.Members)
+                           .Include(s => s.Packages)
+                           .Include(s => s.Commits).FirstOrDefault(s => s.Id == stageId && s.Status != StageStatus.Deleted);
 
         public async Task DropStage(Database.Models.Stage stage)
         {
             // TODO: in the future, just mark the stage as deleted and have a background job perform the actual delete
+            // TODO: the stage should be removed from storage as well
             _context.Stages.Remove(stage);
             await _context.SaveChangesAsync();
         }
@@ -65,12 +71,50 @@ namespace Stage.Manager
                                            string.Equals(p.NormalizedVersion, version, StringComparison.OrdinalIgnoreCase));
         }
 
+        public virtual IEnumerable<StageMember> GetUserMemberships(int userKey)
+        {
+            return _context.StageMembers.Where(sm => sm.UserKey == userKey).Include(sm => sm.Stage);
+        }
+
         public virtual bool IsUserMemberOfStage(Database.Models.Stage stage, int userKey) =>
             stage.Members.Any(sm => sm.UserKey == userKey);
 
         public bool CheckStageDisplayNameValidity(string displayName) =>
             !string.IsNullOrWhiteSpace(displayName) && displayName.Length <= MaxDisplayNameLength;
 
+        public bool IsStageEditAllowed(Database.Models.Stage stage)
+        {
+            return stage.Status == StageStatus.Active;
+        }
+
         private static string GuidToStageId(Guid guid) => guid.ToString("N");
+
+        public async Task CommitStage(Database.Models.Stage stage, string trackingId)
+        {
+            stage.Status = StageStatus.Committing;
+            stage.Commits.Add(new StageCommit
+            {
+                RequestTime = DateTime.UtcNow,
+                TrackId = trackingId,
+                Status = CommitStatus.Pending
+            });
+
+            await _context.SaveChangesAsync();
+        }
+
+        public StageCommit GetCommit(Database.Models.Stage stage)
+        {
+            return stage.Commits.OrderByDescending(sc => sc.RequestTime).FirstOrDefault();
+        }
+
+        public BatchPushProgressReport GetCommitProgress(StageCommit commit)
+        {
+            if (string.IsNullOrEmpty(commit.Progress))
+            {
+                return null;
+            }
+
+            return JsonConvert.DeserializeObject<BatchPushProgressReport>(commit.Progress);
+        }
     }
 }

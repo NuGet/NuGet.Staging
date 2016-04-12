@@ -23,5 +23,7 @@ namespace Stage.Database.Models
         public List<StageMember> Members { get; set; } 
 
         public List<StagedPackage> Packages { get; set; } 
+
+        public List<StageCommit> Commits { get; set; } 
     }
 }

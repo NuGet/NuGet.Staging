@@ -141,4 +141,13 @@
   <data name="PackageExistsOnStageMessage" xml:space="preserve">
     <value>A package with id '{0}' and version '{1}' already exists on stage '{2}'. Delete and add to modify.</value>
   </data>
+  <data name="CommitInProgressMessage" xml:space="preserve">
+    <value>Commit for stage '{0}' is in progress.</value>
+  </data>
+  <data name="StageEditNotAllowed" xml:space="preserve">
+    <value>Edits of stage '{0}' are not allowed.</value>
+  </data>
+  <data name="EmptyStageCommitMessage" xml:space="preserve">
+    <value>Stage '{0}' is empty. Add packages before commiting, or delete stage.</value>
+  </data>
 </root>
