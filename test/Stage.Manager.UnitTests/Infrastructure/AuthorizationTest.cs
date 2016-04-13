@@ -25,9 +25,9 @@ namespace Stage.Manager.UnitTests
         /// <returns>true is method is anonymous</returns>
         public static bool IsAnonymous(Controller controller, string methodName, Type[] methodTypes)
         {
-            return GetMethodAttribute<AllowAnonymousAttribute>(controller, methodName, methodTypes) != null ||
-                (GetControllerAttribute<AuthorizeAttribute>(controller) == null &&
-                    GetMethodAttribute<AuthorizeAttribute>(controller, methodName, methodTypes) == null);
+            return AttributeHelper.GetMethodAttribute<AllowAnonymousAttribute>(controller, methodName, methodTypes) != null ||
+                (AttributeHelper.GetControllerAttribute<AuthorizeAttribute>(controller) == null &&
+                    AttributeHelper.GetMethodAttribute<AuthorizeAttribute>(controller, methodName, methodTypes) == null);
 
         }
 
@@ -43,9 +43,9 @@ namespace Stage.Manager.UnitTests
         /// <returns></returns>
         public static bool IsAuthorized(Controller controller, string methodName, Type[] methodTypes)
         {
-            return GetMethodAttribute<AuthorizeAttribute>(controller, methodName, methodTypes) != null ||
-                (GetControllerAttribute<AuthorizeAttribute>(controller) != null &&
-                    GetMethodAttribute<AllowAnonymousAttribute>(controller, methodName, methodTypes) == null);
+            return AttributeHelper.GetMethodAttribute<AuthorizeAttribute>(controller, methodName, methodTypes) != null ||
+                (AttributeHelper.GetControllerAttribute<AuthorizeAttribute>(controller) != null &&
+                    AttributeHelper.GetMethodAttribute<AllowAnonymousAttribute>(controller, methodName, methodTypes) == null);
         }
 
         ///// <summary>
@@ -106,22 +106,5 @@ namespace Stage.Manager.UnitTests
 
         //    return true;
         //}
-
-        private static T GetControllerAttribute<T>(Controller controller) where T : Attribute
-        {
-            Type type = controller.GetType();
-            object[] attributes = type.GetCustomAttributes(typeof(T), true);
-            T attribute = attributes.Count() == 0 ? null : (T)attributes[0];
-            return attribute;
-        }
-
-        private static T GetMethodAttribute<T>(Controller controller, string methodName, Type[] methodTypes) where T : Attribute
-        {
-            Type type = controller.GetType();
-            MethodInfo method = methodTypes == null ? type.GetMethod(methodName) : type.GetMethod(methodName, methodTypes);
-            object[] attributes = method.GetCustomAttributes(typeof(T), true);
-            T attribute = attributes.Count() == 0 ? null : (T)attributes[0];
-            return attribute;
-        }
     }
 }

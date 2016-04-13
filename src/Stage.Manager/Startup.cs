@@ -16,6 +16,7 @@ using NuGet.V3Repository;
 using Stage.Authentication;
 using Stage.Database.Models;
 using Stage.Manager.Authentication;
+using Stage.Manager.Filters;
 using Stage.Manager.Logging;
 using Stage.Manager.Search;
 using Stage.Packages;
@@ -96,6 +97,10 @@ namespace Stage.Manager
             // Authentication
             services.Configure<ApiKeyAuthenticationServiceOptions>(Configuration.GetSection("ApiKeyAuthenticationServiceOptions"));
             services.AddSingleton<ApiKeyAuthenticationService, ApiKeyAuthenticationService>();
+
+            // Filters
+            services.AddScoped<StageIdFilter, StageIdFilter>();
+            services.AddScoped<OwnerFilter, OwnerFilter>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

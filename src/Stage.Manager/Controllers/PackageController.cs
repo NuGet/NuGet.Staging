@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using Stage.Database.Models;
+using Stage.Manager.Filters;
 using Stage.Packages;
 using static Stage.Manager.Controllers.Messages;
 
@@ -64,19 +65,11 @@ namespace Stage.Manager.Controllers
 
         [HttpPut("{id:guid}")]
         [HttpPost("{id:guid}")]
-        public async Task<IActionResult> PushPackageToStage(string id)
+        [ServiceFilter(typeof(StageIdFilter))]
+        [ServiceFilter(typeof(OwnerFilter))]
+        public async Task<IActionResult> PushPackageToStage(Database.Models.Stage stage)
         {
             var userKey = GetUserKey();
-            var stage = _stageService.GetStage(id);
-            if (stage == null)
-            {
-                return new HttpNotFoundResult();
-            }
-
-            if (!_stageService.IsUserMemberOfStage(stage, userKey))
-            {
-                return new HttpUnauthorizedResult();
-            }
 
             if (!_stageService.IsStageEditAllowed(stage))
             {

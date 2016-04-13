@@ -15,6 +15,7 @@ using Moq;
 using NuGet.V3Repository;
 using Stage.Database.Models;
 using Stage.Manager.Controllers;
+using Stage.Manager.Filters;
 using Stage.Packages;
 using Xunit;
 
@@ -80,7 +81,7 @@ namespace Stage.Manager.UnitTests
             var stage = AddMockStage();
 
             // Act
-            IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
+            IActionResult actionResult = await _packageController.PushPackageToStage(stage);
 
             // Assert
             stage.Packages.Count().Should().Be(1);
@@ -109,7 +110,7 @@ namespace Stage.Manager.UnitTests
             var stage = AddMockStage();
 
             // Act
-            IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
+            IActionResult actionResult = await _packageController.PushPackageToStage(stage);
 
             // Assert
             actionResult.Should().BeOfType<BadRequestObjectResult>();
@@ -125,7 +126,7 @@ namespace Stage.Manager.UnitTests
             var stage = AddMockStage();
 
             // Act
-            IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
+            IActionResult actionResult = await _packageController.PushPackageToStage(stage);
 
             // Assert
             actionResult.Should().BeOfType<BadRequestObjectResult>();
@@ -141,7 +142,7 @@ namespace Stage.Manager.UnitTests
             var stage = AddMockStage();
 
             // Act
-            IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
+            IActionResult actionResult = await _packageController.PushPackageToStage(stage);
 
             // Assert
             actionResult.Should().BeOfType<BadRequestObjectResult>();
@@ -156,13 +157,13 @@ namespace Stage.Manager.UnitTests
             var package = new TestPackage(DefaultRegistrationId, DefaultVersion).WithDefaultData();
             _httpContextMock.WithFile(package.Stream);
 
-            await _packageController.PushPackageToStage(stage.Id);
+            await _packageController.PushPackageToStage(stage);
 
             var samePackage = new TestPackage(DefaultRegistrationId, DefaultVersion).WithDefaultData();
             _httpContextMock.WithFile(samePackage.Stream);
 
             // Act
-            IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
+            IActionResult actionResult = await _packageController.PushPackageToStage(stage);
 
             // Assert
             actionResult.Should().BeOfType<ObjectResult>();
@@ -180,7 +181,7 @@ namespace Stage.Manager.UnitTests
             _packageServiceMock.Setup(x => x.IsUserOwnerOfPackageAsync(It.IsAny<int>(), It.IsAny<string>())).Returns(Task.FromResult(false));
 
             // Act
-            IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
+            IActionResult actionResult = await _packageController.PushPackageToStage(stage);
 
             // Assert
             actionResult.Should().BeOfType<ObjectResult>();
@@ -198,7 +199,7 @@ namespace Stage.Manager.UnitTests
             _packageServiceMock.Setup(x => x.DoesPackageExistsAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(true));
 
             // Act
-            IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
+            IActionResult actionResult = await _packageController.PushPackageToStage(stage);
 
             // Assert
             stage.Packages.Count.Should().Be(1);
@@ -219,16 +220,7 @@ namespace Stage.Manager.UnitTests
         [Fact]
         public async Task WhenPushIsCalledAndUserIsNotOwnerOfStage401IsReturned()
         {
-            // Arrange
-            var stage = AddMockStage();
-
-            _httpContextMock.WithUser(UserKey + 1);
-
-            // Act
-            IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
-
-            // Assert
-            actionResult.Should().BeOfType<HttpUnauthorizedResult>();
+            AttributeHelper.HasServiceFilterAttribute<StageIdFilter>(_packageController, "PushPackageToStage", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
@@ -239,7 +231,7 @@ namespace Stage.Manager.UnitTests
             stage.Status = StageStatus.Committing;
 
             // Act
-            IActionResult actionResult = await _packageController.PushPackageToStage(stage.Id);
+            IActionResult actionResult = await _packageController.PushPackageToStage(stage);
 
             // Assert
             actionResult.Should().BeOfType<BadRequestObjectResult>();

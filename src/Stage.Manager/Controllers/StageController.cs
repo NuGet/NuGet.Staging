@@ -10,6 +10,7 @@ using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Stage.Database.Models;
+using Stage.Manager.Filters;
 using Stage.Manager.Search;
 using Stage.Manager.V3;
 using Stage.Packages;
@@ -79,14 +80,9 @@ namespace Stage.Manager.Controllers
         // GET api/stage/e92156e2d6a74a19853a3294cf681dfc
         [HttpGet("{id:guid}")]
         [AllowAnonymous]
-        public IActionResult GetDetails(string id)
+        [ServiceFilter(typeof(StageIdFilter))]
+        public IActionResult GetDetails(Database.Models.Stage stage)
         {
-            var stage = _stageService.GetStage(id);
-            if (stage == null)
-            {
-                return new HttpNotFoundResult();
-            }
-
             return new HttpOkObjectResult(new DetailedViewStage(stage, GetBaseAddress()));
         }
 
@@ -109,21 +105,11 @@ namespace Stage.Manager.Controllers
 
         // DELETE api/stage/e92156e2d6a74a19853a3294cf681dfc
         [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> Drop(string id)
+        [ServiceFilter(typeof(StageIdFilter))]
+        [ServiceFilter(typeof(OwnerFilter))]
+        public async Task<IActionResult> Drop(Database.Models.Stage stage)
         {
             var userKey = GetUserKey();
-            var stage = _stageService.GetStage(id);
-
-            if (stage == null)
-            {
-                _logger.LogInformation(MessageFormat, userKey, id, "Drop failed, stage not found");
-                return new HttpNotFoundResult();
-            }
-
-            if (!_stageService.IsUserMemberOfStage(stage, userKey))
-            {
-                return new HttpUnauthorizedResult();
-            }
 
             if (stage.Status == StageStatus.Committing)
             {
@@ -133,31 +119,16 @@ namespace Stage.Manager.Controllers
             await _stageService.DropStage(stage);
             stage.Status = StageStatus.Deleted;
 
-            _logger.LogInformation(MessageFormat, userKey, id, "Drop was successful");
+            _logger.LogInformation(MessageFormat, userKey, stage.Id, "Drop was successful");
             return new HttpOkObjectResult(new ViewStage(stage, GetBaseAddress()));
         }
 
         // POST api/stage/e92156e2d6a74a19853a3294cf681dfc
         [HttpPost("{id:guid}")]
-        public async Task<IActionResult> Commit(string id)
+        [ServiceFilter(typeof(StageIdFilter))]
+        [ServiceFilter(typeof(OwnerFilter))]
+        public async Task<IActionResult> Commit(Database.Models.Stage stage)
         {
-            // TODO: this method must not be executed concurrently for the same stage, this will cause commit to
-            // be triggered twice, and unexpected behavior. Will need to add a stage level lock to protect this.
-             
-            var userKey = GetUserKey();
-            var stage = _stageService.GetStage(id);
-
-            if (stage == null)
-            {
-                _logger.LogInformation(MessageFormat, userKey, id, "Drop failed, stage not found");
-                return new HttpNotFoundResult();
-            }
-
-            if (!_stageService.IsUserMemberOfStage(stage, userKey))
-            {
-                return new HttpUnauthorizedResult();
-            }
-
             if (stage.Packages.Count == 0)
             {
                 return new BadRequestObjectResult(string.Format(EmptyStageCommitMessage, stage.DisplayName));
@@ -181,21 +152,16 @@ namespace Stage.Manager.Controllers
             // 4. Save tracking id in the DB
             await _stageService.CommitStage(stage, trackingId);
 
-            _logger.LogInformation(MessageFormat, userKey, id, "Commit initiated successfully");
+            _logger.LogInformation(MessageFormat, GetUserKey(), stage.Id, "Commit initiated successfully");
 
             return new HttpStatusCodeResult((int) HttpStatusCode.Created);
         }
 
         [AllowAnonymous]
         [HttpGet("{id:guid}/commit")]
-        public IActionResult GetCommitProgress(string id)
+        [ServiceFilter(typeof(StageIdFilter))]
+        public IActionResult GetCommitProgress(Database.Models.Stage stage)
         {
-            var stage = _stageService.GetStage(id);
-            if (stage == null)
-            {
-                return new HttpNotFoundResult();
-            }
-
             var commit = _stageService.GetCommit(stage);
 
             if (commit == null)
@@ -210,28 +176,24 @@ namespace Stage.Manager.Controllers
 
         [AllowAnonymous]
         [HttpGet("{id:guid}/index.json")]
-        public IActionResult Index(string id)
+        [ServiceFilter(typeof(StageIdFilter))]
+        public IActionResult Index(Database.Models.Stage stage)
         {
-            var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), id, _storageFactory.BaseAddress);
+            var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), stage.Id, _storageFactory.BaseAddress);
             return Json(index);
         }
 
         [AllowAnonymous]
         [HttpGet("{id:guid}/query")]
-        public async Task<IActionResult> Query(string id)
+        [ServiceFilter(typeof(StageIdFilter))]
+        public async Task<IActionResult> Query(Database.Models.Stage stage)
         {
-            var stage = _stageService.GetStage(id);
-            if (stage == null)
-            {
-                return new HttpNotFoundResult();
-            }
-
             if (_searchService is DummySearchService)
             {
-                ((DummySearchService) _searchService).BaseAddress = new Uri(_storageFactory.BaseAddress, $"{id}/");
+                ((DummySearchService) _searchService).BaseAddress = new Uri(_storageFactory.BaseAddress, $"{stage.Id}/");
             }
 
-            var searchResult = await _searchService.Search(id, Request.QueryString.Value);
+            var searchResult = await _searchService.Search(stage.Id, Request.QueryString.Value);
             return new JsonResult(searchResult);
         }
 

@@ -15,6 +15,7 @@ using NuGet.Protocol.Core.v3;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Stage.Database.Models;
 using Stage.Manager.Controllers;
+using Stage.Manager.Filters;
 using Stage.Manager.Search;
 using Stage.Packages;
 using Xunit;
@@ -107,7 +108,7 @@ namespace Stage.Manager.UnitTests
             AddMockPackage(secondStage, "package");
             
             // Act
-            IActionResult actionResult = _stageController.GetDetails(secondStage.Id);
+            IActionResult actionResult = _stageController.GetDetails(secondStage);
 
             // Assert
             actionResult.Should().BeOfType<HttpOkObjectResult>();
@@ -129,18 +130,14 @@ namespace Stage.Manager.UnitTests
         [Fact]
         public void WhenGetDetailsIsCalledWithNonExistingStageId404IsReturned()
         {
-            // Act
-            IActionResult actionResult = _stageController.GetDetails(Guid.NewGuid().ToString());
-
-            // Assert
-            actionResult.Should().BeOfType<HttpNotFoundResult>();
+            AttributeHelper.HasServiceFilterAttribute<StageIdFilter>(_stageController, "GetDetails", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
         public void WhenIndexIsCalledJsonIsReturned()
         {
             // Act
-            IActionResult actionResult = _stageController.Index(Guid.NewGuid().ToString());
+            IActionResult actionResult = _stageController.Index(new Database.Models.Stage { Id = Guid.NewGuid().ToString() });
 
             // Assert
             actionResult.Should().BeOfType<JsonResult>();

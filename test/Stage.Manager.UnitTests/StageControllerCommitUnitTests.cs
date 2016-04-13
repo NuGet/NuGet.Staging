@@ -12,6 +12,7 @@ using Moq;
 using Newtonsoft.Json;
 using Stage.Database.Models;
 using Stage.Manager.Controllers;
+using Stage.Manager.Filters;
 using Stage.Packages;
 using Xunit;
 
@@ -25,10 +26,10 @@ namespace Stage.Manager.UnitTests
             // Arrange
             var stage = await AddMockStage("stage");
             AddMockPackage(stage, "package");
-            await _stageController.Commit(stage.Id);
+            await _stageController.Commit(stage);
 
             // Act
-            IActionResult actionResult = await _stageController.Commit(stage.Id);
+            IActionResult actionResult = await _stageController.Commit(stage);
 
             // Assert
             actionResult.Should().BeOfType<ObjectResult>();
@@ -39,16 +40,7 @@ namespace Stage.Manager.UnitTests
         [Fact]
         public async Task VerifyOnlyStageOwnerCanCommitStage()
         {
-            // Arrange
-            var stage = await AddMockStage("stage");
-            AddMockPackage(stage, "package");
-            _httpContextMock.WithUser(UserKey + 1);
-
-            // Act
-            IActionResult actionResult = await _stageController.Commit(stage.Id);
-
-            // Assert
-            actionResult.Should().BeOfType<HttpUnauthorizedResult>();
+            AttributeHelper.HasServiceFilterAttribute<StageIdFilter>(_stageController, "Commit", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
@@ -58,7 +50,7 @@ namespace Stage.Manager.UnitTests
             var stage = await AddMockStage("stage");
 
             // Act
-            IActionResult actionResult = await _stageController.Commit(stage.Id);
+            IActionResult actionResult = await _stageController.Commit(stage);
 
             // Assert
             actionResult.Should().BeOfType<BadRequestObjectResult>();
@@ -76,7 +68,7 @@ namespace Stage.Manager.UnitTests
             var package2 = AddMockPackage(stage, packageId2);
 
             // Act
-            IActionResult actionResult = await _stageController.Commit(stage.Id);
+            IActionResult actionResult = await _stageController.Commit(stage);
 
             // Assert
 
@@ -112,7 +104,7 @@ namespace Stage.Manager.UnitTests
             var stage = await AddMockStage("stage");
 
             // Act
-            IActionResult actionResult = _stageController.GetCommitProgress(stage.Id);
+            IActionResult actionResult = _stageController.GetCommitProgress(stage);
 
             // Assert
             actionResult.Should().BeOfType<BadRequestResult>();
@@ -128,7 +120,7 @@ namespace Stage.Manager.UnitTests
             commit1.Status = CommitStatus.Failed;
 
             // Act
-            IActionResult actionResult = _stageController.GetCommitProgress(stage.Id);
+            IActionResult actionResult = _stageController.GetCommitProgress(stage);
 
             // Assert
             actionResult.Should().BeOfType<HttpOkObjectResult>();
@@ -146,10 +138,10 @@ namespace Stage.Manager.UnitTests
             AddMockPackage(stage, "package1");
             AddMockPackage(stage, "package2");
 
-            await _stageController.Commit(stage.Id); 
+            await _stageController.Commit(stage); 
 
             // Act
-            IActionResult actionResult = _stageController.GetCommitProgress(stage.Id);
+            IActionResult actionResult = _stageController.GetCommitProgress(stage);
 
             // Assert
             actionResult.Should().BeOfType<HttpOkObjectResult>();
@@ -168,7 +160,7 @@ namespace Stage.Manager.UnitTests
             var package1 = AddMockPackage(stage, "package1");
             var package2 = AddMockPackage(stage, "package2");
 
-            await _stageController.Commit(stage.Id);
+            await _stageController.Commit(stage);
             var progressReport = new BatchPushProgressReport
             {
                 Status = PushProgressStatus.InProgress,
@@ -194,7 +186,7 @@ namespace Stage.Manager.UnitTests
             stage.Commits.First().Status = CommitStatus.InProgress;
 
             // Act
-            IActionResult actionResult = _stageController.GetCommitProgress(stage.Id);
+            IActionResult actionResult = _stageController.GetCommitProgress(stage);
 
             // Assert
             actionResult.Should().BeOfType<HttpOkObjectResult>();

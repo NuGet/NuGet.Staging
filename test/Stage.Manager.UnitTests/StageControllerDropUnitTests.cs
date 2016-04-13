@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNet.Mvc;
+using Stage.Manager.Filters;
 using Xunit;
 
 namespace Stage.Manager.UnitTests
@@ -23,7 +24,7 @@ namespace Stage.Manager.UnitTests
             var stage2 = await AddMockStage(stageName2);
 
             // Act
-            IActionResult actionResult = await _stageController.Drop(stage1.Id);
+            IActionResult actionResult = await _stageController.Drop(stage1);
 
             // Assert
             actionResult.Should().BeOfType<HttpOkObjectResult>();
@@ -38,13 +39,9 @@ namespace Stage.Manager.UnitTests
         }
 
         [Fact]
-        public async Task WhenDropIsCalledWithNonExistingStageId404IsReturned()
+        public void WhenDropIsCalledWithNonExistingStageId404IsReturned()
         {
-            // Act
-            IActionResult actionResult = await _stageController.Drop(Guid.NewGuid().ToString());
-
-            // Assert
-            actionResult.Should().BeOfType<HttpNotFoundResult>();
+            AttributeHelper.HasServiceFilterAttribute<StageIdFilter>(_stageController, "Drop", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
@@ -56,15 +53,7 @@ namespace Stage.Manager.UnitTests
         [Fact]
         public async Task WhenDropIsCalledWithUnauthorizedUser401IsReturned()
         {
-            // Arrange
-            var stage = await AddMockStage("stage");
-
-            _httpContextMock.WithUser(UserKey + 1);
-            // Act
-            IActionResult actionResult = await _stageController.Drop(stage.Id);
-
-            // Assert
-            actionResult.Should().BeOfType<HttpUnauthorizedResult>();
+            AttributeHelper.HasServiceFilterAttribute<OwnerFilter>(_stageController, "Drop", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
@@ -73,10 +62,10 @@ namespace Stage.Manager.UnitTests
             // Arrange
             var stage = await AddMockStage("stage");
             AddMockPackage(stage, "package");
-            await _stageController.Commit(stage.Id);
+            await _stageController.Commit(stage);
 
             // Act
-            IActionResult actionResult = await _stageController.Drop(stage.Id);
+            IActionResult actionResult = await _stageController.Drop(stage);
 
             // Assert
             actionResult.Should().BeOfType<BadRequestObjectResult>();
