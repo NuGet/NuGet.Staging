@@ -29,7 +29,7 @@ namespace Stage.Manager.Filters
 
             int userKey = GetUserKey(actionContext.HttpContext);
 
-            if (!_stageService.IsUserMemberOfStage(stage, userKey))
+            if (!_stageService.IsStageMember(stage, userKey))
             {
                 actionContext.Result =  new HttpUnauthorizedResult();
             }

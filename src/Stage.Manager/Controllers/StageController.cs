@@ -129,6 +129,8 @@ namespace Stage.Manager.Controllers
         [ServiceFilter(typeof(OwnerFilter))]
         public async Task<IActionResult> Commit(Database.Models.Stage stage)
         {
+            // TODO: https://github.com/NuGet/NuGet.Staging/issues/32
+
             if (stage.Packages.Count == 0)
             {
                 return new BadRequestObjectResult(string.Format(EmptyStageCommitMessage, stage.DisplayName));

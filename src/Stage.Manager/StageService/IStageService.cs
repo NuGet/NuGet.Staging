@@ -31,7 +31,7 @@ namespace Stage.Manager
         /// <summary>
         /// Checks if a package exists on stage.
         /// </summary>
-        bool DoesPackageExistsOnStage(Database.Models.Stage stage, string registrationId, string version);
+        bool DoesPackageExistOnStage(Database.Models.Stage stage, string registrationId, string version);
 
         /// <summary>
         /// Retrieve user memberships.
@@ -41,7 +41,7 @@ namespace Stage.Manager
         /// <summary>
         /// Is the user an owner/contributor of this stage
         /// </summary>
-        bool IsUserMemberOfStage(Database.Models.Stage stage, int userKey);
+        bool IsStageMember(Database.Models.Stage stage, int userKey);
 
         /// <summary>
         /// Is the display name valid (non empty and not too long)

@@ -65,7 +65,7 @@ namespace Stage.Manager
             await _context.SaveChangesAsync();
         }
 
-        public virtual bool DoesPackageExistsOnStage(Database.Models.Stage stage, string registrationId, string version)
+        public virtual bool DoesPackageExistOnStage(Database.Models.Stage stage, string registrationId, string version)
         {
             return stage.Packages.Any(p => string.Equals(p.Id, registrationId, StringComparison.OrdinalIgnoreCase) &&
                                            string.Equals(p.NormalizedVersion, version, StringComparison.OrdinalIgnoreCase));
@@ -76,7 +76,7 @@ namespace Stage.Manager
             return _context.StageMembers.Where(sm => sm.UserKey == userKey).Include(sm => sm.Stage);
         }
 
-        public virtual bool IsUserMemberOfStage(Database.Models.Stage stage, int userKey) =>
+        public virtual bool IsStageMember(Database.Models.Stage stage, int userKey) =>
             stage.Members.Any(sm => sm.UserKey == userKey);
 
         public bool CheckStageDisplayNameValidity(string displayName) =>

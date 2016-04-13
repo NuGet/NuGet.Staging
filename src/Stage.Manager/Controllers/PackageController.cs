@@ -112,7 +112,7 @@ namespace Stage.Manager.Controllers
                 string normalizedVersion = version.ToNormalizedString();
 
                 // Check if package exists in the stage
-                if (_stageService.DoesPackageExistsOnStage(stage, registrationId, normalizedVersion))
+                if (_stageService.DoesPackageExistOnStage(stage, registrationId, normalizedVersion))
                 {
                     return new ObjectResult(string.Format(PackageExistsOnStageMessage, registrationId, normalizedVersion, stage.DisplayName))
                     {

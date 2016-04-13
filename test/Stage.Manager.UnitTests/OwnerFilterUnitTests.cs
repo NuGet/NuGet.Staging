@@ -49,7 +49,7 @@ namespace Stage.Manager.UnitTests
         {
             // Arrange
             _stageServiceMock.Setup(x =>
-                                    x.IsUserMemberOfStage((Database.Models.Stage)_actionExecutionContext.ActionArguments[StageIdFilter.StageKeyName], DefaultUserKey))
+                                    x.IsStageMember((Database.Models.Stage)_actionExecutionContext.ActionArguments[StageIdFilter.StageKeyName], DefaultUserKey))
                               .Returns(true);
 
             // Act
@@ -64,7 +64,7 @@ namespace Stage.Manager.UnitTests
         {
             // Arrange
             _stageServiceMock.Setup(x =>
-                                    x.IsUserMemberOfStage((Database.Models.Stage)_actionExecutionContext.ActionArguments[StageIdFilter.StageKeyName], DefaultUserKey))
+                                    x.IsStageMember((Database.Models.Stage)_actionExecutionContext.ActionArguments[StageIdFilter.StageKeyName], DefaultUserKey))
                               .Returns(false);
 
             // Act
