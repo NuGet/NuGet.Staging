@@ -11,7 +11,7 @@ using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Filters;
-using Stage.Packages;
+using NuGet.Services.Staging.PackageService;
 using static NuGet.Services.Staging.Manager.Controllers.Messages;
 
 namespace NuGet.Services.Staging.Manager.Controllers

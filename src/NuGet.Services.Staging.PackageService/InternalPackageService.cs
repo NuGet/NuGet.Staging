@@ -11,7 +11,7 @@ using Microsoft.Extensions.OptionsModel;
 using Microsoft.ServiceBus.Messaging;
 using Newtonsoft.Json;
 
-namespace Stage.Packages
+namespace NuGet.Services.Staging.PackageService
 {
     public class InternalPackageServiceOptions
     {

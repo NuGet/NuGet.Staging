@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGet.Services.Staging.Database.Models;
-using Stage.Packages;
+using NuGet.Services.Staging.PackageService;
 
 namespace NuGet.Services.Staging.Manager
 {

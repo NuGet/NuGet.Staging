@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Controllers;
 using NuGet.Services.Staging.Manager.Filters;
-using Stage.Packages;
+using NuGet.Services.Staging.PackageService;
 using Xunit;
 
 namespace NuGet.Services.Staging.Manager.UnitTests
@@ -38,7 +38,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         }
 
         [Fact]
-        public async Task VerifyOnlyStageOwnerCanCommitStage()
+        public void VerifyOnlyStageOwnerCanCommitStage()
         {
             AttributeHelper.HasServiceFilterAttribute<StageIdFilter>(_stageController, "Commit", methodTypes: null).Should().BeTrue();
         }

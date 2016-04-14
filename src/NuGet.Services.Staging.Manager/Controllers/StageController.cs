@@ -13,7 +13,7 @@ using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Filters;
 using NuGet.Services.Staging.Manager.Search;
 using NuGet.Services.Staging.Manager.V3;
-using Stage.Packages;
+using NuGet.Services.Staging.PackageService;
 using static NuGet.Services.Staging.Manager.Controllers.Messages;
 
 namespace NuGet.Services.Staging.Manager.Controllers

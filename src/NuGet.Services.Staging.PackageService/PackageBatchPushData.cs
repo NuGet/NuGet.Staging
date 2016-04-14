@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace Stage.Packages
+namespace NuGet.Services.Staging.PackageService
 {
     public class PackageBatchPushData
     {

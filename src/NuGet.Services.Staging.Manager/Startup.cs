@@ -19,7 +19,7 @@ using NuGet.Services.Staging.Manager.Authentication;
 using NuGet.Services.Staging.Manager.Filters;
 using NuGet.Services.Staging.Manager.Logging;
 using NuGet.Services.Staging.Manager.Search;
-using Stage.Packages;
+using NuGet.Services.Staging.PackageService;
 using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceCollection;
 
 namespace NuGet.Services.Staging.Manager

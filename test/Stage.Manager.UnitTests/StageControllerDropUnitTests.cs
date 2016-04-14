@@ -51,7 +51,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         }
 
         [Fact]
-        public async Task WhenDropIsCalledWithUnauthorizedUser401IsReturned()
+        public void WhenDropIsCalledWithUnauthorizedUser401IsReturned()
         {
             AttributeHelper.HasServiceFilterAttribute<OwnerFilter>(_stageController, "Drop", methodTypes: null).Should().BeTrue();
         }

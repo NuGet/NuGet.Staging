@@ -17,7 +17,7 @@ using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Controllers;
 using NuGet.Services.Staging.Manager.Filters;
 using NuGet.Services.Staging.Manager.Search;
-using Stage.Packages;
+using NuGet.Services.Staging.PackageService;
 using Xunit;
 
 namespace NuGet.Services.Staging.Manager.UnitTests

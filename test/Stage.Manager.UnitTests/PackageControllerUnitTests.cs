@@ -16,7 +16,7 @@ using NuGet.Services.V3Repository;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Controllers;
 using NuGet.Services.Staging.Manager.Filters;
-using Stage.Packages;
+using NuGet.Services.Staging.PackageService;
 using Xunit;
 
 namespace NuGet.Services.Staging.Manager.UnitTests
@@ -218,7 +218,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         }
 
         [Fact]
-        public async Task WhenPushIsCalledAndUserIsNotOwnerOfStage401IsReturned()
+        public void WhenPushIsCalledAndUserIsNotOwnerOfStage401IsReturned()
         {
             AttributeHelper.HasServiceFilterAttribute<StageIdFilter>(_packageController, "PushPackageToStage", methodTypes: null).Should().BeTrue();
         }

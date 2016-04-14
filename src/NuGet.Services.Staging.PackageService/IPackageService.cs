@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 
-namespace Stage.Packages
+namespace NuGet.Services.Staging.PackageService
 {
     public interface IPackageService
     {

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.Entity;
 using Newtonsoft.Json;
 using NuGet.Services.Staging.Database.Models;
-using Stage.Packages;
+using NuGet.Services.Staging.PackageService;
 
 namespace NuGet.Services.Staging.Manager
 {

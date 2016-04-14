@@ -19,7 +19,7 @@
         "EntityFramework.MicrosoftSqlServer": "7.0.0-rc1-final",
         "NuGet.Services.Staging.Database": "1.0.0-*",
         "EntityFramework.Commands": "7.0.0-rc1-final",
-        "Stage.Packages": "1.0.0-*",
+        "NuGet.Services.Staging.PackageService": "1.0.0-*",
         "NuGet.Packaging": "3.5.0-beta-1068",
         "NuGet.Services.V3Repository": "1.0.0-*",
         "Newtonsoft.Json": "8.0.3",
