@@ -34,9 +34,11 @@ namespace Stage.Database.Models
             modelBuilder.Entity<Stage>()
                 .HasMany(s => s.Packages);
             modelBuilder.Entity<Stage>()
+                .HasMany(s => s.Commits);
+            modelBuilder.Entity<Stage>()
                 .HasIndex(s => s.Id);
 
-           modelBuilder.Entity<StageMember>()
+            modelBuilder.Entity<StageMember>()
                 .HasKey(sm => sm.Key);
             modelBuilder.Entity<StageMember>()
                 .Property(sm => sm.StageKey).IsRequired();
@@ -60,16 +62,28 @@ namespace Stage.Database.Models
             modelBuilder.Entity<StagedPackage>()
                 .Property(sp => sp.Version).IsRequired().HasMaxLength(64);
             modelBuilder.Entity<StagedPackage>()
-               .Property(sp => sp.NormalizedVersion).IsRequired().HasMaxLength(64);
+                .Property(sp => sp.NormalizedVersion).IsRequired().HasMaxLength(64);
             modelBuilder.Entity<StagedPackage>()
-              .Property(sp => sp.NupkgUrl).IsRequired();
+                .Property(sp => sp.NupkgUrl).IsRequired();
             modelBuilder.Entity<StagedPackage>()
-              .Property(sp => sp.Published).IsRequired();
+                .Property(sp => sp.Published).IsRequired();
             modelBuilder.Entity<StagedPackage>()
-              .Property(sp => sp.StageKey).IsRequired();
+                .Property(sp => sp.StageKey).IsRequired();
             modelBuilder.Entity<StagedPackage>()
                 .HasIndex(sp => sp.StageKey);
 
+            modelBuilder.Entity<StageCommit>()
+                .HasKey(sc => sc.Key);
+            modelBuilder.Entity<StageCommit>()
+                .Property(sc => sc.StageKey).IsRequired();
+            modelBuilder.Entity<StageCommit>()
+                .Property(sc => sc.TrackId).IsRequired().HasMaxLength(32);
+            modelBuilder.Entity<StageCommit>()
+                .Property(sc => sc.RequestTime).IsRequired();
+            modelBuilder.Entity<StageCommit>()
+                .Property(sc => sc.Status).IsRequired();
+            modelBuilder.Entity<StageCommit>()
+                .HasIndex(sc => sc.StageKey);
         }
     }
 }

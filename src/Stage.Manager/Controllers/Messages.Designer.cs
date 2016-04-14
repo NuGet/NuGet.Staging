@@ -69,6 +69,24 @@ namespace Stage.Manager.Controllers {
         }
         
         /// <summary>
+        ///    Looks up a localized string similar to Commit for stage &apos;{0}&apos; is in progress..
+        /// </summary>
+        internal static string CommitInProgressMessage {
+            get {
+                return ResourceManager.GetString("CommitInProgressMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///    Looks up a localized string similar to Stage &apos;{0}&apos; is empty. Add packages before commiting, or delete stage..
+        /// </summary>
+        internal static string EmptyStageCommitMessage {
+            get {
+                return ResourceManager.GetString("EmptyStageCommitMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///    Looks up a localized string similar to Provide a non-empty display name with length up to {0} characters.
         /// </summary>
         internal static string InvalidStageDisplayName {
@@ -128,6 +146,15 @@ namespace Stage.Manager.Controllers {
         internal static string PackageExistsOnStageMessage {
             get {
                 return ResourceManager.GetString("PackageExistsOnStageMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///    Looks up a localized string similar to Edits of stage &apos;{0}&apos; are not allowed..
+        /// </summary>
+        internal static string StageEditNotAllowed {
+            get {
+                return ResourceManager.GetString("StageEditNotAllowed", resourceCulture);
             }
         }
     }

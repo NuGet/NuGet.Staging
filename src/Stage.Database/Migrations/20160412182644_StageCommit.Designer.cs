@@ -8,9 +8,10 @@ using Stage.Database.Models;
 namespace Stage.Manager.Migrations
 {
     [DbContext(typeof(StageContext))]
-    partial class StageContextModelSnapshot : ModelSnapshot
+    [Migration("20160412182644_StageCommit")]
+    partial class StageCommit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "7.0.0-rc1-16348")

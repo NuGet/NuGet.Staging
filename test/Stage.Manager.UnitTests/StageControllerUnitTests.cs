@@ -15,7 +15,9 @@ using NuGet.Protocol.Core.v3;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Stage.Database.Models;
 using Stage.Manager.Controllers;
+using Stage.Manager.Filters;
 using Stage.Manager.Search;
+using Stage.Packages;
 using Xunit;
 
 namespace Stage.Manager.UnitTests
@@ -27,87 +29,55 @@ namespace Stage.Manager.UnitTests
     /// </summary>
     public class StageControllerUnitTests
     {
-        private const string DisplayName = "display name";
-        private const int UserKey = 3;
+        protected const string DisplayName = "display name";
+        protected const string TrackId = "trackId";
+        protected const int UserKey = 3;
 
-        private StageController _stageController;
-        private StageContextMock _stageContextMock;
-        private Mock<HttpContext> _httpContextMock;
+        protected StageController _stageController;
+        protected StageContextMock _stageContextMock;
+        protected Mock<HttpContext> _httpContextMock;
+        protected Mock<StageService> _stageServiceMock;
+        protected Mock<IPackageService> _packageServiceMock;
+
+        protected List<PackageBatchPushData> _pushedBatches = new List<PackageBatchPushData>(); 
 
         public StageControllerUnitTests()
         {
             // Arrange
             _stageContextMock = new StageContextMock();
 
-            var stageServiceMock = new Mock<StageService>(_stageContextMock.Object)
+            _stageServiceMock = new Mock<StageService>(_stageContextMock.Object)
             {
                 CallBase = true
             };
 
-            stageServiceMock.Setup(x => x.GetStage(It.IsAny<string>()))
+            _stageServiceMock.Setup(x => x.GetStage(It.IsAny<string>()))
                 .Returns((string id) => _stageContextMock.Object.Stages.FirstOrDefault(x => x.Id == id));
+
+            _stageServiceMock.Setup(x => x.GetUserMemberships(It.IsAny<int>()))
+                .Returns((int key) => _stageContextMock.Object.StageMembers.Where(x => x.UserKey == key));
+
+            _packageServiceMock = new Mock<IPackageService>();
+            _packageServiceMock.Setup(x => x.PushBatchAsync(It.IsAny<PackageBatchPushData>())).Returns(Task.FromResult(TrackId))
+                               .Callback<PackageBatchPushData>(x => _pushedBatches.Add(x));
 
             _stageController = new StageController(
                 new Mock<ILogger<StageController>>().Object,
-                _stageContextMock.Object,
-                stageServiceMock.Object,
+                _stageServiceMock.Object,
                 new Mock<StorageFactory>().Object,
-                new Mock<ISearchService>().Object);
+                new Mock<ISearchService>().Object,
+                _packageServiceMock.Object);
 
             _httpContextMock = _stageController.WithMockHttpContext().WithUser(UserKey).WithBaseAddress();
         }
 
-        [Fact]
-        public async Task WhenCreateIsCalledNewStageIsAdded()
-        {
-            // Act 
-            IActionResult actionResult =  await _stageController.Create(DisplayName);
-
-            // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
-            _stageContextMock.Object.Stages.Count().Should().Be(1);
-
-            Database.Models.Stage stage = _stageContextMock.Object.Stages.First();
-
-            stage.DisplayName.Should().Be(DisplayName);
-            stage.Status.Should().Be(StageStatus.Active);
-            stage.Members.Count.Should().Be(1);
-            stage.Members.First().MemberType.Should().Be(MemberType.Owner);
-            stage.Members.First().UserKey.Should().Be(UserKey);
-        }
-
-        [Fact]
-        public void VerifyCreateRequiresAuthentication()
-        {
-            AuthorizationTest.IsAuthorized(_stageController, "Create", methodTypes: null).Should().BeTrue();
-        }
-
-        [Fact]
-        public async Task WhenCreateCalledWithInvalidDisplayName400IsReturned()
-        {
-            // Act 
-            IActionResult actionResult = await _stageController.Create("");
-
-            // Assert
-            actionResult.Should().BeOfType<BadRequestObjectResult>();
-        }
-
-        [Fact]
-        public async Task WhenCreateCalledWithLongDisplayName400IsReturned()
-        {
-            // Act 
-            IActionResult actionResult = await _stageController.Create("abcdefghijklmnoprstuvwxyzabcdefghijklmnoprstuvwxyz");
-
-            // Assert
-            actionResult.Should().BeOfType<BadRequestObjectResult>();
-        }
-
+      
         [Fact]
         public async Task WhenListUserStagesCalledStagesAreReturned()
         {
             // Arrange
-            await AddMockStage("first");
-            await AddMockStage("second");
+            var stage1 = await AddMockStage("first");
+            var stage2 = await AddMockStage("second");
 
             // Act
             IActionResult actionResult = _stageController.ListUserStages();
@@ -116,9 +86,11 @@ namespace Stage.Manager.UnitTests
             actionResult.Should().BeOfType<HttpOkObjectResult>();
 
             object result = (actionResult as HttpOkObjectResult).Value;
-            result.Should().BeOfType<List<StageController.ListViewStage>>();
-            var stages = result as List<StageController.ListViewStage>;
+            result.Should().BeOfType<List<ListViewStage>>();
+            var stages = result as List<ListViewStage>;
             stages.Count.Should().Be(2);
+            VerifyListViewStage(stages[0], stage1);
+            VerifyListViewStage(stages[1], stage2);
         }
 
         [Fact]
@@ -131,23 +103,22 @@ namespace Stage.Manager.UnitTests
         public async Task WhenGetDetailsIsCalledDetailsAreReturned()
         {
             // Arrange
-            await AddMockStage("first");
-            string secondStageId = await AddMockStage(DisplayName);
-            AddMockPackage(secondStageId, "package");
+            var stage = await AddMockStage("first");
+            var secondStage = await AddMockStage(DisplayName);
+            AddMockPackage(secondStage, "package");
             
             // Act
-            IActionResult actionResult = _stageController.GetDetails(secondStageId);
+            IActionResult actionResult = _stageController.GetDetails(secondStage);
 
             // Assert
             actionResult.Should().BeOfType<HttpOkObjectResult>();
 
             var result = (actionResult as HttpOkObjectResult).Value;
-            result.Should().BeOfType<StageController.DetailedViewStage>();
+            result.Should().BeOfType<DetailedViewStage>();
 
-            var stageDetails = result as StageController.DetailedViewStage;
+            var stageDetails = result as DetailedViewStage;
 
-            stageDetails.DisplayName.Should().Be(DisplayName);
-            stageDetails.Packages.Count.Should().Be(1);
+            VerifyDetailedViewStage(stageDetails, secondStage);
         }
 
         [Fact]
@@ -159,73 +130,14 @@ namespace Stage.Manager.UnitTests
         [Fact]
         public void WhenGetDetailsIsCalledWithNonExistingStageId404IsReturned()
         {
-            // Act
-            IActionResult actionResult = _stageController.GetDetails(Guid.NewGuid().ToString());
-
-            // Assert
-            actionResult.Should().BeOfType<HttpNotFoundResult>();
-        }
-
-        [Fact]
-        public async Task WhenDropIsCalledStageIsDropped()
-        {
-            const string stageName1 = "first";
-            const string stageName2 = "second";
-
-            // Arrange
-            string stageId1 = await AddMockStage(stageName1);
-            string stageId2 = await AddMockStage(stageName2);
-
-            // Act
-            IActionResult actionResult = await _stageController.Drop(stageId1);
-
-            // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
-
-            object result = (actionResult as HttpOkObjectResult).Value;
-            string displayName = (string)result.GetType().GetProperty("DisplayName").GetValue(result);
-
-            displayName.Should().Be(stageName1);
-
-            _stageContextMock.Object.Stages.Count().Should().Be(1);
-            _stageContextMock.Object.Stages.First().Id.Should().Be(stageId2);
-        }
-
-        [Fact]
-        public async Task WhenDropIsCalledWithNonExistingStageId404IsReturned()
-        {
-            // Act
-            IActionResult actionResult = await _stageController.Drop(Guid.NewGuid().ToString());
-
-            // Assert
-            actionResult.Should().BeOfType<HttpNotFoundResult>();
-        }
-
-        [Fact]
-        public void VerifyDropRequiresAuthentication()
-        {
-            AuthorizationTest.IsAuthorized(_stageController, "Drop", methodTypes: null).Should().BeTrue();
-        }
-
-        [Fact]
-        public async Task WhenDropIsCalledWithUnauthorizedUser401IsReturned()
-        {
-            // Arrange
-            string stageId = await AddMockStage("stage");
-
-            _httpContextMock.WithUser(UserKey + 1);
-            // Act
-            IActionResult actionResult = await _stageController.Drop(stageId);
-
-            // Assert
-            actionResult.Should().BeOfType<HttpUnauthorizedResult>();
+            AttributeHelper.HasServiceFilterAttribute<StageIdFilter>(_stageController, "GetDetails", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
         public void WhenIndexIsCalledJsonIsReturned()
         {
             // Act
-            IActionResult actionResult = _stageController.Index(Guid.NewGuid().ToString());
+            IActionResult actionResult = _stageController.Index(new Database.Models.Stage { Id = Guid.NewGuid().ToString() });
 
             // Assert
             actionResult.Should().BeOfType<JsonResult>();
@@ -253,8 +165,7 @@ namespace Stage.Manager.UnitTests
             AuthorizationTest.IsAnonymous(_stageController, "Query", methodTypes: null).Should().BeTrue();
         }
 
-
-        private async Task<string> AddMockStage(string displayName)
+        protected async Task<Database.Models.Stage> AddMockStage(string displayName)
         {
             IActionResult actionResult = await _stageController.Create(displayName);
 
@@ -266,18 +177,68 @@ namespace Stage.Manager.UnitTests
                 member.Stage = stage;
             }
             stage.Packages = new List<StagedPackage>();
+            stage.Commits = new List<StageCommit>();
             object result = (actionResult as HttpOkObjectResult).Value;
-            return (string)result.GetType().GetProperty("Id").GetValue(result);
+            string id = (string)result.GetType().GetProperty("Id").GetValue(result);
+            return _stageContextMock.Object.Stages.First(x => x.Id == id);
         }
 
-        private void AddMockPackage(string stageId, string packageId)
+        protected StagedPackage AddMockPackage(Database.Models.Stage stage, string packageId)
         {
-            var stage = _stageContextMock.Object.Stages.First(x => x.Id == stageId);
-            stage.Packages.Add(new StagedPackage
+            const string version = "1.0.0";
+            var package = new StagedPackage
             {
                 Id = packageId,
-                Version = "1.0.0"
-            });
+                Version = version,
+                NormalizedVersion = version,
+                NupkgUrl = $"http://api.nuget.org/{stage.Id}/{packageId}/{version}/{packageId}.{version}.nupkg",
+                UserKey = UserKey
+            };
+
+            stage.Packages.Add(package);
+            return package;
+        }
+
+        protected void VerifyPackagePush(PackagePushData actual, StagedPackage expected)
+        {
+            actual.Id.Should().Be(expected.Id, "Ids should match");
+            actual.NupkgPath.Should().Be(expected.NupkgUrl, "nupkg url should match");
+            actual.UserKey.Should().Be(expected.UserKey.ToString(), "user key should match");
+            actual.Version.Should().Be(expected.NormalizedVersion, "versions should match");
+        }
+
+        protected void VerifyViewStage(ViewStage actual, Database.Models.Stage expected)
+        {
+            actual.Id.Should().Be(expected.Id);
+            actual.CreationDate.Should().Be(expected.CreationDate);
+            actual.DisplayName.Should().Be(expected.DisplayName);
+            actual.ExpirationDate.Should().Be(expected.ExpirationDate);
+            actual.Status.Should().Be(expected.Status.ToString());
+        }
+
+        protected void VerifyListViewStage(ListViewStage actual, Database.Models.Stage expected)
+        {
+            VerifyViewStage(actual, expected);
+            actual.MemberType.Should().Be(expected.Members.First().MemberType.ToString());
+        }
+
+        protected void VerifyDetailedViewStage(DetailedViewStage actual, Database.Models.Stage expected)
+        {
+            VerifyViewStage(actual, expected);
+            actual.PackagesCount.Should().Be(expected.Packages.Count);
+
+            foreach (var package in expected.Packages)
+            {
+                var packageView = actual.Packages.FirstOrDefault(x => x.Id == package.Id && x.Version == package.NormalizedVersion);
+                Assert.NotNull(packageView);
+            }
+
+            foreach (var member in expected.Members)
+            {
+                var memberView = actual.Members.FirstOrDefault(x => x.Name == member.UserKey.ToString());
+                Assert.NotNull(memberView);
+                memberView.MemberType.Should().Be(member.MemberType.ToString());
+            }
         }
     }
 }

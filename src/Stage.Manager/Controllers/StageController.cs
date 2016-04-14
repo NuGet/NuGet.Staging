@@ -2,17 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Mvc;
-using Microsoft.Data.Entity;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Stage.Database.Models;
+using Stage.Manager.Filters;
 using Stage.Manager.Search;
 using Stage.Manager.V3;
+using Stage.Packages;
 using static Stage.Manager.Controllers.Messages;
 
 namespace Stage.Manager.Controllers
@@ -22,25 +23,20 @@ namespace Stage.Manager.Controllers
     public class StageController : Controller
     {
         private readonly ILogger<StageController> _logger;
-        private readonly StageContext _context;
         private readonly IStageService _stageService;
         private readonly StageIndexBuilder _stageIndexBuilder = new StageIndexBuilder();
         private readonly ISearchService _searchService;
         private readonly StorageFactory _storageFactory;
+        private readonly IPackageService _packageService;
 
         private const string MessageFormat = "User: {UserKey}, Stage: {StageId}, {Message}";
 
-        public StageController(ILogger<StageController> logger, StageContext context, IStageService stageService,
-                               StorageFactory storageFactory, ISearchService searchService)
+        public StageController(ILogger<StageController> logger, IStageService stageService,
+                               StorageFactory storageFactory, ISearchService searchService, IPackageService packageService)
         {
             if (logger == null)
             {
                 throw new ArgumentNullException(nameof(logger));
-            }
-
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
             }
 
             if (stageService == null)
@@ -58,11 +54,16 @@ namespace Stage.Manager.Controllers
                 throw new ArgumentNullException(nameof(storageFactory));
             }
 
+            if (packageService == null)
+            {
+                throw new ArgumentNullException(nameof(packageService));
+            }
+
             _logger = logger;
-            _context = context;
             _stageService = stageService;
             _searchService = searchService;
             _storageFactory = storageFactory;
+            _packageService = packageService;
         }
 
         // GET: api/stage
@@ -70,7 +71,7 @@ namespace Stage.Manager.Controllers
         public IActionResult ListUserStages()
         {
             var userKey = GetUserKey();
-            var userMemberships = _context.StageMembers.Where(sm => sm.UserKey == userKey).Include(sm => sm.Stage).ToList();
+            var userMemberships =_stageService.GetUserMemberships(userKey).ToList();
             var stageViews = userMemberships.Select(sm => new ListViewStage(sm.Stage, sm, GetBaseAddress())).ToList();
 
             return new HttpOkObjectResult(stageViews);
@@ -79,14 +80,9 @@ namespace Stage.Manager.Controllers
         // GET api/stage/e92156e2d6a74a19853a3294cf681dfc
         [HttpGet("{id:guid}")]
         [AllowAnonymous]
-        public IActionResult GetDetails(string id)
+        [ServiceFilter(typeof(StageIdFilter))]
+        public IActionResult GetDetails(Database.Models.Stage stage)
         {
-            var stage = _stageService.GetStage(id);
-            if (stage == null)
-            {
-                return new HttpNotFoundResult();
-            }
-
             return new HttpOkObjectResult(new DetailedViewStage(stage, GetBaseAddress()));
         }
 
@@ -109,61 +105,97 @@ namespace Stage.Manager.Controllers
 
         // DELETE api/stage/e92156e2d6a74a19853a3294cf681dfc
         [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> Drop(string id)
+        [ServiceFilter(typeof(StageIdFilter))]
+        [ServiceFilter(typeof(OwnerFilter))]
+        public async Task<IActionResult> Drop(Database.Models.Stage stage)
         {
             var userKey = GetUserKey();
-            var stage = _stageService.GetStage(id);
 
-            if (stage == null)
+            if (stage.Status == StageStatus.Committing)
             {
-                _logger.LogInformation(MessageFormat, userKey, id, "Drop failed, stage not found");
-                return new HttpNotFoundResult();
-            }
-
-            if (!_stageService.IsUserMemberOfStage(stage, userKey))
-            {
-                return new HttpUnauthorizedResult();
+                return new BadRequestObjectResult(string.Format(CommitInProgressMessage, stage.DisplayName));
             }
 
             await _stageService.DropStage(stage);
             stage.Status = StageStatus.Deleted;
 
-            _logger.LogInformation(MessageFormat, userKey, id, "Drop was successful");
+            _logger.LogInformation(MessageFormat, userKey, stage.Id, "Drop was successful");
             return new HttpOkObjectResult(new ViewStage(stage, GetBaseAddress()));
         }
 
         // POST api/stage/e92156e2d6a74a19853a3294cf681dfc
         [HttpPost("{id:guid}")]
-        public async Task<IActionResult> Commit(string id)
+        [ServiceFilter(typeof(StageIdFilter))]
+        [ServiceFilter(typeof(OwnerFilter))]
+        public async Task<IActionResult> Commit(Database.Models.Stage stage)
         {
-            // Not implemented
-            return new BadRequestResult();
+            // TODO: https://github.com/NuGet/NuGet.Staging/issues/32
+
+            if (stage.Packages.Count == 0)
+            {
+                return new BadRequestObjectResult(string.Format(EmptyStageCommitMessage, stage.DisplayName));
+            }
+
+            // 1. Check stage status - if already commiting, return error 
+            if (stage.Status == StageStatus.Committing)
+            {
+                return new ObjectResult(string.Format(CommitInProgressMessage, stage.DisplayName))
+                {
+                    StatusCode = (int) HttpStatusCode.Conflict
+                };
+            }
+
+            // 2. Prepare push metadata - all data needed for push without access to stage DB
+            var pushData = CreatePackageBatchPushData(stage);
+
+            // 3. Give to a PackageManager component
+            string trackingId = await _packageService.PushBatchAsync(pushData);
+
+            // 4. Save tracking id in the DB
+            await _stageService.CommitStage(stage, trackingId);
+
+            _logger.LogInformation(MessageFormat, GetUserKey(), stage.Id, "Commit initiated successfully");
+
+            return new HttpStatusCodeResult((int) HttpStatusCode.Created);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("{id:guid}/commit")]
+        [ServiceFilter(typeof(StageIdFilter))]
+        public IActionResult GetCommitProgress(Database.Models.Stage stage)
+        {
+            var commit = _stageService.GetCommit(stage);
+
+            if (commit == null)
+            {
+                return new BadRequestResult();
+            }
+
+            var commitProgressView = CreateViewStageCommitProgress(stage, commit);
+
+            return new HttpOkObjectResult(commitProgressView);
         }
 
         [AllowAnonymous]
         [HttpGet("{id:guid}/index.json")]
-        public IActionResult Index(string id)
+        [ServiceFilter(typeof(StageIdFilter))]
+        public IActionResult Index(Database.Models.Stage stage)
         {
-            var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), id, _storageFactory.BaseAddress);
+            var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), stage.Id, _storageFactory.BaseAddress);
             return Json(index);
         }
 
         [AllowAnonymous]
         [HttpGet("{id:guid}/query")]
-        public async Task<IActionResult> Query(string id)
+        [ServiceFilter(typeof(StageIdFilter))]
+        public async Task<IActionResult> Query(Database.Models.Stage stage)
         {
-            var stage = _stageService.GetStage(id);
-            if (stage == null)
-            {
-                return new HttpNotFoundResult();
-            }
-
             if (_searchService is DummySearchService)
             {
-                ((DummySearchService) _searchService).BaseAddress = new Uri(_storageFactory.BaseAddress, $"{id}/");
+                ((DummySearchService) _searchService).BaseAddress = new Uri(_storageFactory.BaseAddress, $"{stage.Id}/");
             }
 
-            var searchResult = await _searchService.Search(id, Request.QueryString.Value);
+            var searchResult = await _searchService.Search(stage.Id, Request.QueryString.Value);
             return new JsonResult(searchResult);
         }
 
@@ -177,73 +209,52 @@ namespace Stage.Manager.Controllers
             return $"{Request.Scheme}://{Request.Host.Value}";
         }
 
-        public class DetailedViewStage : ViewStage
+        private PackageBatchPushData CreatePackageBatchPushData(Database.Models.Stage stage)
         {
-            public DetailedViewStage(Database.Models.Stage stage, string baseAddress) : base(stage, baseAddress)
-            {
-                Packages = new List<ViewPackage>(stage.Packages.Select(package => new ViewPackage(package)));
-                PackagesCount = Packages.Count;
-                Members = new List<ViewMember>(stage.Members.Select(member => new ViewMember(member)));
-            }
-
-            public int PackagesCount { get; set; }
-            public List<ViewPackage> Packages { get; set; }
-            public List<ViewMember> Members { get; set; } 
+            return
+                new PackageBatchPushData
+                {
+                    PackagePushDataList = stage.Packages.Select(
+                        p => new PackagePushData
+                        {
+                            Id = p.Id,
+                            Version = p.Version,
+                            NupkgPath = p.NupkgUrl,
+                            UserKey = p.UserKey.ToString()
+                        }).ToList(),
+                    StageId = stage.Id
+                };
         }
 
-        public class ListViewStage : ViewStage
+        private ViewStageCommitProgress CreateViewStageCommitProgress(Database.Models.Stage stage, StageCommit commit)
         {
-            public ListViewStage(Database.Models.Stage stage, StageMember member, string baseAddress) : base(stage, baseAddress)
+            BatchPushProgressReport progressReport = _stageService.GetCommitProgress(commit);
+            var commitProgressView = new ViewStageCommitProgress(stage, GetBaseAddress());
+
+            if (progressReport != null)
             {
-                MemberType = member.MemberType.ToString();
+                commitProgressView.CommitStatus = progressReport.Status.ToString();
+                commitProgressView.ErrorMessage = progressReport.FailureDetails;
+                commitProgressView.PackageProgressList =
+                    progressReport.PackagePushProgressReports.Select(p => new ViewPackageCommitProgress
+                    {
+                        Id = p.Id,
+                        Version = p.Version,
+                        Progress = p.Status.ToString()
+                    }).ToList();
+            }
+            else
+            {
+                commitProgressView.CommitStatus = commit.Status.ToString();
+                commitProgressView.PackageProgressList = stage.Packages.Select(p => new ViewPackageCommitProgress
+                {
+                    Id = p.Id,
+                    Version = p.Version,
+                    Progress = PushProgressStatus.Pending.ToString()
+                }).ToList();
             }
 
-            public string MemberType { get; set; }
-        }
-        
-        public class ViewStage
-        {
-            public string Id { get; set; }
-            public string DisplayName { get; set; }
-            public string Status { get; set; }
-            public DateTime CreationDate { get; set; }
-            public DateTime ExpirationDate { get; set; }
-            public string Feed { get; set; }
-
-            public ViewStage(Database.Models.Stage stage, string baseAddress)
-            {
-                Id = stage.Id;
-                DisplayName = stage.DisplayName;
-                CreationDate = stage.CreationDate;
-                ExpirationDate = stage.ExpirationDate;
-                Status = stage.Status.ToString();
-                Feed = $"{baseAddress}/api/stage/{stage.Id}/index.json";
-            }
-        }
-
-        public class ViewPackage
-        {
-            public ViewPackage(StagedPackage package)
-            {
-                Id = package.Id;
-                Version = package.Version;
-            }
-
-            public string Id { get; set; }
-            public string Version { get; set; }
-        }
-
-        public class ViewMember
-        {
-            public ViewMember(StageMember member)
-            {
-                Name = member.UserKey.ToString();
-                MemberType = member.MemberType.ToString();
-            }
-
-            // TODO: now this is user key, but change to actual user name
-            public string Name { get; set; }
-            public string MemberType { get; set; }
+            return commitProgressView;
         }
     }
 }

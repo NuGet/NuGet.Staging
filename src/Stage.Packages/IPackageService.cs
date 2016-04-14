@@ -10,5 +10,11 @@ namespace Stage.Packages
         Task<bool> DoesPackageExistsAsync(string id, string version);
 
         Task<bool> IsUserOwnerOfPackageAsync(int userKey, string packageId);
+
+        /// <summary>
+        /// Pushes a batch of packages.
+        /// </summary>
+        /// <returns>Tracking id that allows monitoring the progress of the push.</returns>
+        Task<string> PushBatchAsync(PackageBatchPushData data);
     }
 }
