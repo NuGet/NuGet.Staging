@@ -109,7 +109,7 @@ namespace Stage.Packages
 
             string json = JsonConvert.SerializeObject(data);
 
-            await _topicClient.Value.SendAsync(new BrokeredMessage(new MemoryStream(Encoding.ASCII.GetBytes(json))));
+            await _topicClient.Value.SendAsync(new BrokeredMessage(new MemoryStream(Encoding.ASCII.GetBytes(json)), ownsStream: true));
 
             return "MockId";
         }
