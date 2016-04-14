@@ -14,22 +14,22 @@ namespace Stage.Manager.Controllers
         {
             Packages = new List<ViewPackage>(stage.Packages.Select(package => new ViewPackage(package)));
             PackagesCount = Packages.Count;
-            Members = new List<ViewMember>(stage.Members.Select(member => new ViewMember(member)));
+            Memberships = new List<ViewMembership>(stage.Memberships.Select(membership => new ViewMembership(membership)));
         }
 
         public int PackagesCount { get; internal set; }
         public List<ViewPackage> Packages { get; internal set; }
-        public List<ViewMember> Members { get; internal set; }
+        public List<ViewMembership> Memberships { get; internal set; }
     }
 
     public class ListViewStage : ViewStage
     {
-        internal ListViewStage(Database.Models.Stage stage, StageMember member, string baseAddress) : base(stage, baseAddress)
+        internal ListViewStage(Database.Models.Stage stage, StageMembership membership, string baseAddress) : base(stage, baseAddress)
         {
-            MemberType = member.MemberType.ToString();
+            MembershipType = membership.MembershipType.ToString();
         }
 
-        public string MemberType { get; internal set; }
+        public string MembershipType { get; internal set; }
     }
 
     public class ViewStage
@@ -68,17 +68,17 @@ namespace Stage.Manager.Controllers
         public string Version { get; internal set; }
     }
 
-    public class ViewMember
+    public class ViewMembership
     {
-        internal ViewMember(StageMember member)
+        internal ViewMembership(StageMembership membership)
         {
-            Name = member.UserKey.ToString();
-            MemberType = member.MemberType.ToString();
+            Name = membership.UserKey.ToString();
+            MembershipType = membership.MembershipType.ToString();
         }
 
         // TODO: now this is user key, but change to actual user name
         public string Name { get; internal set; }
-        public string MemberType { get; internal set; }
+        public string MembershipType { get; internal set; }
     }
 
     public class ViewPackageCommitProgress : ViewPackage

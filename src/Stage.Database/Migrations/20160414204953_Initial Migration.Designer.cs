@@ -8,8 +8,8 @@ using Stage.Database.Models;
 namespace Stage.Manager.Migrations
 {
     [DbContext(typeof(StageContext))]
-    [Migration("20160302222722_Initial data model")]
-    partial class Initialdatamodel
+    [Migration("20160414204953_Initial Migration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -38,6 +38,32 @@ namespace Stage.Manager.Migrations
                     b.HasKey("Key");
 
                     b.HasIndex("Id");
+                });
+
+            modelBuilder.Entity("Stage.Database.Models.StageCommit", b =>
+                {
+                    b.Property<int>("Key")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("ErrorDetails");
+
+                    b.Property<DateTime>("LastProgressUpdate");
+
+                    b.Property<string>("Progress");
+
+                    b.Property<DateTime>("RequestTime");
+
+                    b.Property<int>("StageKey");
+
+                    b.Property<int>("Status");
+
+                    b.Property<string>("TrackId")
+                        .IsRequired()
+                        .HasAnnotation("MaxLength", 32);
+
+                    b.HasKey("Key");
+
+                    b.HasIndex("StageKey");
                 });
 
             modelBuilder.Entity("Stage.Database.Models.StagedPackage", b =>
@@ -71,12 +97,12 @@ namespace Stage.Manager.Migrations
                     b.HasIndex("StageKey");
                 });
 
-            modelBuilder.Entity("Stage.Database.Models.StageMember", b =>
+            modelBuilder.Entity("Stage.Database.Models.StageMembership", b =>
                 {
                     b.Property<int>("Key")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<int>("MemberType");
+                    b.Property<int>("MembershipType");
 
                     b.Property<int>("StageKey");
 
@@ -89,6 +115,13 @@ namespace Stage.Manager.Migrations
                     b.HasIndex("UserKey");
                 });
 
+            modelBuilder.Entity("Stage.Database.Models.StageCommit", b =>
+                {
+                    b.HasOne("Stage.Database.Models.Stage")
+                        .WithMany()
+                        .HasForeignKey("StageKey");
+                });
+
             modelBuilder.Entity("Stage.Database.Models.StagedPackage", b =>
                 {
                     b.HasOne("Stage.Database.Models.Stage")
@@ -96,7 +129,7 @@ namespace Stage.Manager.Migrations
                         .HasForeignKey("StageKey");
                 });
 
-            modelBuilder.Entity("Stage.Database.Models.StageMember", b =>
+            modelBuilder.Entity("Stage.Database.Models.StageMembership", b =>
                 {
                     b.HasOne("Stage.Database.Models.Stage")
                         .WithMany()

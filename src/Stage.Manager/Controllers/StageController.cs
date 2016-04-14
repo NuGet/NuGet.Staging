@@ -100,7 +100,7 @@ namespace Stage.Manager.Controllers
 
             _logger.LogInformation(MessageFormat, userKey, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
 
-            return new HttpOkObjectResult(new ListViewStage(stage, stage.Members.First(), GetBaseAddress()));
+            return new HttpOkObjectResult(new ListViewStage(stage, stage.Memberships.First(), GetBaseAddress()));
         }
 
         // DELETE api/stage/e92156e2d6a74a19853a3294cf681dfc

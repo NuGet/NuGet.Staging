@@ -55,7 +55,7 @@ namespace Stage.Manager.UnitTests
                 .Returns((string id) => _stageContextMock.Object.Stages.FirstOrDefault(x => x.Id == id));
 
             _stageServiceMock.Setup(x => x.GetUserMemberships(It.IsAny<int>()))
-                .Returns((int key) => _stageContextMock.Object.StageMembers.Where(x => x.UserKey == key));
+                .Returns((int key) => _stageContextMock.Object.StageMemberships.Where(x => x.UserKey == key));
 
             _packageServiceMock = new Mock<IPackageService>();
             _packageServiceMock.Setup(x => x.PushBatchAsync(It.IsAny<PackageBatchPushData>())).Returns(Task.FromResult(TrackId))
@@ -170,11 +170,11 @@ namespace Stage.Manager.UnitTests
             IActionResult actionResult = await _stageController.Create(displayName);
 
             var stage = _stageContextMock.Object.Stages.Last();
-            _stageContextMock.Object.StageMembers.AddRange(stage.Members);
+            _stageContextMock.Object.StageMemberships.AddRange(stage.Memberships);
 
-            foreach (var member in stage.Members)
+            foreach (var memberships in stage.Memberships)
             {
-                member.Stage = stage;
+                memberships.Stage = stage;
             }
             stage.Packages = new List<StagedPackage>();
             stage.Commits = new List<StageCommit>();
@@ -219,7 +219,7 @@ namespace Stage.Manager.UnitTests
         protected void VerifyListViewStage(ListViewStage actual, Database.Models.Stage expected)
         {
             VerifyViewStage(actual, expected);
-            actual.MemberType.Should().Be(expected.Members.First().MemberType.ToString());
+            actual.MembershipType.Should().Be(expected.Memberships.First().MembershipType.ToString());
         }
 
         protected void VerifyDetailedViewStage(DetailedViewStage actual, Database.Models.Stage expected)
@@ -233,11 +233,11 @@ namespace Stage.Manager.UnitTests
                 Assert.NotNull(packageView);
             }
 
-            foreach (var member in expected.Members)
+            foreach (var membership in expected.Memberships)
             {
-                var memberView = actual.Members.FirstOrDefault(x => x.Name == member.UserKey.ToString());
+                var memberView = actual.Memberships.FirstOrDefault(x => x.Name == membership.UserKey.ToString());
                 Assert.NotNull(memberView);
-                memberView.MemberType.Should().Be(member.MemberType.ToString());
+                memberView.MembershipType.Should().Be(membership.MembershipType.ToString());
             }
         }
     }

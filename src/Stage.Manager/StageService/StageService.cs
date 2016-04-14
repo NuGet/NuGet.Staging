@@ -31,11 +31,11 @@ namespace Stage.Manager
 
             var stage = new Database.Models.Stage
             {
-                Members = new List<StageMember>(new[]
+                Memberships = new List<StageMembership>(new[]
                 {
-                    new StageMember()
+                    new StageMembership()
                     {
-                        MemberType = MemberType.Owner,
+                        MembershipType = MembershipType.Owner,
                         UserKey = userKey
                     }
                 }),
@@ -53,7 +53,7 @@ namespace Stage.Manager
 
         // TODO: improve performance by NOT including all stage data
         public virtual Database.Models.Stage GetStage(string stageId) =>
-            _context.Stages.Include(s => s.Members)
+            _context.Stages.Include(s => s.Memberships)
                            .Include(s => s.Packages)
                            .Include(s => s.Commits).FirstOrDefault(s => s.Id == stageId && s.Status != StageStatus.Deleted);
 
@@ -71,13 +71,13 @@ namespace Stage.Manager
                                            string.Equals(p.NormalizedVersion, version, StringComparison.OrdinalIgnoreCase));
         }
 
-        public virtual IEnumerable<StageMember> GetUserMemberships(int userKey)
+        public virtual IEnumerable<StageMembership> GetUserMemberships(int userKey)
         {
-            return _context.StageMembers.Where(sm => sm.UserKey == userKey).Include(sm => sm.Stage);
+            return _context.StageMemberships.Where(sm => sm.UserKey == userKey).Include(sm => sm.Stage);
         }
 
         public virtual bool IsStageMember(Database.Models.Stage stage, int userKey) =>
-            stage.Members.Any(sm => sm.UserKey == userKey);
+            stage.Memberships.Any(sm => sm.UserKey == userKey);
 
         public bool CheckStageDisplayNameValidity(string displayName) =>
             !string.IsNullOrWhiteSpace(displayName) && displayName.Length <= MaxDisplayNameLength;

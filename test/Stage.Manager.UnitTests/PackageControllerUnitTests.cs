@@ -247,10 +247,10 @@ namespace Stage.Manager.UnitTests
         {
             const int stageKey = 1;
 
-            var member = new StageMember
+            var member = new StageMembership
             {
                 Key = 1,
-                MemberType = MemberType.Owner,
+                MembershipType = MembershipType.Owner,
                 StageKey = stageKey,
                 UserKey = UserKey
             };
@@ -260,12 +260,12 @@ namespace Stage.Manager.UnitTests
                 Key = stageKey,
                 Id = Guid.NewGuid().ToString(),
                 DisplayName = "DefaultStage",
-                Members = new List<StageMember> { member },
+                Memberships = new List<StageMembership> { member },
                 Packages = new List<StagedPackage>()
             };
 
             _stageContextMock.Object.Stages.Add(stage);
-            _stageContextMock.Object.StageMembers.Add(member);
+            _stageContextMock.Object.StageMemberships.Add(member);
 
             return stage;
         }

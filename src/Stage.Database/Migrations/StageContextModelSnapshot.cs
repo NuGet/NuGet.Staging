@@ -96,12 +96,12 @@ namespace Stage.Manager.Migrations
                     b.HasIndex("StageKey");
                 });
 
-            modelBuilder.Entity("Stage.Database.Models.StageMember", b =>
+            modelBuilder.Entity("Stage.Database.Models.StageMembership", b =>
                 {
                     b.Property<int>("Key")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<int>("MemberType");
+                    b.Property<int>("MembershipType");
 
                     b.Property<int>("StageKey");
 
@@ -128,7 +128,7 @@ namespace Stage.Manager.Migrations
                         .HasForeignKey("StageKey");
                 });
 
-            modelBuilder.Entity("Stage.Database.Models.StageMember", b =>
+            modelBuilder.Entity("Stage.Database.Models.StageMembership", b =>
                 {
                     b.HasOne("Stage.Database.Models.Stage")
                         .WithMany()

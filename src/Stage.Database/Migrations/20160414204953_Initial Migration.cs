@@ -5,7 +5,7 @@ using Microsoft.Data.Entity.Metadata;
 
 namespace Stage.Manager.Migrations
 {
-    public partial class Initialdatamodel : Migration
+    public partial class InitialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -24,6 +24,30 @@ namespace Stage.Manager.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Stage", x => x.Key);
+                });
+            migrationBuilder.CreateTable(
+                name: "StageCommit",
+                columns: table => new
+                {
+                    Key = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    ErrorDetails = table.Column<string>(nullable: true),
+                    LastProgressUpdate = table.Column<DateTime>(nullable: false),
+                    Progress = table.Column<string>(nullable: true),
+                    RequestTime = table.Column<DateTime>(nullable: false),
+                    StageKey = table.Column<int>(nullable: false),
+                    Status = table.Column<int>(nullable: false),
+                    TrackId = table.Column<string>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StageCommit", x => x.Key);
+                    table.ForeignKey(
+                        name: "FK_StageCommit_Stage_StageKey",
+                        column: x => x.StageKey,
+                        principalTable: "Stage",
+                        principalColumn: "Key",
+                        onDelete: ReferentialAction.Cascade);
                 });
             migrationBuilder.CreateTable(
                 name: "StagedPackage",
@@ -50,20 +74,20 @@ namespace Stage.Manager.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
             migrationBuilder.CreateTable(
-                name: "StageMember",
+                name: "StageMembership",
                 columns: table => new
                 {
                     Key = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    MemberType = table.Column<int>(nullable: false),
+                    MembershipType = table.Column<int>(nullable: false),
                     StageKey = table.Column<int>(nullable: false),
                     UserKey = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StageMember", x => x.Key);
+                    table.PrimaryKey("PK_StageMembership", x => x.Key);
                     table.ForeignKey(
-                        name: "FK_StageMember_Stage_StageKey",
+                        name: "FK_StageMembership_Stage_StageKey",
                         column: x => x.StageKey,
                         principalTable: "Stage",
                         principalColumn: "Key",
@@ -74,23 +98,28 @@ namespace Stage.Manager.Migrations
                 table: "Stage",
                 column: "Id");
             migrationBuilder.CreateIndex(
+                name: "IX_StageCommit_StageKey",
+                table: "StageCommit",
+                column: "StageKey");
+            migrationBuilder.CreateIndex(
                 name: "IX_StagedPackage_StageKey",
                 table: "StagedPackage",
                 column: "StageKey");
             migrationBuilder.CreateIndex(
-                name: "IX_StageMember_StageKey",
-                table: "StageMember",
+                name: "IX_StageMembership_StageKey",
+                table: "StageMembership",
                 column: "StageKey");
             migrationBuilder.CreateIndex(
-                name: "IX_StageMember_UserKey",
-                table: "StageMember",
+                name: "IX_StageMembership_UserKey",
+                table: "StageMembership",
                 column: "UserKey");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable("StageCommit");
             migrationBuilder.DropTable("StagedPackage");
-            migrationBuilder.DropTable("StageMember");
+            migrationBuilder.DropTable("StageMembership");
             migrationBuilder.DropTable("Stage");
         }
     }

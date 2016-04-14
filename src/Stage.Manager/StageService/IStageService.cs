@@ -36,7 +36,7 @@ namespace Stage.Manager
         /// <summary>
         /// Retrieve user memberships.
         /// </summary>
-        IEnumerable<StageMember> GetUserMemberships(int userKey);
+        IEnumerable<StageMembership> GetUserMemberships(int userKey);
 
         /// <summary>
         /// Is the user an owner/contributor of this stage

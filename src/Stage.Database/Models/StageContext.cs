@@ -13,7 +13,7 @@ namespace Stage.Database.Models
     {
         public virtual DbSet<Stage> Stages { get; set; }
 
-        public virtual DbSet<StageMember> StageMembers { get; set; }
+        public virtual DbSet<StageMembership> StageMemberships { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,7 +30,7 @@ namespace Stage.Database.Models
             modelBuilder.Entity<Stage>()
                 .Property(s => s.Status).IsRequired();
             modelBuilder.Entity<Stage>()
-                .HasMany(s => s.Members);
+                .HasMany(s => s.Memberships);
             modelBuilder.Entity<Stage>()
                 .HasMany(s => s.Packages);
             modelBuilder.Entity<Stage>()
@@ -38,20 +38,20 @@ namespace Stage.Database.Models
             modelBuilder.Entity<Stage>()
                 .HasIndex(s => s.Id);
 
-            modelBuilder.Entity<StageMember>()
+            modelBuilder.Entity<StageMembership>()
                 .HasKey(sm => sm.Key);
-            modelBuilder.Entity<StageMember>()
+            modelBuilder.Entity<StageMembership>()
                 .Property(sm => sm.StageKey).IsRequired();
-            modelBuilder.Entity<StageMember>()
+            modelBuilder.Entity<StageMembership>()
                 .Property(sm => sm.UserKey).IsRequired();
-            modelBuilder.Entity<StageMember>()
-                .Property(sm => sm.MemberType).IsRequired();
-            modelBuilder.Entity<StageMember>()
+            modelBuilder.Entity<StageMembership>()
+                .Property(sm => sm.MembershipType).IsRequired();
+            modelBuilder.Entity<StageMembership>()
                 .HasOne(sm => sm.Stage)
-                .WithMany(s => s.Members);
-            modelBuilder.Entity<StageMember>()
+                .WithMany(s => s.Memberships);
+            modelBuilder.Entity<StageMembership>()
                 .HasIndex(sm => sm.UserKey);
-            modelBuilder.Entity<StageMember>()
+            modelBuilder.Entity<StageMembership>()
                 .HasIndex(sm => sm.StageKey);
 
             // TODO: take consts from common lib

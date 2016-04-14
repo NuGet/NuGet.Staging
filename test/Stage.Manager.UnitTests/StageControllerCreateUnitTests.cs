@@ -26,9 +26,9 @@ namespace Stage.Manager.UnitTests
 
             stage.DisplayName.Should().Be(DisplayName);
             stage.Status.Should().Be(StageStatus.Active);
-            stage.Members.Count.Should().Be(1);
-            stage.Members.First().MemberType.Should().Be(MemberType.Owner);
-            stage.Members.First().UserKey.Should().Be(UserKey);
+            stage.Memberships.Count.Should().Be(1);
+            stage.Memberships.First().MembershipType.Should().Be(MembershipType.Owner);
+            stage.Memberships.First().UserKey.Should().Be(UserKey);
         }
 
         [Fact]
