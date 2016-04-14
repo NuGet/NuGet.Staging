@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace NuGet.V3Repository
+namespace NuGet.Services.V3Repository
 {
     public interface IV3Service
     {

@@ -18,7 +18,7 @@ using NuGet.Services.Metadata.Catalog.Registration;
 using Stage.V3;
 using VDS.RDF;
 
-namespace NuGet.V3Repository
+namespace NuGet.Services.V3Repository
 {
     public class V3ServiceOptions
     {

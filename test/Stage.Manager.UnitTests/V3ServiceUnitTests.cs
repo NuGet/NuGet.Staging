@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Persistence;
-using NuGet.V3Repository;
+using NuGet.Services.V3Repository;
 using Xunit;
 
 namespace Stage.Manager.UnitTests

@@ -5,7 +5,7 @@ using System;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.OptionsModel;
 using NuGet.Services.Metadata.Catalog.Persistence;
-using NuGet.V3Repository;
+using NuGet.Services.V3Repository;
 using Stage.V3;
 
 namespace Stage.Manager

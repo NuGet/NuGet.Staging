@@ -79,7 +79,7 @@ namespace Stage.Manager.Controllers
             using (var packageStream = this.Request.Form.Files[0].OpenReadStream())
             {
                 var v3Service = _v3ServiceFactory.Create(stage.Id);
-                NuGet.V3Repository.IPackageMetadata packageMetadata = null;
+                NuGet.Services.V3Repository.IPackageMetadata packageMetadata = null;
 
                 try
                 {

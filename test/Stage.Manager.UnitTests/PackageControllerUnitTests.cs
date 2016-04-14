@@ -12,7 +12,7 @@ using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.OptionsModel;
 using Moq;
-using NuGet.V3Repository;
+using NuGet.Services.V3Repository;
 using Stage.Database.Models;
 using Stage.Manager.Controllers;
 using Stage.Manager.Filters;

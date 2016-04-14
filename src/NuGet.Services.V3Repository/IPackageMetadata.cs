@@ -3,7 +3,7 @@
 
 using System.Xml.Linq;
 
-namespace NuGet.V3Repository
+namespace NuGet.Services.V3Repository
 {
     public interface IPackageMetadata
     {
