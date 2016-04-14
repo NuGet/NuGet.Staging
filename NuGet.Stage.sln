@@ -22,7 +22,7 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Stage.Packages", "src\Stage
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Services.V3Repository", "src\NuGet.Services.V3Repository\NuGet.Services.V3Repository.xproj", "{827A7FD1-F523-49DB-B549-DC1761958763}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Stage.Authentication", "src\Stage.Authentication\Stage.Authentication.xproj", "{D4D05AF5-426A-447E-8B7D-AE8E6266443A}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Services.Staging.Authentication", "src\NuGet.Services.Staging.Authentication\NuGet.Services.Staging.Authentication.xproj", "{D4D05AF5-426A-447E-8B7D-AE8E6266443A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

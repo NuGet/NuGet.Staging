@@ -13,7 +13,7 @@ using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.V3Repository;
-using Stage.Authentication;
+using NuGet.Services.Staging.Authentication;
 using Stage.Database.Models;
 using Stage.Manager.Authentication;
 using Stage.Manager.Filters;

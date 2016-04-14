@@ -6,7 +6,7 @@ using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Microsoft.Extensions.OptionsModel;
 
-namespace Stage.Authentication
+namespace NuGet.Services.Staging.Authentication
 {
     public class ApiKeyCredentials
     {

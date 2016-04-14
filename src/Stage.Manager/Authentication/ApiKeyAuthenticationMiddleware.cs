@@ -7,7 +7,7 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
-using Stage.Authentication;
+using NuGet.Services.Staging.Authentication;
 
 namespace Stage.Manager.Authentication
 {
