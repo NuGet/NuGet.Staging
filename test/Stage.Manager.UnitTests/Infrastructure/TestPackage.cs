@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using NuGet.Packaging;
 
-namespace Stage.Manager.UnitTests
+namespace NuGet.Services.Staging.Manager.UnitTests
 {
     public class TestPackage
     {

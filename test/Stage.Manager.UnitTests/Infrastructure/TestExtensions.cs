@@ -6,7 +6,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
 using Moq;
 
-namespace Stage.Manager.UnitTests
+namespace NuGet.Services.Staging.Manager.UnitTests
 {
     public static class TestExtensions
     {

@@ -7,7 +7,7 @@ using System.Reflection;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Filters;
 
-namespace Stage.Manager.UnitTests
+namespace NuGet.Services.Staging.Manager.UnitTests
 {
     public static class AttributeHelper
     {

@@ -11,10 +11,10 @@ using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Routing;
 using Moq;
-using Stage.Manager.Filters;
+using NuGet.Services.Staging.Manager.Filters;
 using Xunit;
 
-namespace Stage.Manager.UnitTests
+namespace NuGet.Services.Staging.Manager.UnitTests
 {
     public class StageIdFilterUnitTests
     {

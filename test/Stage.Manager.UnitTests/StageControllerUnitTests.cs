@@ -13,14 +13,14 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Protocol.Core.v3;
 using NuGet.Services.Metadata.Catalog.Persistence;
-using Stage.Database.Models;
-using Stage.Manager.Controllers;
-using Stage.Manager.Filters;
-using Stage.Manager.Search;
+using NuGet.Services.Staging.Database.Models;
+using NuGet.Services.Staging.Manager.Controllers;
+using NuGet.Services.Staging.Manager.Filters;
+using NuGet.Services.Staging.Manager.Search;
 using Stage.Packages;
 using Xunit;
 
-namespace Stage.Manager.UnitTests
+namespace NuGet.Services.Staging.Manager.UnitTests
 {
     /// <summary>
     /// Helpful links:

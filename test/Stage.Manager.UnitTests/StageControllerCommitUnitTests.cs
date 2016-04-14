@@ -10,13 +10,13 @@ using FluentAssertions;
 using Microsoft.AspNet.Mvc;
 using Moq;
 using Newtonsoft.Json;
-using Stage.Database.Models;
-using Stage.Manager.Controllers;
-using Stage.Manager.Filters;
+using NuGet.Services.Staging.Database.Models;
+using NuGet.Services.Staging.Manager.Controllers;
+using NuGet.Services.Staging.Manager.Filters;
 using Stage.Packages;
 using Xunit;
 
-namespace Stage.Manager.UnitTests
+namespace NuGet.Services.Staging.Manager.UnitTests
 {
     public class StageControllerCommitUnitTests : StageControllerUnitTests
     {

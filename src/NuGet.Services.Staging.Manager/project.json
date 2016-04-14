@@ -1,0 +1,52 @@
+{
+  "compilationOptions": {
+    "emitEntryPoint": true
+  },
+
+    "dependencies": {
+        "Microsoft.ApplicationInsights.AspNet": "1.0.0-rc1-update2",
+        "Microsoft.AspNet.Diagnostics": "1.0.0-rc1-final",
+        "Microsoft.AspNet.Http.Abstractions": "1.0.0-rc1-final",
+        "Microsoft.AspNet.IISPlatformHandler": "1.0.0-rc1-final",
+        "Microsoft.AspNet.Server.Kestrel": "1.0.0-rc1-final",
+        "Microsoft.AspNet.Mvc": "6.0.0-rc1-final",
+        "Microsoft.Extensions.Configuration.Abstractions": "1.0.0-rc1-final",
+        "Microsoft.Extensions.Configuration.Json": "1.0.0-rc1-final",
+        "Microsoft.Extensions.Logging.Console": "1.0.0-rc1-final",
+        "Microsoft.Extensions.Logging.Debug": "1.0.0-rc1-final",
+        "Microsoft.Extensions.Logging.TraceSource": "1.0.0-rc1-final",
+        "EntityFramework.Core": "7.0.0-rc1-final",
+        "EntityFramework.MicrosoftSqlServer": "7.0.0-rc1-final",
+        "NuGet.Services.Staging.Database": "1.0.0-*",
+        "EntityFramework.Commands": "7.0.0-rc1-final",
+        "Stage.Packages": "1.0.0-*",
+        "NuGet.Packaging": "3.5.0-beta-1068",
+        "NuGet.Services.V3Repository": "1.0.0-*",
+        "Newtonsoft.Json": "8.0.3",
+        "NuGet.Protocol.Core.v3": "3.5.0-beta-1034",
+        "NuGet.Versioning": "3.5.0-beta-1068",
+        "NuGet.Services.Staging.Authentication": "1.0.0-*"
+    },
+
+    "commands": {
+        "web": "Microsoft.AspNet.Server.Kestrel",
+        "ef": "EntityFramework.Commands"
+    },
+
+  "frameworks": {
+    "dnx451": {
+        "dependencies": {
+        }
+    }
+  },
+
+  "exclude": [
+    "wwwroot",
+    "node_modules"
+  ],
+    "publishExclude": [
+        "**.user",
+        "**.vspscc"
+    ],
+    "userSecretsId": "aspnet5-Stage.Manager-20160219110719"
+}

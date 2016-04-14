@@ -13,7 +13,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.V3Repository;
 using Xunit;
 
-namespace Stage.Manager.UnitTests
+namespace NuGet.Services.Staging.Manager.UnitTests
 {
     public class V3ServiceUnitTests
     {

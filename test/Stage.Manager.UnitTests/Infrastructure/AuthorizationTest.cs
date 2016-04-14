@@ -7,7 +7,7 @@ using System.Reflection;
 using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Mvc;
 
-namespace Stage.Manager.UnitTests
+namespace NuGet.Services.Staging.Manager.UnitTests
 {
     /// <summary>
     /// Taken from: https://datatellblog.wordpress.com/2015/05/05/unit-testing-asp-net-mvc-authorization/

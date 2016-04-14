@@ -10,9 +10,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		global.json = global.json
 	EndProjectSection
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Stage.Manager", "src\Stage.Manager\Stage.Manager.xproj", "{B1B7DEE5-81A2-4FC2-883B-18056956D48A}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Services.Staging.Manager", "src\NuGet.Services.Staging.Manager\NuGet.Services.Staging.Manager.xproj", "{B1B7DEE5-81A2-4FC2-883B-18056956D48A}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Stage.Database", "src\Stage.Database\Stage.Database.xproj", "{004B15A1-A550-4CEE-9925-A970115DE68C}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Services.Staging.Database", "src\NuGet.Services.Staging.Database\NuGet.Services.Staging.Database.xproj", "{004B15A1-A550-4CEE-9925-A970115DE68C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{01B6E97F-7B86-4364-AFD3-81881C199117}"
 EndProject

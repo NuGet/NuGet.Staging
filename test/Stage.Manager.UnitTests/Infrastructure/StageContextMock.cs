@@ -7,9 +7,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.Data.Entity;
 using Moq;
-using Stage.Database.Models;
+using NuGet.Services.Staging.Database.Models;
 
-namespace Stage.Manager.UnitTests
+namespace NuGet.Services.Staging.Manager.UnitTests
 {
     public class StageContextMock : Mock<StageContext>
     {

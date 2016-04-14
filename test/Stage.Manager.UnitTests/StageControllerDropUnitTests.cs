@@ -6,10 +6,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNet.Mvc;
-using Stage.Manager.Filters;
+using NuGet.Services.Staging.Manager.Filters;
 using Xunit;
 
-namespace Stage.Manager.UnitTests
+namespace NuGet.Services.Staging.Manager.UnitTests
 {
     public class StageControllerDropUnitTests : StageControllerUnitTests
     {
