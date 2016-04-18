@@ -4,7 +4,6 @@
   },
 
     "dependencies": {
-        "Microsoft.ApplicationInsights.AspNet": "1.0.0-rc1-update2",
         "Microsoft.AspNet.Diagnostics": "1.0.0-rc1-final",
         "Microsoft.AspNet.Http.Abstractions": "1.0.0-rc1-final",
         "Microsoft.AspNet.IISPlatformHandler": "1.0.0-rc1-final",
@@ -25,7 +24,8 @@
         "Newtonsoft.Json": "8.0.3",
         "NuGet.Protocol.Core.v3": "3.5.0-beta-1034",
         "NuGet.Versioning": "3.5.0-beta-1068",
-        "NuGet.Services.Staging.Authentication": "1.0.0-*"
+        "NuGet.Services.Staging.Authentication": "1.0.0-*",
+        "Microsoft.ApplicationInsights.AspNet": "1.0.0-rc1-update3"
     },
 
     "commands": {

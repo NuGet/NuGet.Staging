@@ -1,0 +1,11 @@
+﻿{
+    "ApplicationInsights": {
+        "InstrumentationKey": "1213"
+    },
+    "TopicMessageProviderOptions": {
+        "ProcessingConcurrency": 10,
+        "ServiceBusConnectionString": "",
+        "SubscriptionName": "",
+        "TopicName": ""
+    }
+}

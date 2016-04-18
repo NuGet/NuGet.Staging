@@ -9,6 +9,6 @@
     "dependencies": {
         "Microsoft.Extensions.OptionsModel": "1.0.0-rc1-final",
         "Newtonsoft.Json": "8.0.3",
-        "WindowsAzure.ServiceBus": "3.1.6"
+        "WindowsAzure.ServiceBus": "3.1.7"
     }
 }
