@@ -63,8 +63,8 @@ namespace NuGet.Services.Staging.Runner
 
         private static void ConfigureDependencies(IServiceCollection serviceCollection)
         {
-            serviceCollection.Configure<TopicMessageProviderOptions>(Configuration.GetSection("TopicMessageProviderOptions"));
-            serviceCollection.AddTransient<IMessageProvider<PackageBatchPushData>, TopicMessageProvider<PackageBatchPushData>>();
+            serviceCollection.Configure<TopicMessageListenerOptions>(Configuration.GetSection("TopicMessageListenerOptions"));
+            serviceCollection.AddTransient<IMessageListener<PackageBatchPushData>, TopicMessageListener<PackageBatchPushData>>();
             serviceCollection.AddTransient<StageCommitWorker, StageCommitWorker>();
         }
 
@@ -72,10 +72,7 @@ namespace NuGet.Services.Staging.Runner
         {
             var loggerFactory = ServiceProvider.GetService<ILoggerFactory>();
 
-            if (IsLocalEnvironment(environment))
-            {
-                loggerFactory.AddDebug();
-            }
+          
 
             var serilogConfig = new LoggerConfiguration().MinimumLevel.Verbose();
             
@@ -83,10 +80,16 @@ namespace NuGet.Services.Staging.Runner
             serilogConfig.WriteTo.ApplicationInsights(Configuration["ApplicationInsights:InstrumentationKey"]);
 
             // Hook into anything that is being traced in other libs using system.diagnostics.trace
-           Trace.Listeners.Add(new SerilogTraceListener.SerilogTraceListener());
+            Trace.Listeners.Add(new SerilogTraceListener.SerilogTraceListener());
 
             // Write to file
             serilogConfig.WriteTo.RollingFile("StageRunnerLog-{Date}.txt");
+
+            if (IsLocalEnvironment(environment))
+            {
+                loggerFactory.AddDebug();
+                serilogConfig.WriteTo.Console();
+            }
 
             Log.Logger = serilogConfig.CreateLogger();
             loggerFactory.AddSerilog();

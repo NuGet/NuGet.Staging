@@ -10,16 +10,16 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 {
     public class StageCommitWorker : IWorker
     {
-        private readonly IMessageProvider<PackageBatchPushData> _messageProvider;
+        private readonly IMessageListener<PackageBatchPushData> _messageListener;
         private readonly ILogger<StageCommitWorker> _logger;
 
-        public bool IsActive => _messageProvider.IsActive;
+        public bool IsActive => _messageListener.IsActive;
 
-        public StageCommitWorker(IMessageProvider<PackageBatchPushData> messageProvider, ILogger<StageCommitWorker> logger)
+        public StageCommitWorker(IMessageListener<PackageBatchPushData> messageListener, ILogger<StageCommitWorker> logger)
         {
-            if (messageProvider == null)
+            if (messageListener == null)
             {
-                throw new ArgumentNullException(nameof(messageProvider));
+                throw new ArgumentNullException(nameof(messageListener));
             }
 
             if (logger == null)
@@ -27,23 +27,23 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            _messageProvider = messageProvider;
+            _messageListener = messageListener;
             _logger = logger;
         }
 
         public void Start()
         {
-            _messageProvider.Start(HandleBatchPushRequest);
+            _messageListener.Start(HandleBatchPushRequest);
         }
 
         public void Stop()
         {
-            _messageProvider.Stop();
+            _messageListener.Stop();
         }
 
         internal async Task HandleBatchPushRequest(PackageBatchPushData pushData)
         {
-            _logger.LogInformation("Got message. Stage Id: {0}", pushData.StageId);
+            _logger.LogInformation("Got message for {StageId}", pushData.StageId);
         }
     }
 }

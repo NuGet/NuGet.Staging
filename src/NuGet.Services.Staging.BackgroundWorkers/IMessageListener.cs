@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Staging.BackgroundWorkers
 {
-    public interface IMessageProvider<T> where T : class
+    public interface IMessageListener<T> where T : class
     {
         bool IsActive { get; }
 
