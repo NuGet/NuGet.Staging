@@ -2,8 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Packaging.Core;
+using NuGet.Resolver;
+using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.PackageService;
 
 namespace NuGet.Services.Staging.BackgroundWorkers
@@ -62,16 +67,32 @@ namespace NuGet.Services.Staging.BackgroundWorkers
              * Once all packages are uploaded mark status as completed.
              */
 
+            StageCommit stageCommit = _commitStatusService.GetCommit(pushData.StageId);
 
+            if (stageCommit == null)
+            {
+                _logger.LogWarning("Commit data for stage {StageId} not found.", pushData.StageId);
+                return;
+            }
 
+            if (stageCommit.Status == CommitStatus.Completed ||
+                stageCommit.Status == CommitStatus.Failed ||
+                stageCommit.Status == CommitStatus.TimedOut)
+            {
+                _logger.LogWarning("Commit status for stage {StageId} doesn't require handling. Status: {Status}.",
+                    pushData.StageId, stageCommit.Status);
+                return;
+            }
 
-
-
-
-
-
-
-            _logger.LogInformation("Got message for {StageId}", pushData.StageId);
         }
+
+        //private List<PackagePushData> SortPackagesByPushOrder(List<PackagePushData> packages)
+        //{
+        //    var resolverPackages = packages.Select(p => new ResolverPackage
+        //    {
+        //        Dependencies = new List<PackageDependency>(),
+
+        //    })
+        //}
     }
 }
