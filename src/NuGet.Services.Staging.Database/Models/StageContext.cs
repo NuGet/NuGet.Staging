@@ -66,6 +66,8 @@ namespace NuGet.Services.Staging.Database.Models
             modelBuilder.Entity<StagedPackage>()
                 .Property(sp => sp.NupkgUrl).IsRequired();
             modelBuilder.Entity<StagedPackage>()
+                .Property(sp => sp.NuspecUrl).IsRequired();
+            modelBuilder.Entity<StagedPackage>()
                 .Property(sp => sp.Published).IsRequired();
             modelBuilder.Entity<StagedPackage>()
                 .Property(sp => sp.StageKey).IsRequired();

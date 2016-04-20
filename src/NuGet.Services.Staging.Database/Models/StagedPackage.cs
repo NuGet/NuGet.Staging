@@ -22,5 +22,7 @@ namespace NuGet.Services.Staging.Database.Models
         public DateTime Published { get; set; }
 
         public string NupkgUrl { get; set; }
+
+        public string NuspecUrl { get; set; }
     }
 }

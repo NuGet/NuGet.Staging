@@ -45,7 +45,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
 
             // Act
             var metadata = _v3Service.ParsePackageStream(testPackage.Stream);
-            var nupkgLocation = await _v3Service.AddPackage(testPackage.Stream, metadata);
+            var packageUris = await _v3Service.AddPackage(testPackage.Stream, metadata);
 
             // Assert
             string flatContainerPath = $"{_options.FlatContainerFolderName}/{testPackage.Id}";
@@ -54,7 +54,10 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             var flatContainerStorage = _storageFactory.CreatedStorages[flatContainerPath] as MemoryStorage;
             flatContainerStorage.Content.Count.Should().BeGreaterThan(0, "flat container shouldn't be empty");
 
-            ((MemoryStorage) _storageFactory.CreatedStorages[flatContainerPath]).Content.ContainsKey(nupkgLocation)
+            ((MemoryStorage) _storageFactory.CreatedStorages[flatContainerPath]).Content.ContainsKey(packageUris.Nupkg)
+                .Should()
+                .BeTrue("Returned value should be nupkg location");
+            ((MemoryStorage)_storageFactory.CreatedStorages[flatContainerPath]).Content.ContainsKey(packageUris.Nuspec)
                 .Should()
                 .BeTrue("Returned value should be nupkg location");
         }
