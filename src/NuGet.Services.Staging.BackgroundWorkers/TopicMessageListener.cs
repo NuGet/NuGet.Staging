@@ -18,7 +18,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
         private readonly TopicMessageListenerOptions _options;
         private readonly ILogger<TopicMessageListener<T>> _logger;
 
-        private ConcurrentDictionary<string, BrokeredMessage> _activeTaskCollection { get; set; }
+        private readonly ConcurrentDictionary<string, BrokeredMessage> _activeTaskCollection;
         private bool _stopRequested = false;
         private readonly TimeSpan _waitForExecutionCompletionTimeout = TimeSpan.FromMinutes(10);
         private readonly TimeSpan _waitForExecutionCompletionSleepBetweenIterations = TimeSpan.FromSeconds(10);
