@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.IO;
-using Microsoft.ApplicationInsights;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
 using Microsoft.Data.Entity;
@@ -12,14 +12,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog.Persistence;
-using NuGet.Services.V3Repository;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Authentication;
 using NuGet.Services.Staging.Manager.Filters;
-using NuGet.Services.Staging.Manager.Logging;
 using NuGet.Services.Staging.Manager.Search;
 using NuGet.Services.Staging.PackageService;
+using NuGet.Services.V3Repository;
+using Serilog;
 using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceCollection;
 
 namespace NuGet.Services.Staging.Manager
@@ -106,11 +106,7 @@ namespace NuGet.Services.Staging.Manager
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder applicationBuilder, IHostingEnvironment hostingEnvironment, ILoggerFactory loggerFactory)
         {
-            if (hostingEnvironment.IsEnvironment(_localEnvironmentName))
-            {
-                loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-                loggerFactory.AddDebug();
-            }
+            ConfigureLogging(hostingEnvironment, loggerFactory);
 
             // Debug settings for local runs and for dev deployment
             if (hostingEnvironment.IsEnvironment(_localEnvironmentName) || hostingEnvironment.IsDevelopment())
@@ -129,8 +125,26 @@ namespace NuGet.Services.Staging.Manager
 
             applicationBuilder.UseApiKeyAuthentication();
             applicationBuilder.UseMvc();
+        }
 
-            loggerFactory.AddApplicationInsights(applicationBuilder.ApplicationServices.GetService<TelemetryClient>());
+        private void ConfigureLogging(IHostingEnvironment hostingEnvironment, ILoggerFactory loggerFactory)
+        {
+            var serilogConfig = new LoggerConfiguration().MinimumLevel.Verbose();
+
+            // Add application insights
+            serilogConfig.WriteTo.ApplicationInsights(Configuration["ApplicationInsights:InstrumentationKey"]);
+
+            // Hook into anything that is being traced in other libs using system.diagnostics.trace
+            Trace.Listeners.Add(new SerilogTraceListener.SerilogTraceListener());
+
+            if (hostingEnvironment.IsEnvironment(_localEnvironmentName))
+            {
+                serilogConfig.WriteTo.Console();
+                loggerFactory.AddDebug();
+            }
+
+            Log.Logger = serilogConfig.CreateLogger();
+            loggerFactory.AddSerilog();
         }
 
         // Entry point for the application.
