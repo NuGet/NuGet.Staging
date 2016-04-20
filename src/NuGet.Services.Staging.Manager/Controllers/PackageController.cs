@@ -126,7 +126,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
                     return new ObjectResult(ApiKeyUnauthorizedMessage) { StatusCode = (int)HttpStatusCode.Forbidden };
                 }
                
-                Uri nupkgUri = await v3Service.AddPackage(packageStream, packageMetadata);
+                var packageLocations = await v3Service.AddPackage(packageStream, packageMetadata);
 
                 stage.Packages.Add(new StagedPackage()
                 {
@@ -135,7 +135,8 @@ namespace NuGet.Services.Staging.Manager.Controllers
                     Version = version.ToString(),
                     UserKey = userKey,
                     Published = DateTime.UtcNow,
-                    NupkgUrl = nupkgUri.ToString()
+                    NupkgUrl = packageLocations.Nupkg.ToString(),
+                    NuspecUrl = packageLocations.Nuspec.ToString()
                 });
 
                 await _context.SaveChangesAsync();
