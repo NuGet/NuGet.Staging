@@ -19,8 +19,8 @@ namespace NuGet.Services.Staging.Runner
     {
         private const string _localEnvironmentName = "Local";
 
-        private static IConfigurationRoot Configuration { get; set; }
-        private static IServiceProvider ServiceProvider { get; set; }
+        private static IConfigurationRoot _configuration { get; set; }
+        private static IServiceProvider _serviceProvider { get; set; }
 
         public static void Main(string[] args)
         {
@@ -36,7 +36,7 @@ namespace NuGet.Services.Staging.Runner
 
         private static void Run()
         {
-            var worker = ServiceProvider.GetService<StageCommitWorker>();
+            var worker = _serviceProvider.GetService<StageCommitWorker>();
             worker.Start();
 
             while (worker.IsActive)
@@ -57,27 +57,27 @@ namespace NuGet.Services.Staging.Runner
             serviceCollection.AddLogging();
 
             ConfigureDependencies(serviceCollection);
-            ServiceProvider = serviceCollection.BuildServiceProvider();
+            _serviceProvider = serviceCollection.BuildServiceProvider();
             ConfigureLog(environment);
         }
 
         private static void ConfigureDependencies(IServiceCollection serviceCollection)
         {
-            serviceCollection.Configure<TopicMessageListenerOptions>(Configuration.GetSection("TopicMessageListenerOptions"));
+            serviceCollection.Configure<TopicMessageListenerOptions>(_configuration.GetSection("TopicMessageListenerOptions"));
             serviceCollection.AddTransient<IMessageListener<PackageBatchPushData>, TopicMessageListener<PackageBatchPushData>>();
             serviceCollection.AddTransient<StageCommitWorker, StageCommitWorker>();
         }
 
         private static void ConfigureLog(string environment)
         {
-            var loggerFactory = ServiceProvider.GetService<ILoggerFactory>();
+            var loggerFactory = _serviceProvider.GetService<ILoggerFactory>();
 
           
 
             var serilogConfig = new LoggerConfiguration().MinimumLevel.Verbose();
             
             // Add application insights
-            serilogConfig.WriteTo.ApplicationInsights(Configuration["ApplicationInsights:InstrumentationKey"]);
+            serilogConfig.WriteTo.ApplicationInsights(_configuration["ApplicationInsights:InstrumentationKey"]);
 
             // Hook into anything that is being traced in other libs using system.diagnostics.trace
             Trace.Listeners.Add(new SerilogTraceListener.SerilogTraceListener());
@@ -93,9 +93,6 @@ namespace NuGet.Services.Staging.Runner
 
             Log.Logger = serilogConfig.CreateLogger();
             loggerFactory.AddSerilog();
-
-            Trace.AutoFlush = true;
-            loggerFactory.AddTraceSource("StagingRunner", new TextWriterTraceListener("log.txt"));
         }
 
         private static void InitializeConfiguration(string environment)
@@ -104,7 +101,7 @@ namespace NuGet.Services.Staging.Runner
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile(Path.Combine("Config", $"config.{environment}.json"));
 
-            Configuration = builder.Build();
+            _configuration = builder.Build();
         }
 
         private static bool IsLocalEnvironment(string environment)

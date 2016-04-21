@@ -59,9 +59,9 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             {
                 if (args != null && args.Exception != null)
                 {
-                    _logger.LogError(string.Format("Service bus exception: Action: {0}, Error: {1}",
+                    _logger.LogError("Service bus exception: Action: {Action}, Error: {Exception}",
                         args == null ? "None" : args.Action,
-                        args == null || args.Exception == null ? "None" : args.Exception.ToString()));
+                        args == null || args.Exception == null ? "None" : args.Exception.ToString());
                 }
             };
 
@@ -71,11 +71,11 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                 {
                     // Block processing of new messages. We want to wait for old messages to complete and exit.
                     _logger.LogInformation(
-                        $"Stop requested but new message {message.MessageId} processing began. Blocking until all processing completes.");
+                        "Stop requested but new message {MessageId} processing began. Blocking until all processing completes.", message.MessageId);
 
                     await Task.Delay(_waitForExecutionCompletionTimeout);
 
-                    _logger.LogError( $"Wait for execution completion done for message {message.MessageId}. Exiting.");
+                    _logger.LogError("Wait for execution completion done for message {MessageId}. Exiting.", message.MessageId);
                 }
                 else
                 {
@@ -107,7 +107,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                     }
                     catch (Exception e)
                     {
-                        _logger.LogWarning("Caught handler exception. Message will be retried. Exception: " + e);
+                        _logger.LogWarning("Caught handler exception. Message will be retried.", e);
                     }
                     finally
                     {
@@ -115,7 +115,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 
                         if (!_activeTaskCollection.TryRemove(message.MessageId, out savedMessage))
                         {
-                            _logger.LogWarning("Attempt to remove message id {0} failed.", savedMessage.MessageId);
+                            _logger.LogWarning("Attempt to remove message id {MessageId} failed.", savedMessage.MessageId);
                         }
                     }
                 }
@@ -129,13 +129,13 @@ namespace NuGet.Services.Staging.BackgroundWorkers
         {
             _stopRequested = true;
 
-            _logger.LogInformation("Waiting for messages processing to complete. Timeout: {0} minutes", _waitForExecutionCompletionTimeout.TotalMinutes);
+            _logger.LogInformation("Waiting for messages processing to complete. Timeout: {Minutes} minutes", _waitForExecutionCompletionTimeout.TotalMinutes);
 
             DateTime startWaitTime = DateTime.UtcNow;
 
             while (DateTime.UtcNow - startWaitTime < _waitForExecutionCompletionTimeout && _activeTaskCollection.Count > 0)
             {
-                _logger.LogInformation("Found {0} active message processing tasks. Waiting..", _activeTaskCollection.Count);
+                _logger.LogInformation("Found {Count} active message processing tasks. Waiting..", _activeTaskCollection.Count);
                 await Task.Delay(_waitForExecutionCompletionSleepBetweenIterations);
             }
 
@@ -145,7 +145,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             }
             else
             {
-                _logger.LogError("Wait timed out. There are {0} running message processing tasks. Ids: {1}",
+                _logger.LogError("Wait timed out. There are {Count} running message processing tasks. Ids: {Ids}",
                     _activeTaskCollection.Count, string.Join(",", _activeTaskCollection.Keys));
             }
 
