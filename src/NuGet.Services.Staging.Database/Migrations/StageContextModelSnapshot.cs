@@ -16,7 +16,7 @@ namespace NuGet.Services.Staging.Manager.Migrations
                 .HasAnnotation("ProductVersion", "7.0.0-rc1-16348")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("Stage.Database.Models.Stage", b =>
+            modelBuilder.Entity("NuGet.Services.Staging.Database.Models.Stage", b =>
                 {
                     b.Property<int>("Key")
                         .ValueGeneratedOnAdd();
@@ -39,7 +39,7 @@ namespace NuGet.Services.Staging.Manager.Migrations
                     b.HasIndex("Id");
                 });
 
-            modelBuilder.Entity("Stage.Database.Models.StageCommit", b =>
+            modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StageCommit", b =>
                 {
                     b.Property<int>("Key")
                         .ValueGeneratedOnAdd();
@@ -65,7 +65,7 @@ namespace NuGet.Services.Staging.Manager.Migrations
                     b.HasIndex("StageKey");
                 });
 
-            modelBuilder.Entity("Stage.Database.Models.StagedPackage", b =>
+            modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StagedPackage", b =>
                 {
                     b.Property<int>("Key")
                         .ValueGeneratedOnAdd();
@@ -79,6 +79,9 @@ namespace NuGet.Services.Staging.Manager.Migrations
                         .HasAnnotation("MaxLength", 64);
 
                     b.Property<string>("NupkgUrl")
+                        .IsRequired();
+
+                    b.Property<string>("NuspecUrl")
                         .IsRequired();
 
                     b.Property<DateTime>("Published");
@@ -96,7 +99,7 @@ namespace NuGet.Services.Staging.Manager.Migrations
                     b.HasIndex("StageKey");
                 });
 
-            modelBuilder.Entity("Stage.Database.Models.StageMembership", b =>
+            modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StageMembership", b =>
                 {
                     b.Property<int>("Key")
                         .ValueGeneratedOnAdd();
@@ -114,23 +117,23 @@ namespace NuGet.Services.Staging.Manager.Migrations
                     b.HasIndex("UserKey");
                 });
 
-            modelBuilder.Entity("Stage.Database.Models.StageCommit", b =>
+            modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StageCommit", b =>
                 {
-                    b.HasOne("Stage.Database.Models.Stage")
+                    b.HasOne("NuGet.Services.Staging.Database.Models.Stage")
                         .WithMany()
                         .HasForeignKey("StageKey");
                 });
 
-            modelBuilder.Entity("Stage.Database.Models.StagedPackage", b =>
+            modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StagedPackage", b =>
                 {
-                    b.HasOne("Stage.Database.Models.Stage")
+                    b.HasOne("NuGet.Services.Staging.Database.Models.Stage")
                         .WithMany()
                         .HasForeignKey("StageKey");
                 });
 
-            modelBuilder.Entity("Stage.Database.Models.StageMembership", b =>
+            modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StageMembership", b =>
                 {
-                    b.HasOne("Stage.Database.Models.Stage")
+                    b.HasOne("NuGet.Services.Staging.Database.Models.Stage")
                         .WithMany()
                         .HasForeignKey("StageKey");
                 });

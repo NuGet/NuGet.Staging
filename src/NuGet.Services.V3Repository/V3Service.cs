@@ -90,7 +90,7 @@ namespace NuGet.Services.V3Repository
             return new V3PackageMetadata(nupkgMetadata);
         }
 
-        public async Task<Uri> AddPackage(Stream stream, IPackageMetadata packageMetadata)
+        public async Task<PackageUris> AddPackage(Stream stream, IPackageMetadata packageMetadata)
         {
             // TODO: need to lock the stage before applying changes
 
@@ -115,7 +115,11 @@ namespace NuGet.Services.V3Repository
                 128,
                 cancellationToken: CancellationToken.None);
 
-            return packageLocations.Nupkg;
+            return new PackageUris
+            {
+                Nupkg = packageLocations.Nupkg,
+                Nuspec = packageLocations.Nuspec
+            };
         }
 
         private async Task<DnxMaker.DnxEntry> AddToFlatContainer(Stream stream, IPackageMetadata packageMetadata, string id, string version)
