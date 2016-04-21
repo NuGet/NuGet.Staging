@@ -5,7 +5,7 @@ using Microsoft.Data.Entity.Metadata;
 
 namespace NuGet.Services.Staging.Manager.Migrations
 {
-    public partial class InitialMigration : Migration
+    public partial class Initialmigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -58,6 +58,7 @@ namespace NuGet.Services.Staging.Manager.Migrations
                     Id = table.Column<string>(nullable: false),
                     NormalizedVersion = table.Column<string>(nullable: false),
                     NupkgUrl = table.Column<string>(nullable: false),
+                    NuspecUrl = table.Column<string>(nullable: false),
                     Published = table.Column<DateTime>(nullable: false),
                     StageKey = table.Column<int>(nullable: false),
                     UserKey = table.Column<int>(nullable: false),

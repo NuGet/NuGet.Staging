@@ -11,6 +11,12 @@ namespace NuGet.Services.V3Repository
     {
         IPackageMetadata ParsePackageStream(Stream stream);
 
-        Task<Uri> AddPackage(Stream stream, IPackageMetadata metadata);
+        Task<PackageUris> AddPackage(Stream stream, IPackageMetadata metadata);
+    }
+
+    public class PackageUris
+    {
+        public Uri Nupkg { get; set; }
+        public Uri Nuspec { get; set; }
     }
 }
