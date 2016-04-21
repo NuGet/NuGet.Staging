@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "NuGet.Services.Staging.Runner": {
+      "commandName": "NuGet.Services.Staging.Runner",
+      "commandLineArgs": "local"
+    }
+  }
+}

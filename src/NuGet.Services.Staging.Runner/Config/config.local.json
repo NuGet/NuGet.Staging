@@ -1,0 +1,11 @@
+﻿{
+    "ApplicationInsights": {
+        "InstrumentationKey": "1213"
+    },
+    "TopicMessageListenerOptions": {
+        "ProcessingConcurrency": 10,
+        "ServiceBusConnectionString": "Endpoint=sb://nugetlocal.servicebus.windows.net/;SharedAccessKeyName=ListenerSharesAccessKey;SharedAccessKey=<key here>",
+        "SubscriptionName": "stagecommitworker",
+        "TopicName": "batchpush"
+    }
+}
