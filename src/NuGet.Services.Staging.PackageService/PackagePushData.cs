@@ -8,6 +8,7 @@ namespace NuGet.Services.Staging.PackageService
         public string Id { get; set; }
         public string Version { get; set; }
         public string NupkgPath { get; set; }
+        public string NuspecPath { get; set; }
         public string UserKey { get; set; }
     }
 }

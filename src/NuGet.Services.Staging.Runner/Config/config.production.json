@@ -6,6 +6,7 @@
         "ProcessingConcurrency": 10,
         "ServiceBusConnectionString": "",
         "SubscriptionName": "",
-        "TopicName": ""
+        "TopicName": "",
+        "MaxDeliveryCount": 10
     }
 }

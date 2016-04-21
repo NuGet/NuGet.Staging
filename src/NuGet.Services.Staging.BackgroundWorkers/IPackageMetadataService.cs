@@ -1,18 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using NuGet.Packaging.Core;
+using NuGet.Services.Staging.PackageService;
 
 namespace NuGet.Services.Staging.BackgroundWorkers
 {
-    public interface IMessageListener<T> where T : class
+    public interface IPackageMetadataService
     {
-        bool IsActive { get; }
-
-        void Start(HandleMessage<T> messageHandler);
-
-        Task Stop();
+        Task<IEnumerable<PackageDependency>> GetPackageDependencies(PackagePushData packageData);
     }
-
-    public delegate Task HandleMessage<T>(T message, bool isLastDelivery);
 }

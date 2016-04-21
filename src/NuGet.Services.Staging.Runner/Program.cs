@@ -93,9 +93,6 @@ namespace NuGet.Services.Staging.Runner
 
             Log.Logger = serilogConfig.CreateLogger();
             loggerFactory.AddSerilog();
-
-            Trace.AutoFlush = true;
-            loggerFactory.AddTraceSource("StagingRunner", new TextWriterTraceListener("log.txt"));
         }
 
         private static void InitializeConfiguration(string environment)

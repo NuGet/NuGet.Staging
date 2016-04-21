@@ -220,6 +220,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
                             Id = p.Id,
                             Version = p.Version,
                             NupkgPath = p.NupkgUrl,
+                            NuspecPath = p.NuspecUrl,
                             UserKey = p.UserKey.ToString()
                         }).ToList(),
                     StageId = stage.Id

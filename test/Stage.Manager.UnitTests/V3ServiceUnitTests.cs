@@ -90,7 +90,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
 
             // Act
             var metadata = _v3Service.ParsePackageStream(testPackage.Stream);
-            var nupkgLocation = await _v3Service.AddPackage(testPackage.Stream, metadata);
+            var packageUris = await _v3Service.AddPackage(testPackage.Stream, metadata);
 
             // Assert
             string registrationPath = $"{_options.RegistrationFolderName}/{testPackage.Id}";
@@ -113,10 +113,10 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             string.CompareOrdinal(id, catalogDataPath.ToString()).Should().Be(0, "Catalog path in index should file be correct");
 
             var packageContent = indexFileObj["items"].First()["items"].First()["catalogEntry"]["packageContent"].ToString();
-            string.CompareOrdinal(packageContent, nupkgLocation.ToString()).Should().Be(0, "Package content path in catalogEntry index file should be correct");
+            string.CompareOrdinal(packageContent, packageUris.Nupkg.ToString()).Should().Be(0, "Package content path in catalogEntry index file should be correct");
 
             var packageContent2 = indexFileObj["items"].First()["items"].First()["packageContent"].ToString();
-            string.CompareOrdinal(packageContent2, nupkgLocation.ToString()).Should().Be(0, "Package content path in index should be correct");
+            string.CompareOrdinal(packageContent2, packageUris.Nupkg.ToString()).Should().Be(0, "Package content path in index should be correct");
 
             // Verify version file
             var versionFileObj = ParseStorageContent(versionFile);
@@ -124,7 +124,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             string.CompareOrdinal(catalogEntry, catalogDataPath.ToString()).Should().Be(0, "Catalog path in version file should be correct");
 
             var packageContent3 = versionFileObj["packageContent"].ToString();
-            string.CompareOrdinal(packageContent3, nupkgLocation.ToString()).Should().Be(0, "Package content path in version file should be correct");
+            string.CompareOrdinal(packageContent3, packageUris.Nupkg.ToString()).Should().Be(0, "Package content path in version file should be correct");
         }
 
         private static JObject ParseStorageContent(StorageContent storageContent)

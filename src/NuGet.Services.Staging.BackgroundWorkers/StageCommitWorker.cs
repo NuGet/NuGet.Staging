@@ -3,13 +3,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using NuGet.Packaging.Core;
 using NuGet.Resolver;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.PackageService;
+using NuGet.Versioning;
 
 namespace NuGet.Services.Staging.BackgroundWorkers
 {
@@ -18,10 +21,14 @@ namespace NuGet.Services.Staging.BackgroundWorkers
         private readonly IMessageListener<PackageBatchPushData> _messageListener;
         private readonly ILogger<StageCommitWorker> _logger;
         private readonly ICommitStatusService _commitStatusService;
+        private readonly IPackageMetadataService _packageMetadataService;
+        private readonly IPackagePushService _packagePushService;
 
         public bool IsActive => _messageListener.IsActive;
 
-        public StageCommitWorker(IMessageListener<PackageBatchPushData> messageListener, ICommitStatusService commitStatusService,
+        public StageCommitWorker(
+            IMessageListener<PackageBatchPushData> messageListener, ICommitStatusService commitStatusService,
+            IPackageMetadataService packageMetadataService, IPackagePushService packagePushService,
             ILogger<StageCommitWorker> logger)
         {
             if (messageListener == null)
@@ -39,9 +46,21 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                 throw new ArgumentNullException(nameof(commitStatusService));
             }
 
+            if (packageMetadataService == null)
+            {
+                throw new ArgumentNullException(nameof(packageMetadataService));
+            }
+
+            if (packagePushService == null)
+            {
+                throw new ArgumentNullException(nameof(packagePushService));
+            }
+
             _messageListener = messageListener;
             _logger = logger;
             _commitStatusService = commitStatusService;
+            _packageMetadataService = packageMetadataService;
+            _packagePushService = packagePushService;
         }
 
         public void Start()
@@ -54,19 +73,8 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             _messageListener.Stop();
         }
 
-        internal async Task HandleBatchPushRequest(PackageBatchPushData pushData)
+        internal async Task HandleBatchPushRequest(PackageBatchPushData pushData, bool isLastDelivery)
         {
-            /*
-             * Get commit information from the DB. If commit failed, discard the message.
-             * Create status dictionary: package to upload status. 
-             * Sort packages by dependency order
-             * for each package:
-             * 1. if status is "in progress": try to push. if fails on conflict, ignore the failure. Update the status to completed (in the DB).
-             * 2. if status is "pending": try to push. if fails (with retries), mark the status as failed and exit. if success, mark success (DB) and continue.
-             * 
-             * Once all packages are uploaded mark status as completed.
-             */
-
             StageCommit stageCommit = _commitStatusService.GetCommit(pushData.StageId);
 
             if (stageCommit == null)
@@ -76,23 +84,183 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             }
 
             if (stageCommit.Status == CommitStatus.Completed ||
-                stageCommit.Status == CommitStatus.Failed ||
-                stageCommit.Status == CommitStatus.TimedOut)
+                stageCommit.Status == CommitStatus.Failed)
             {
                 _logger.LogWarning("Commit status for stage {StageId} doesn't require handling. Status: {Status}.",
                     pushData.StageId, stageCommit.Status);
                 return;
             }
 
+            List<PackagePushData> sortedPackages = (await SortPackagesByPushOrder(pushData.PackagePushDataList)).ToList();
+            BatchPushProgressReport progressReport = GetCommitProgressReport(stageCommit, pushData.PackagePushDataList);
+            Dictionary<string, PackagePushProgressReport> commitProgressDictionary = 
+                progressReport.PackagePushProgressReports.ToDictionary(x => GetPackageKey(x.Id, x.Version));
+
+            const string logDetails = "Stage id: {Stage} Package id: {Package} Version: {Version}";
+
+            for (int i = 0; i < sortedPackages.Count && progressReport.Status != PushProgressStatus.Failed; i++)
+            {
+                var package = sortedPackages[i];
+                var packageProgressReport = commitProgressDictionary[GetPackageKey(package.Id, package.Version)];
+
+                try
+                {
+                    if (packageProgressReport.Status == PushProgressStatus.Pending)
+                    {
+                        _logger.LogVerbose("Pushing: " + logDetails, pushData.StageId, package.Id, package.Version);
+
+                        await UpdateProgress(stageCommit, progressReport, packageProgressReport, PushProgressStatus.InProgress);
+
+                        PackagePushResult result = await _packagePushService.PushPackage(package);
+
+                        _logger.LogInformation("Push completed with {@Result}" + logDetails, result,
+                            pushData.StageId, package.Id, package.Version);
+
+                        if (result.Status == PackagePushStatus.Success)
+                        {
+                            await UpdateProgress(stageCommit, progressReport, packageProgressReport, PushProgressStatus.Completed);
+                        }
+                        else
+                        {
+                            await UpdateProgress(stageCommit, progressReport, packageProgressReport, PushProgressStatus.Failed, result.ErrorMessage);
+                        }
+                    }
+                    else if (packageProgressReport.Status == PushProgressStatus.InProgress)
+                    {
+                        // We continue a commit, and discover that package is in progress.
+                        // We don't know if it was already pushed to Gallery or not. 
+                        // Try to push, if fails on conflict, ignore. If success, update commit
+
+                        _logger.LogVerbose("Retrying push: " + logDetails, pushData.StageId, package.Id,
+                            package.Version);
+
+                        PackagePushResult result = await _packagePushService.PushPackage(package);
+
+                        _logger.LogInformation("Push completed with {@Result}" + logDetails, result,
+                            pushData.StageId, package.Id, package.Version);
+
+                        if (result.Status == PackagePushStatus.AlreadyExists ||
+                            result.Status == PackagePushStatus.Success)
+                        {
+                            await UpdateProgress(stageCommit, progressReport, packageProgressReport, PushProgressStatus.Completed);
+                        }
+                        else
+                        {
+                            await UpdateProgress(stageCommit, progressReport, packageProgressReport, PushProgressStatus.Failed, result.ErrorMessage);
+                        }
+                    }
+                    else if (packageProgressReport.Status == PushProgressStatus.Completed)
+                    {
+                        _logger.LogInformation("Skipping push. Already pushed." + logDetails, pushData.StageId,
+                            package.Id, package.Version);
+                    }
+                    else if (packageProgressReport.Status == PushProgressStatus.Failed)
+                    {
+                        _logger.LogError("Unexpected failure status for package." + logDetails, pushData.StageId,
+                            package.Id, package.Version);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError("Unexpected exception was caught while commiting stage. Error: {Exception}" + logDetails,
+                                    e, pushData.StageId, package.Id, package.Version);
+
+                    // This is the last delivery, so try to update the DB with failure
+                    if (isLastDelivery)
+                    {
+                        try
+                        {
+                            await UpdateProgress(stageCommit, progressReport, packageProgressReport,
+                                             PushProgressStatus.Failed, "Retries exhausted. Error:" + e);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError("Failed to update status. Error: {Exception}", ex);
+                        }
+                    }
+
+                    throw;
+                }
+            }
         }
 
-        //private List<PackagePushData> SortPackagesByPushOrder(List<PackagePushData> packages)
-        //{
-        //    var resolverPackages = packages.Select(p => new ResolverPackage
-        //    {
-        //        Dependencies = new List<PackageDependency>(),
+        private async Task UpdateProgress(StageCommit commit, BatchPushProgressReport batchPushProgressReport,
+                                          PackagePushProgressReport packagePushProgressReport, PushProgressStatus newStatus,
+                                          string errorMessage = null)
+        {
+            packagePushProgressReport.Status = newStatus;
 
-        //    })
-        //}
+            if (newStatus == PushProgressStatus.Failed)
+            {
+                batchPushProgressReport.Status = PushProgressStatus.Failed;
+                batchPushProgressReport.FailureDetails = errorMessage;
+            }
+            else if (newStatus == PushProgressStatus.Completed &&
+                     batchPushProgressReport.PackagePushProgressReports.All(x => x.Status == PushProgressStatus.Completed))
+            {
+                batchPushProgressReport.Status = PushProgressStatus.Completed;
+            }
+
+            await _commitStatusService.UpdateProgress(commit, batchPushProgressReport);
+        }
+        
+        private BatchPushProgressReport GetCommitProgressReport(StageCommit stageCommit, List<PackagePushData> pushedPackages)
+        {
+            BatchPushProgressReport progressReport;
+
+            if (!string.IsNullOrEmpty(stageCommit.Progress))
+            {
+                progressReport = JsonConvert.DeserializeObject<BatchPushProgressReport>(stageCommit.Progress);
+
+                _logger.LogInformation("Found commit progress report: {@progressReport}", progressReport);
+            }
+            else
+            {
+                progressReport = new BatchPushProgressReport
+                {
+                    Status = PushProgressStatus.InProgress,
+                    PackagePushProgressReports = pushedPackages.Select(x => new PackagePushProgressReport
+                    {
+                        Id = x.Id,
+                        Version = x.Version,
+                        Status = PushProgressStatus.Pending
+                    }).ToList()
+                };
+            }
+
+
+            return progressReport;
+        }
+
+        private async Task<IEnumerable<PackagePushData>> SortPackagesByPushOrder(List<PackagePushData> packages)
+        {
+            var packagesDictionary = packages.ToDictionary(p => GetPackageKey(p.Id, p.Version));
+            var packageIds = new HashSet<string>(packages.Select(p => p.Id));
+            var resolverPackages = new List<ResolverPackage>();
+
+            _logger.LogVerbose($"Sorting {packages.Count} packages: {string.Join(", ", packagesDictionary.Keys)}");
+
+            foreach (var package in packages)
+            {
+                var dependencies = await _packageMetadataService.GetPackageDependencies(package);
+
+                // Filter the dependencies to contain only other packages in this Stage. We don't care about 
+                // external packages in the push order
+                var filteredDependencies = dependencies.Where(d => packageIds.Contains(d.Id));
+                var resolverPackage = new ResolverPackage(package.Id, new NuGetVersion(package.Version), filteredDependencies, true, false);
+                resolverPackages.Add(resolverPackage);
+            }
+
+            var sortedPackages = ResolverUtility.TopologicalSort(resolverPackages).ToList();
+
+            _logger.LogVerbose($"Sorted order: {string.Join(", ", sortedPackages.Select(x => GetPackageKey(x.Id, x.Version.ToString())))}");
+
+            return sortedPackages.Select(p => packagesDictionary[GetPackageKey(p.Id, p.Version.ToString())]);
+        }
+
+        private string GetPackageKey(string id, string version)
+        {
+            return $"{id}-{version}";
+        }
     }
 }

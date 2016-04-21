@@ -9,5 +9,6 @@ namespace NuGet.Services.Staging.BackgroundWorkers
         public string TopicName { get; set; }
         public string SubscriptionName { get; set; }
         public int ProcessingConcurrency { get; set; }
+        public int MaxDeliveryCount { get; set; }
     }
 }
