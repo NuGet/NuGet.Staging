@@ -16,6 +16,8 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 {
     public class StageCommitWorker : IWorker
     {
+        private const string LogDetails = "Stage id: {Stage} Package id: {Package} Version: {Version}";
+
         private readonly IMessageListener<PackageBatchPushData> _messageListener;
         private readonly ILogger<StageCommitWorker> _logger;
         private readonly ICommitStatusService _commitStatusService;
@@ -81,8 +83,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                 return;
             }
 
-            if (stageCommit.Status == CommitStatus.Completed ||
-                stageCommit.Status == CommitStatus.Failed)
+            if (stageCommit.Status == CommitStatus.Completed || stageCommit.Status == CommitStatus.Failed)
             {
                 _logger.LogWarning("Commit status for stage {StageId} doesn't require handling. Status: {Status}.",
                     pushData.StageId, stageCommit.Status);
@@ -94,8 +95,6 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             Dictionary<string, PackagePushProgressReport> commitProgressDictionary = 
                 progressReport.PackagePushProgressReports.ToDictionary(x => GetPackageKey(x.Id, x.Version));
 
-            const string logDetails = "Stage id: {Stage} Package id: {Package} Version: {Version}";
-
             for (int i = 0; i < sortedPackages.Count && progressReport.Status != PushProgressStatus.Failed; i++)
             {
                 var package = sortedPackages[i];
@@ -105,23 +104,11 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                 {
                     if (packageProgressReport.Status == PushProgressStatus.Pending)
                     {
-                        _logger.LogVerbose("Pushing: " + logDetails, pushData.StageId, package.Id, package.Version);
+                        _logger.LogVerbose("Pushing: " + LogDetails, pushData.StageId, package.Id, package.Version);
 
                         await UpdateProgress(stageCommit, progressReport, packageProgressReport, PushProgressStatus.InProgress);
 
-                        PackagePushResult result = await _packagePushService.PushPackage(package);
-
-                        _logger.LogInformation("Push completed with {@Result}" + logDetails, result,
-                            pushData.StageId, package.Id, package.Version);
-
-                        if (result.Status == PackagePushStatus.Success)
-                        {
-                            await UpdateProgress(stageCommit, progressReport, packageProgressReport, PushProgressStatus.Completed);
-                        }
-                        else
-                        {
-                            await UpdateProgress(stageCommit, progressReport, packageProgressReport, PushProgressStatus.Failed, result.ErrorMessage);
-                        }
+                        await PushPackageAndUpdateProgress(pushData, package, stageCommit, progressReport, packageProgressReport, succeedOnExists: false);
                     }
                     else if (packageProgressReport.Status == PushProgressStatus.InProgress)
                     {
@@ -129,32 +116,19 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                         // We don't know if it was already pushed to Gallery or not. 
                         // Try to push, if fails on conflict, ignore. If success, update commit
 
-                        _logger.LogVerbose("Retrying push: " + logDetails, pushData.StageId, package.Id,
+                        _logger.LogVerbose("Retrying push: " + LogDetails, pushData.StageId, package.Id,
                             package.Version);
 
-                        PackagePushResult result = await _packagePushService.PushPackage(package);
-
-                        _logger.LogInformation("Push completed with {@Result}" + logDetails, result,
-                            pushData.StageId, package.Id, package.Version);
-
-                        if (result.Status == PackagePushStatus.AlreadyExists ||
-                            result.Status == PackagePushStatus.Success)
-                        {
-                            await UpdateProgress(stageCommit, progressReport, packageProgressReport, PushProgressStatus.Completed);
-                        }
-                        else
-                        {
-                            await UpdateProgress(stageCommit, progressReport, packageProgressReport, PushProgressStatus.Failed, result.ErrorMessage);
-                        }
+                        await PushPackageAndUpdateProgress(pushData, package, stageCommit, progressReport, packageProgressReport, succeedOnExists: true);
                     }
                     else if (packageProgressReport.Status == PushProgressStatus.Completed)
                     {
-                        _logger.LogInformation("Skipping push. Already pushed." + logDetails, pushData.StageId,
+                        _logger.LogInformation("Skipping push. Already pushed." + LogDetails, pushData.StageId,
                             package.Id, package.Version);
                     }
                     else if (packageProgressReport.Status == PushProgressStatus.Failed)
                     {
-                        _logger.LogError("Unexpected failure status for package." + logDetails, pushData.StageId,
+                        _logger.LogError("Unexpected failure status for package." + LogDetails, pushData.StageId,
                             package.Id, package.Version);
                     }
                 }
@@ -167,8 +141,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                     {
                         try
                         {
-                            await UpdateProgress(stageCommit, progressReport, packageProgressReport,
-                                             PushProgressStatus.Failed, "Retries exhausted. Error:" + e);
+                            await UpdateProgress(stageCommit, progressReport, packageProgressReport, PushProgressStatus.Failed, "Retries exhausted. Error:" + e);
                         }
                         catch (Exception ex)
                         {
@@ -178,6 +151,25 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 
                     throw;
                 }
+            }
+        }
+
+        private async Task PushPackageAndUpdateProgress(PackageBatchPushData pushData, PackagePushData package,
+                                                        StageCommit stageCommit, BatchPushProgressReport progressReport,
+                                                        PackagePushProgressReport packageProgressReport, bool succeedOnExists)
+        {
+            PackagePushResult result = await _packagePushService.PushPackage(package);
+
+            _logger.LogInformation("Push completed with {@Result}" + LogDetails, result, pushData.StageId, package.Id, package.Version);
+
+            if (result.Status == PackagePushStatus.Success ||
+                (succeedOnExists && result.Status == PackagePushStatus.AlreadyExists))
+            {
+                await UpdateProgress(stageCommit, progressReport, packageProgressReport, PushProgressStatus.Completed);
+            }
+            else
+            {
+                await UpdateProgress(stageCommit, progressReport, packageProgressReport, PushProgressStatus.Failed, result.ErrorMessage);
             }
         }
 
