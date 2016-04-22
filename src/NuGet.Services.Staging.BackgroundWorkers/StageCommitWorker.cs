@@ -3,12 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using NuGet.Packaging.Core;
 using NuGet.Resolver;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.PackageService;
@@ -162,8 +160,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError("Unexpected exception was caught while commiting stage. Error: {Exception}" + logDetails,
-                                    e, pushData.StageId, package.Id, package.Version);
+                    _logger.LogError($"Unexpected exception was caught while commiting. Stage id: {pushData.StageId} Package id: {package.Id} Version: {package.Version}", e);
 
                     // This is the last delivery, so try to update the DB with failure
                     if (isLastDelivery)
@@ -175,7 +172,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError("Failed to update status. Error: {Exception}", ex);
+                            _logger.LogError("Failed to update status.", ex);
                         }
                     }
 

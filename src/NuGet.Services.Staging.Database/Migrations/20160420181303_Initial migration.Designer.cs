@@ -45,8 +45,6 @@ namespace NuGet.Services.Staging.Manager.Migrations
                     b.Property<int>("Key")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("ErrorDetails");
-
                     b.Property<DateTime>("LastProgressUpdate");
 
                     b.Property<string>("Progress");
