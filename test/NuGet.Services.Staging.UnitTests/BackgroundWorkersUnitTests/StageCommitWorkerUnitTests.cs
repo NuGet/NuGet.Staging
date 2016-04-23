@@ -16,7 +16,7 @@ using NuGet.Services.Staging.PackageService;
 using NuGet.Versioning;
 using Xunit;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Staging.UnitTests.BackgroundWorkersUnitTests
 {
     public class StageCommitWorkerUnitTests
     {

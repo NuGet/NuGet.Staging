@@ -15,7 +15,8 @@
         "Serilog.Sinks.ApplicationInsights": "2.0.28",
         "Serilog.Sinks.Console": "2.0.0-beta-700",
         "Serilog.Sinks.RollingFile": "2.0.0-beta-700",
-        "SerilogTraceListener": "1.0.7"
+        "SerilogTraceListener": "1.0.7",
+        "EntityFramework.MicrosoftSqlServer": "7.0.0-rc1-final"
     },
 
   "commands": {

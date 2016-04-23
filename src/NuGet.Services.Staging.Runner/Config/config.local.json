@@ -8,5 +8,8 @@
         "SubscriptionName": "stagecommitworker",
         "TopicName": "batchpush",
         "MaxDeliveryCount": 10
+    },
+    "StageDatabase": {
+        "ConnectionString": "Server=(localdb)\\mssqllocaldb;Database=StageDB;Trusted_Connection=True;"
     }
 }
