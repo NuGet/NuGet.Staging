@@ -79,7 +79,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
             using (var packageStream = this.Request.Form.Files[0].OpenReadStream())
             {
                 var v3Service = _v3ServiceFactory.Create(stage.Id);
-                NuGet.Services.V3Repository.IPackageMetadata packageMetadata = null;
+                V3Repository.IPackageMetadata packageMetadata = null;
 
                 try
                 {
@@ -128,7 +128,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
                
                 var packageLocations = await v3Service.AddPackage(packageStream, packageMetadata);
 
-                stage.Packages.Add(new StagedPackage()
+                stage.Packages.Add(new StagedPackage
                 {
                     Id = registrationId,
                     NormalizedVersion = normalizedVersion,

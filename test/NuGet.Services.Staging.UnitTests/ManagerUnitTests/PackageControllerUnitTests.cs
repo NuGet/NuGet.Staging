@@ -21,6 +21,7 @@ using Xunit;
 
 namespace NuGet.Services.Staging.Manager.UnitTests
 {
+    [Collection("Packages test collection")]
     public class PackageControllerUnitTests
     {
         private const string DefaultRegistrationId = "DefaultId";

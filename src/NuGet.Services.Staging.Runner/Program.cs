@@ -72,8 +72,6 @@ namespace NuGet.Services.Staging.Runner
         {
             var loggerFactory = _serviceProvider.GetService<ILoggerFactory>();
 
-          
-
             var serilogConfig = new LoggerConfiguration().MinimumLevel.Verbose();
             
             // Add application insights

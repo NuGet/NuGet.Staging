@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Staging.BackgroundWorkers
@@ -10,8 +9,10 @@ namespace NuGet.Services.Staging.BackgroundWorkers
     {
         bool IsActive { get; }
 
-        void Start(Func<T, Task> messageHandler);
+        void Start(HandleMessage<T> messageHandler);
 
         Task Stop();
     }
+
+    public delegate Task HandleMessage<T>(T message, bool isLastDelivery);
 }

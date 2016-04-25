@@ -31,7 +31,6 @@ namespace NuGet.Services.Staging.Manager.Migrations
                 {
                     Key = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    ErrorDetails = table.Column<string>(nullable: true),
                     LastProgressUpdate = table.Column<DateTime>(nullable: false),
                     Progress = table.Column<string>(nullable: true),
                     RequestTime = table.Column<DateTime>(nullable: false),

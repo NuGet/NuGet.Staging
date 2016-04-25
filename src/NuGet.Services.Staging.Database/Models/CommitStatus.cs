@@ -9,6 +9,5 @@ namespace NuGet.Services.Staging.Database.Models
         InProgress, // Request is being processed
         Completed,  // Commit completed successfully
         Failed,     // Error occured
-        TimedOut    // Commit progress wasn't updated for longer then allowed period
     }
 }

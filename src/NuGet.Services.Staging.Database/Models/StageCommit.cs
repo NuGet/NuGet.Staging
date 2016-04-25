@@ -20,7 +20,5 @@ namespace NuGet.Services.Staging.Database.Models
         public string TrackId { get; set; }
         
         public string Progress { get; set; }
-
-        public string ErrorDetails { get; set; }
     }
 }
