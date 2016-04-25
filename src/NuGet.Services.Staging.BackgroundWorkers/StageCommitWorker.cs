@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Internal;
 using Newtonsoft.Json;
 using NuGet.Resolver;
 using NuGet.Services.Staging.Database.Models;
@@ -90,7 +91,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                 return;
             }
 
-            List<PackagePushData> sortedPackages = (await SortPackagesByPushOrder(pushData.PackagePushDataList)).ToList();
+            var sortedPackages = (await SortPackagesByPushOrder(pushData.PackagePushDataList));
             BatchPushProgressReport progressReport = GetCommitProgressReport(stageCommit, pushData.PackagePushDataList);
             Dictionary<string, PackagePushProgressReport> commitProgressDictionary = 
                 progressReport.PackagePushProgressReports.ToDictionary(x => GetPackageKey(x.Id, x.Version));
@@ -134,7 +135,9 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError($"Unexpected exception was caught while commiting. Stage id: {pushData.StageId} Package id: {package.Id} Version: {package.Version}", e);
+                    _logger.LogError(new FormattedLogValues("Unexpected exception was caught while commiting." + LogDetails,
+                                                            pushData.StageId, package.Id, package.Version),
+                                                            e);
 
                     // This is the last delivery, so try to update the DB with failure
                     if (isLastDelivery)
@@ -221,7 +224,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             return progressReport;
         }
 
-        private async Task<IEnumerable<PackagePushData>> SortPackagesByPushOrder(List<PackagePushData> packages)
+        private async Task<IReadOnlyList<PackagePushData>> SortPackagesByPushOrder(List<PackagePushData> packages)
         {
             var packagesDictionary = packages.ToDictionary(p => GetPackageKey(p.Id, p.Version));
             var packageIds = new HashSet<string>(packages.Select(p => p.Id));
@@ -244,7 +247,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 
             _logger.LogVerbose($"Sorted order: {string.Join(", ", sortedPackages.Select(x => GetPackageKey(x.Id, x.Version.ToString())))}");
 
-            return sortedPackages.Select(p => packagesDictionary[GetPackageKey(p.Id, p.Version.ToString())]);
+            return sortedPackages.Select(p => packagesDictionary[GetPackageKey(p.Id, p.Version.ToString())]).ToList();
         }
 
         private string GetPackageKey(string id, string version)
