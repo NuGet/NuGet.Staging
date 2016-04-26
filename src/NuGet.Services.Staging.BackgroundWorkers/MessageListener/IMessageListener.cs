@@ -13,4 +13,6 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 
         Task Stop();
     }
+
+    public delegate Task HandleMessage<T>(T message, bool isLastDelivery);
 }

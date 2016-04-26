@@ -2,13 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Staging.PackageService;
+using NuGet.Versioning;
 
 namespace NuGet.Services.Staging.BackgroundWorkers
 {
     public class StageCommitWorker : IWorker
     {
+        private const string LogDetails = "Stage id: {Stage} Package id: {Package} Version: {Version}";
+
         private readonly IMessageListener<PackageBatchPushData> _messageListener;
         private readonly IMessageHandlerFactory _messageHandlerFactory;
 
