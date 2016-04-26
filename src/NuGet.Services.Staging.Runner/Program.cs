@@ -75,7 +75,12 @@ namespace NuGet.Services.Staging.Runner
             serviceCollection.Configure<TopicMessageListenerOptions>(_configuration.GetSection("TopicMessageListenerOptions"));
             serviceCollection.AddTransient<IMessageListener<PackageBatchPushData>, TopicMessageListener<PackageBatchPushData>>();
             serviceCollection.AddTransient<StageCommitWorker, StageCommitWorker>();
-            serviceCollection.AddTransient<StageContext, StageContext>();
+            serviceCollection.AddTransient<ICommitStatusService, CommitStatusService>();
+            serviceCollection.AddTransient<IReadonlyStorage, AzureReadonlyStorage>();
+            serviceCollection.AddTransient<IPackageMetadataService, PackageMetadataService>();
+            serviceCollection.AddTransient<IPackagePushService, EmptyPackagePushService>();
+            serviceCollection.AddTransient<IMessageHandlerFactory, MessageHandlerFactory>();
+            serviceCollection.AddTransient<IMessageHandler<PackageBatchPushData>, BatchPushHandler>();
         }
 
         private static void ConfigureLog(string environment)

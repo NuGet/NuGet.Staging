@@ -9,10 +9,8 @@ namespace NuGet.Services.Staging.BackgroundWorkers
     {
         bool IsActive { get; }
 
-        void Start(HandleMessage<T> messageHandler);
+        void Start(IMessageHandler<T> messageHandler);
 
         Task Stop();
     }
-
-    public delegate Task HandleMessage<T>(T message, bool isLastDelivery);
 }

@@ -65,6 +65,20 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             return this;
         }
 
+        public TestPackage WithDependencies(IEnumerable<PackageDependencyGroup> packageDependencyGroups)
+        {
+            Stream = CreateTestPackageStream(packageArchive =>
+            {
+                var nuspecEntry = packageArchive.CreateEntry(Id + ".nuspec", CompressionLevel.Fastest);
+                using (var stream = nuspecEntry.Open())
+                {
+                    WriteNuspec(stream, true, Id, Version, null, packageDependencyGroups);
+                }
+            });
+
+            return this;
+        }
+
         private static Stream CreateTestPackageStream(Action<ZipArchive> populatePackage)
         {
             var packageStream = new MemoryStream();
@@ -87,6 +101,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             string id,
             string version,
             string minClientVersion = null,
+            IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
             string title = "Package Id",
             string summary = "Package Summary",
             string authors = "Package author",
@@ -99,8 +114,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             Uri licenseUrl = null,
             Uri projectUrl = null,
             Uri iconUrl = null,
-            bool requireLicenseAcceptance = false,
-            IEnumerable<PackageDependencyGroup> packageDependencyGroups = null)
+            bool requireLicenseAcceptance = false)
         {
             using (var streamWriter = new StreamWriter(stream, new UTF8Encoding(false, true), 1024, leaveStreamOpen))
             {

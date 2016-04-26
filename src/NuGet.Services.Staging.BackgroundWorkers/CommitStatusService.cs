@@ -4,15 +4,16 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Data.Entity;
 using Newtonsoft.Json;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.PackageService;
 
 namespace NuGet.Services.Staging.BackgroundWorkers
 {
-    public class CommitStatusService : ICommitStatusService
+    public class CommitStatusService : ICommitStatusService, IDisposable
     {
-        private readonly StageContext _context;
+        private StageContext _context;
 
         public CommitStatusService(StageContext context)
         {
@@ -26,7 +27,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 
         public StageCommit GetCommit(string stageId)
         {
-            var stage = _context.Stages.FirstOrDefault(x => x.Id == stageId);
+            var stage = _context.Stages.Include(x => x.Commits).FirstOrDefault(x => x.Id == stageId);
             return stage?.Commits.OrderByDescending(sc => sc.RequestTime).FirstOrDefault();
         }
 
@@ -36,7 +37,13 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             commit.LastProgressUpdate = DateTime.UtcNow;
             commit.Status = PushProgressStatusToCommitStatus(progressReport.Status);
 
-            await _context.SaveChangesAsync();
+            if (commit.Status == CommitStatus.Completed)
+            {
+               var stage = _context.Stages.First(x => x.Key == commit.StageKey);
+               stage.Status = StageStatus.Committed; 
+            }
+
+            await _context.SaveChangesAsync(acceptAllChangesOnSuccess: true);
         }
 
         private CommitStatus PushProgressStatusToCommitStatus(PushProgressStatus progressStatus)
@@ -50,6 +57,20 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             }
 
             return CommitStatus.Failed;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+               _context.Dispose();
+               _context = null;
+            }
         }
     }
 }

@@ -69,7 +69,7 @@ namespace NuGet.Services.Staging.Manager.Controllers {
         }
         
         /// <summary>
-        ///    Looks up a localized string similar to Commit for stage &apos;{0}&apos; is in progress..
+        ///    Looks up a localized string similar to Commit for stage &apos;{0}&apos; is in progress or completed..
         /// </summary>
         internal static string CommitInProgressMessage {
             get {
