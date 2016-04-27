@@ -5,10 +5,12 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using Microsoft.Data.Entity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Staging.BackgroundWorkers;
+using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.PackageService;
 using Serilog;
 using Serilog.Sinks.RollingFile;
@@ -56,7 +58,14 @@ namespace NuGet.Services.Staging.Runner
             serviceCollection.AddOptions();
             serviceCollection.AddLogging();
 
+            var connectionString = _configuration["StageDatabase:ConnectionString"];
+
+            serviceCollection.AddEntityFramework()
+                .AddSqlServer()
+                .AddDbContext<StageContext>(options => options.UseSqlServer(connectionString));
+
             ConfigureDependencies(serviceCollection);
+
             _serviceProvider = serviceCollection.BuildServiceProvider();
             ConfigureLog(environment);
         }
@@ -66,6 +75,12 @@ namespace NuGet.Services.Staging.Runner
             serviceCollection.Configure<TopicMessageListenerOptions>(_configuration.GetSection("TopicMessageListenerOptions"));
             serviceCollection.AddTransient<IMessageListener<PackageBatchPushData>, TopicMessageListener<PackageBatchPushData>>();
             serviceCollection.AddTransient<StageCommitWorker, StageCommitWorker>();
+            serviceCollection.AddTransient<ICommitStatusService, CommitStatusService>();
+            serviceCollection.AddTransient<IReadOnlyStorage, AzureReadOnlyStorage>();
+            serviceCollection.AddTransient<IPackageMetadataService, PackageMetadataService>();
+            serviceCollection.AddTransient<IPackagePushService, EmptyPackagePushService>();
+            serviceCollection.AddTransient<IMessageHandlerFactory, MessageHandlerFactory>();
+            serviceCollection.AddTransient<IMessageHandler<PackageBatchPushData>, BatchPushHandler>();
         }
 
         private static void ConfigureLog(string environment)

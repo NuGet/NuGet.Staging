@@ -7,6 +7,7 @@ namespace NuGet.Services.Staging.Database.Models
     {
         Active,
         Committing,
+        Committed,
         Deleted
     }
 }

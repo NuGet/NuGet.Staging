@@ -8,5 +8,8 @@
         "SubscriptionName": "",
         "TopicName": "",
         "MaxDeliveryCount": 10
+    },
+    "StageDatabase": {
+        "ConnectionString": ""
     }
 }

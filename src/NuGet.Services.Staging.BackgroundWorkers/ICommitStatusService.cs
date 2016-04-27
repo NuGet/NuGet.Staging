@@ -14,7 +14,11 @@ namespace NuGet.Services.Staging.BackgroundWorkers
         /// </summary>
         StageCommit GetCommit(string stageId);
 
-        // dont forget to update commit status and last update timestamp
-        Task  UpdateProgress(StageCommit commit, BatchPushProgressReport progressReport);
+        /// <summary>
+        /// Update commit progress based on the progress report
+        /// </summary>
+        /// <param name="commit">The commit.</param>
+        /// <param name="progressReport">The progress report.</param>
+        Task UpdateProgress(StageCommit commit, BatchPushProgressReport progressReport);
     }
 }

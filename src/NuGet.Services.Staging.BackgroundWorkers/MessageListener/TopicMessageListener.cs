@@ -46,7 +46,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             _activeTaskCollection = new ConcurrentDictionary<string, BrokeredMessage>();
         }
 
-        public void Start(HandleMessage<T> messageHandler)
+        public void Start(IMessageHandler<T> messageHandler)
         {
             var onMessageOptions = new OnMessageOptions
             {
@@ -102,7 +102,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                         // Track executing messages
                         _activeTaskCollection[message.MessageId] = message;
 
-                        await messageHandler(innerMessage, message.DeliveryCount == _options.MaxDeliveryCount);
+                        await messageHandler.HandleMessageAsync(innerMessage, message.DeliveryCount == _options.MaxDeliveryCount);
                         await message.CompleteAsync();
                     }
                     catch (Exception e)

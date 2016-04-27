@@ -142,7 +142,7 @@
     <value>A package with id '{0}' and version '{1}' already exists on stage '{2}'. Delete and add to modify.</value>
   </data>
   <data name="CommitInProgressMessage" xml:space="preserve">
-    <value>Commit for stage '{0}' is in progress.</value>
+    <value>Commit for stage '{0}' is in progress or completed.</value>
   </data>
   <data name="StageEditNotAllowed" xml:space="preserve">
     <value>Edits of stage '{0}' are not allowed.</value>

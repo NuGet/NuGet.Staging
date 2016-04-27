@@ -16,14 +16,14 @@ using NuGet.Services.Staging.PackageService;
 using NuGet.Versioning;
 using Xunit;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Staging.UnitTests.BackgroundWorkersUnitTests
 {
-    public class StageCommitWorkerUnitTests
+    public class BatchPushHandlerUnitTests
     {
-        public delegate List<PackagePushData> CreateInput(StageCommitWorkerUnitTests runContext);
+        public delegate List<PackagePushData> CreateInput(BatchPushHandlerUnitTests runContext);
         public delegate void VerifyPushOrder(List<PackagePushData> pushData, List<PackagePushData> pushOrder);
 
-        private readonly StageCommitWorker _stageCommitWorker;
+        private readonly BatchPushHandler _batchPushHandler;
         private readonly Mock<ICommitStatusService> _commitStatusServiceMock;
         private readonly Mock<IPackageMetadataService> _packageMetadataServiceMock;
         private readonly Mock<IPackagePushService> _packagePushService;
@@ -115,7 +115,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             }
         }
 
-        public StageCommitWorkerUnitTests()
+        public BatchPushHandlerUnitTests()
         {
             _commitStatusServiceMock = new Mock<ICommitStatusService>();
             _packageMetadataServiceMock = new Mock<IPackageMetadataService>();
@@ -140,8 +140,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
                                }))
                                .Callback<PackagePushData>(x => _pushList.Add(x));
 
-            _stageCommitWorker = new StageCommitWorker(
-                new Mock<IMessageListener<PackageBatchPushData>>().Object,
+            _batchPushHandler = new BatchPushHandler(
                 _commitStatusServiceMock.Object,
                 _packageMetadataServiceMock.Object,
                 _packagePushService.Object,
@@ -152,7 +151,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         public async Task WhenCommitNotFoundSuccess()
         {
             // Act
-            await _stageCommitWorker.HandleBatchPushRequest(new PackageBatchPushData(), isLastDelivery: false);
+            await _batchPushHandler.HandleMessageAsync(new PackageBatchPushData(), isLastDelivery: false);
 
             // Assert no exception was thrown
         }
@@ -169,7 +168,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             });
 
             // Act
-            await _stageCommitWorker.HandleBatchPushRequest(new PackageBatchPushData(), isLastDelivery: false);
+            await _batchPushHandler.HandleMessageAsync(new PackageBatchPushData(), isLastDelivery: false);
 
             // Assert no exception was thrown
         }
@@ -190,7 +189,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             _commitStatusServiceMock.Setup(x => x.GetCommit(batchPushData.StageId)).Returns(stageCommit);
 
             // Act
-            await _stageCommitWorker.HandleBatchPushRequest(batchPushData, isLastDelivery: false);
+            await _batchPushHandler.HandleMessageAsync(batchPushData, isLastDelivery: false);
 
             // Assert
             verifyPushOrder(packages, _pushList);
@@ -265,7 +264,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             }
 
             // Act
-            await _stageCommitWorker.HandleBatchPushRequest(batchPushData, isLastDelivery: false);
+            await _batchPushHandler.HandleMessageAsync(batchPushData, isLastDelivery: false);
 
             // Assert
             _pushList.Count.Should().Be(2, "All unpushed were pushed");
@@ -313,7 +312,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
                                     });
 
             // Act & Assert
-            Func<Task> act = async () => { await _stageCommitWorker.HandleBatchPushRequest(batchPushData, isLastDelivery); };
+            Func<Task> act = async () => { await _batchPushHandler.HandleMessageAsync(batchPushData, isLastDelivery); };
             act.ShouldThrow<ArgumentException>();
 
             if (isLastDelivery)

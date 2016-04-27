@@ -224,12 +224,14 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             AttributeHelper.HasServiceFilterAttribute<StageIdFilter>(_packageController, "PushPackageToStage", methodTypes: null).Should().BeTrue();
         }
 
-        [Fact]
-        public async Task WhenPushIsCalledAndStageIsCommiting400IsReturned()
+        [Theory]
+        [InlineData(StageStatus.Committing)]
+        [InlineData(StageStatus.Committed)]
+        public async Task WhenPushIsCalledAndStageIsCommiting400IsReturned(StageStatus status)
         {
             // Arrange
             var stage = AddMockStage();
-            stage.Status = StageStatus.Committing;
+            stage.Status = status;
 
             // Act
             IActionResult actionResult = await _packageController.PushPackageToStage(stage);

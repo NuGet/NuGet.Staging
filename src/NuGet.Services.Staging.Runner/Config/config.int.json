@@ -7,6 +7,9 @@
         "ServiceBusConnectionString": "",
         "SubscriptionName": "",
         "TopicName": "",
-        "MaxDeliveryCount":  10
+        "MaxDeliveryCount": 10
+    },
+    "StageDatabase": {
+        "ConnectionString": ""
     }
 }

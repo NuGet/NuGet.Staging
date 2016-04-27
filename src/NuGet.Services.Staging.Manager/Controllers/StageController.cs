@@ -137,7 +137,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
             }
 
             // 1. Check stage status - if already commiting, return error 
-            if (stage.Status == StageStatus.Committing)
+            if (stage.Status == StageStatus.Committing || stage.Status == StageStatus.Committed)
             {
                 return new ObjectResult(string.Format(CommitInProgressMessage, stage.DisplayName))
                 {
