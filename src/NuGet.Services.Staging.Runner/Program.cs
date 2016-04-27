@@ -76,7 +76,7 @@ namespace NuGet.Services.Staging.Runner
             serviceCollection.AddTransient<IMessageListener<PackageBatchPushData>, TopicMessageListener<PackageBatchPushData>>();
             serviceCollection.AddTransient<StageCommitWorker, StageCommitWorker>();
             serviceCollection.AddTransient<ICommitStatusService, CommitStatusService>();
-            serviceCollection.AddTransient<IReadonlyStorage, AzureReadonlyStorage>();
+            serviceCollection.AddTransient<IReadOnlyStorage, AzureReadOnlyStorage>();
             serviceCollection.AddTransient<IPackageMetadataService, PackageMetadataService>();
             serviceCollection.AddTransient<IPackagePushService, EmptyPackagePushService>();
             serviceCollection.AddTransient<IMessageHandlerFactory, MessageHandlerFactory>();

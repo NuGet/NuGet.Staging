@@ -2,11 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Staging.PackageService;
-using NuGet.Versioning;
 
 namespace NuGet.Services.Staging.BackgroundWorkers
 {
@@ -62,17 +59,14 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             public async Task HandleMessageAsync(PackageBatchPushData message, bool isLastDelivery)
             {
                 // Use a different handler for each message.
-                IMessageHandler<PackageBatchPushData> handler = null;
-
-                try
+                using (var handler = _messageHandlerFactory.GetHandler<PackageBatchPushData>())
                 {
-                    handler = _messageHandlerFactory.GetHandler<PackageBatchPushData>();
                     await handler.HandleMessageAsync(message, isLastDelivery);
                 }
-                finally
-                {
-                    (handler as IDisposable)?.Dispose();
-                }
+            }
+
+            public void Dispose()
+            {
             }
         } 
     }

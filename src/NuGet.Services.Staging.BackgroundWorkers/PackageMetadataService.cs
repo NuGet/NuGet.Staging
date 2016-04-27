@@ -14,8 +14,8 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 {
     public class PackageMetadataService : IPackageMetadataService
     {
-        private readonly IReadonlyStorage _readonlyStorage;
-        public PackageMetadataService(IReadonlyStorage readonlyStorage)
+        private readonly IReadOnlyStorage _readonlyStorage;
+        public PackageMetadataService(IReadOnlyStorage readonlyStorage)
         {
             if (readonlyStorage == null)
             {

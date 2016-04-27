@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -199,7 +200,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             return progressReport;
         }
 
-        private async Task<IEnumerable<PackagePushData>> SortPackagesByPushOrder(List<PackagePushData> packages)
+        private async Task<IReadOnlyList<PackagePushData>> SortPackagesByPushOrder(List<PackagePushData> packages)
         {
             var packagesDictionary = packages.ToDictionary(p => GetPackageKey(p.Id, p.Version));
             var packageIds = new HashSet<string>(packages.Select(p => p.Id));
@@ -222,7 +223,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 
             _logger.LogVerbose($"Sorted order: {string.Join(", ", sortedPackages.Select(x => GetPackageKey(x.Id, x.Version.ToString())))}");
 
-            return sortedPackages.Select(p => packagesDictionary[GetPackageKey(p.Id, p.Version.ToString())]);
+            return sortedPackages.Select(p => packagesDictionary[GetPackageKey(p.Id, p.Version.ToString())]).ToImmutableList();
         }
 
         private string GetPackageKey(string id, string version)

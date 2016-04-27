@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Staging.BackgroundWorkers
 {
-    public interface IReadonlyStorage
+    public interface IReadOnlyStorage
     {
         Task<string> ReadAsString(Uri resourceUri);
     }

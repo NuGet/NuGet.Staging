@@ -19,11 +19,11 @@ namespace NuGet.Services.Staging.UnitTests.BackgroundWorkersUnitTests
     public class PackageMetadataServiceUnitTests
     {
         private readonly PackageMetadataService _packageMetadataService;
-        private readonly Mock<IReadonlyStorage> _readonlyStorageMock;
+        private readonly Mock<IReadOnlyStorage> _readonlyStorageMock;
 
         public PackageMetadataServiceUnitTests()
         {
-            _readonlyStorageMock = new Mock<IReadonlyStorage>();
+            _readonlyStorageMock = new Mock<IReadOnlyStorage>();
             _packageMetadataService = new PackageMetadataService(_readonlyStorageMock.Object);
         }
 
