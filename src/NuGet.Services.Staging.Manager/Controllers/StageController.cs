@@ -117,7 +117,6 @@ namespace NuGet.Services.Staging.Manager.Controllers
             }
 
             await _stageService.DropStage(stage);
-            stage.Status = StageStatus.Deleted;
 
             _logger.LogInformation(MessageFormat, userKey, stage.Id, "Drop was successful");
             return new HttpOkObjectResult(new ViewStage(stage, GetBaseAddress()));
