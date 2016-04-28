@@ -11,5 +11,11 @@
     },
     "StageDatabase": {
         "ConnectionString": "Server=(localdb)\\mssqllocaldb;Database=StageDB;Trusted_Connection=True;"
+    },
+    "PackagePushServiceOptions": {
+        "PushUri": "https://dev.nugettest.org/api/v2/package"
+    },
+    "ApiKeyAuthenticationServiceOptions": {
+        "DatabaseConnectionString": ""
     }
 }

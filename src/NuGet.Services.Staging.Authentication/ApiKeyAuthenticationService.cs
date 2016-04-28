@@ -5,6 +5,7 @@ using System;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Microsoft.Extensions.OptionsModel;
+using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
 
 namespace NuGet.Services.Staging.Authentication
 {
@@ -18,6 +19,9 @@ namespace NuGet.Services.Staging.Authentication
         public string DatabaseConnectionString { get; set; }
     }
 
+    /// <summary>
+    /// Useful links: Sql Azure retries: https://msdn.microsoft.com/en-us/library/dn440719(v=pandp.60).aspx
+    /// </summary>
     public class ApiKeyAuthenticationService
     {
         private readonly ApiKeyAuthenticationServiceOptions _options;
@@ -39,20 +43,50 @@ namespace NuGet.Services.Staging.Authentication
                 return null;
             }
 
-            using (var connection = new SqlConnection(_options.DatabaseConnectionString))
+            return await RetryPolicy.DefaultFixed.ExecuteAsync(async () =>
             {
-                using (var command = new SqlCommand(@"SELECT [Key]
-                                                      FROM [dbo].[Users]
-                                                      WHERE [ApiKey]=@ApiKey", connection))
+                using (var connection = new SqlConnection(_options.DatabaseConnectionString))
                 {
-                    command.Parameters.AddWithValue("@ApiKey", ((ApiKeyCredentials)credentials).ApiKey);
+                    using (var command = new SqlCommand(@"SELECT [UserKey]
+                                                      FROM [dbo].[Credentials]
+                                                      WHERE [Type]='apikey.v1' AND [Value]=@ApiKey", connection))
+                    {
+                        command.Parameters.AddWithValue("@ApiKey", credentials.ApiKey);
 
-                    await connection.OpenAsync();
-                    var userKey = await command.ExecuteScalarAsync();
+                        await connection.OpenAsync();
+                        var userKey = await command.ExecuteScalarAsync();
 
-                    return userKey == null ? null : new UserInformation { UserKey = (int)userKey };
+                        return userKey == null ? null : new UserInformation {UserKey = (int) userKey};
+                    }
                 }
+            });
+        }
+
+        public async Task<ApiKeyCredentials> GetCredentials(UserInformation userInformation)
+        {
+            if (userInformation == null)
+            {
+                return null;
             }
+
+            return await RetryPolicy.DefaultFixed.ExecuteAsync(async () =>
+            {
+                using (var connection = new SqlConnection(_options.DatabaseConnectionString))
+                {
+                    await connection.OpenAsync();
+
+                    using (var command = new SqlCommand(@"SELECT [Value]
+                                                          FROM [dbo].[Credentials]
+                                                          WHERE [UserKey]=@UserKey AND [Type]='apikey.v1'", connection))
+                    {
+                        command.Parameters.AddWithValue("@UserKey", userInformation.UserKey);
+
+                        var userApiKey = await command.ExecuteScalarAsync();
+
+                        return userApiKey == null ? null : new ApiKeyCredentials { ApiKey = (string)userApiKey };
+                    }
+                }
+            });
         }
     }
 }

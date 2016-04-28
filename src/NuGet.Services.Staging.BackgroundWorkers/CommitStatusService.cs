@@ -42,6 +42,12 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                var stage = _context.Stages.First(x => x.Key == commit.StageKey);
                stage.Status = StageStatus.Committed; 
             }
+            else if (commit.Status == CommitStatus.Failed)
+            {
+                // If the commit failed, reactivate the stage, so that the user can modify it.
+                var stage = _context.Stages.First(x => x.Key == commit.StageKey);
+                stage.Status = StageStatus.Active;
+            }
 
             await _context.SaveChangesAsync(acceptAllChangesOnSuccess: true);
         }

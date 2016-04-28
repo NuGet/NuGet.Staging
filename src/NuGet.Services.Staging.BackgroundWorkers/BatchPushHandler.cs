@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Internal;
 using Newtonsoft.Json;
 using NuGet.Resolver;
 using NuGet.Services.Staging.Database.Models;
@@ -15,7 +16,7 @@ using NuGet.Versioning;
 
 namespace NuGet.Services.Staging.BackgroundWorkers
 {
-    public class BatchPushHandler : IMessageHandler<PackageBatchPushData>, IDisposable 
+    public class BatchPushHandler : IMessageHandler<PackageBatchPushData> 
     {
         private const string LogDetails = "Stage id: {Stage} Package id: {Package} Version: {Version}";
 
@@ -115,7 +116,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError($"Unexpected exception was caught while commiting. Stage id: {pushData.StageId} Package id: {package.Id} Version: {package.Version}", e);
+                    _logger.LogError(new FormattedLogValues("Unexpected exception was caught while commiting." + LogDetails, pushData.StageId, package.Id, package.Version), e);
 
                     try
                     {

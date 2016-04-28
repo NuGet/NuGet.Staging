@@ -11,5 +11,11 @@
     },
     "StageDatabase": {
         "ConnectionString": ""
+    },
+    "PackagePushServiceOptions": {
+        "PushUri": ""
+    },
+    "ApiKeyAuthenticationServiceOptions": {
+        "DatabaseConnectionString": ""
     }
 }

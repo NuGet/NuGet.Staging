@@ -11,17 +11,6 @@ namespace NuGet.Services.Staging.BackgroundWorkers
         Task<PackagePushResult> PushPackage(PackagePushData pushData);
     }
 
-    public class EmptyPackagePushService : IPackagePushService
-    {
-        public Task<PackagePushResult> PushPackage(PackagePushData pushData)
-        {
-            return Task.FromResult(new PackagePushResult
-            {
-                Status = PackagePushStatus.Success
-            });
-        }
-    }
-
     public class PackagePushResult
     {
         public PackagePushStatus Status { get; set; }

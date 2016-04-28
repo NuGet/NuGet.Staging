@@ -11,5 +11,11 @@
     },
     "StageDatabase": {
         "ConnectionString": ""
+    },
+    "PackagePushServiceOptions": {
+        "PushUri": "https://dev.nugettest.org/api/v2/package"
+    },
+    "ApiKeyAuthenticationServiceOptions": {
+        "DatabaseConnectionString": ""
     }
 }
