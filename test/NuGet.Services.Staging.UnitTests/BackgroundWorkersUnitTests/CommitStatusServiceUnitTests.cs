@@ -63,6 +63,11 @@ namespace NuGet.Services.Staging.UnitTests.BackgroundWorkersUnitTests
                 {
                     stage.Status.ShouldBeEquivalentTo(StageStatus.Committed);
                 }
+
+                if (progressStatus == PushProgressStatus.Failed)
+                {
+                    stage.Status.ShouldBeEquivalentTo(StageStatus.Active);
+                }
             }
 
             _stageContextMock.Verify(x => x.Dispose(), Times.Once);
