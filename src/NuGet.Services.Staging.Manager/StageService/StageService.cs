@@ -59,9 +59,7 @@ namespace NuGet.Services.Staging.Manager
 
         public async Task DropStage(Database.Models.Stage stage)
         {
-            // TODO: in the future, just mark the stage as deleted and have a background job perform the actual delete
-            // TODO: the stage should be removed from storage as well
-            _context.Stages.Remove(stage);
+            stage.Status = StageStatus.Deleted;
             await _context.SaveChangesAsync();
         }
 

@@ -1,11 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNet.Mvc;
+using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Filters;
 using Xunit;
 
@@ -33,9 +32,8 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             string displayName = (string)result.GetType().GetProperty("DisplayName").GetValue(result);
 
             displayName.Should().Be(stageName1);
-
-            _stageContextMock.Object.Stages.Count().Should().Be(1);
-            _stageContextMock.Object.Stages.First().Id.Should().Be(stage2.Id);
+            stage1.Status.ShouldBeEquivalentTo(StageStatus.Deleted);
+            stage2.Status.ShouldBeEquivalentTo(StageStatus.Active);
         }
 
         [Fact]
