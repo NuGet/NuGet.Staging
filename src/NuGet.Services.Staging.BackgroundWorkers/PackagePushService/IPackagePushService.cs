@@ -10,18 +10,4 @@ namespace NuGet.Services.Staging.BackgroundWorkers
     {
         Task<PackagePushResult> PushPackage(PackagePushData pushData);
     }
-
-    public class PackagePushResult
-    {
-        public PackagePushStatus Status { get; set; }
-
-        public string ErrorMessage { get; set; }
-    }
-
-    public enum PackagePushStatus
-    {
-        Success,
-        AlreadyExists,
-        Failure,
-    }
 }

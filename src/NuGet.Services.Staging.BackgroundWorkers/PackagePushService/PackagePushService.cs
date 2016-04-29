@@ -76,14 +76,6 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             // 2. Load package to memory
             using (var packageStream = await GetPackage(pushData.NupkgPath))
             {
-                using (var fileStream = File.Create(@"C:\temp\p.nupkg"))
-                {
-                    packageStream.Seek(0, SeekOrigin.Begin);
-                    packageStream.CopyTo(fileStream);
-                }
-
-                packageStream.Position = 0;
-
                 _logger.LogVerbose("Loaded package {@Package} to memory.", pushData);
 
                 // 3. Upload to the gallery
@@ -116,16 +108,16 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             return stream;
         }
 
-        private async Task<HttpResponseMessage> SendPackage(Stream package, string apiKey)
+        private async Task<HttpResponseMessage> SendPackage(Stream packageStream, string apiKey)
         {
             Func<HttpRequestMessage> requestFactory = () =>
             {
                 var request = new HttpRequestMessage(HttpMethod.Put, _options.PushUri);
                 var content = new MultipartFormDataContent();
 
-                package.Position = 0;
+                packageStream.Position = 0;
 
-                var packageContent = new StreamContent(package);
+                var packageContent = new StreamContent(packageStream);
                 packageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
                 //"package" and "package.nupkg" are random names for content deserializing
                 //not tied to actual package name.  
