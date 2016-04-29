@@ -71,7 +71,7 @@ namespace NuGet.Services.Staging.Manager
 
         public virtual IEnumerable<StageMembership> GetUserMemberships(int userKey)
         {
-            return _context.StageMemberships.Where(sm => sm.UserKey == userKey).Include(sm => sm.Stage);
+            return _context.StageMemberships.Where(sm => sm.UserKey == userKey && sm.Stage.Status != StageStatus.Deleted).Include(sm => sm.Stage);
         }
 
         public virtual bool IsStageMember(Database.Models.Stage stage, int userKey) =>
