@@ -10,13 +10,10 @@
         "Microsoft.Extensions.Logging": "1.0.0-rc1-final",
         "Microsoft.Extensions.Logging.Debug": "1.0.0-rc1-final",
         "Microsoft.Extensions.Logging.TraceSource": "1.0.0-rc1-final",
-        "Serilog": "2.0.0-beta-523",
-        "Serilog.Extensions.Logging": "1.0.0-rc1-final-10092",
-        "Serilog.Sinks.ApplicationInsights": "2.0.28",
-        "Serilog.Sinks.Console": "2.0.0-beta-700",
         "Serilog.Sinks.RollingFile": "2.0.0-beta-700",
-        "SerilogTraceListener": "1.0.7",
-        "EntityFramework.MicrosoftSqlServer": "7.0.0-rc1-final"
+        "EntityFramework.MicrosoftSqlServer": "7.0.0-rc1-final",
+        "NuGet.Services.Logging": "1.0.0-rc2-update2",
+        "Serilog": "2.0.0-beta-531"
     },
 
   "commands": {
