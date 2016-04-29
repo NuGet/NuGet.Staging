@@ -1,16 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.IO;
 using System.Threading.Tasks;
+using NuGet.Services.Staging.PackageService;
 
 namespace NuGet.Services.Staging.BackgroundWorkers
 {
-    public interface IReadOnlyStorage
+    public interface IPackagePushService
     {
-        Task<string> ReadAsString(Uri resourceUri);
-
-        Task<Stream> ReadAsStream(Uri resourceUri);
+        Task<PackagePushResult> PushPackage(PackagePushData pushData);
     }
 }

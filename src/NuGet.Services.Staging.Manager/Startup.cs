@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.IO;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
@@ -11,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.WindowsAzure.Storage;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
@@ -66,6 +66,7 @@ namespace NuGet.Services.Staging.Manager
                 .AddSqlServer()
                 .AddDbContext<StageContext>(options => options.UseSqlServer(connectionString));
 
+            ConfigureLogging(services);
             ConfigureDependencies(services);
         }
 
@@ -106,8 +107,6 @@ namespace NuGet.Services.Staging.Manager
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder applicationBuilder, IHostingEnvironment hostingEnvironment, ILoggerFactory loggerFactory)
         {
-            ConfigureLogging(hostingEnvironment, loggerFactory);
-
             // Debug settings for local runs and for dev deployment
             if (hostingEnvironment.IsEnvironment(_localEnvironmentName) || hostingEnvironment.IsDevelopment())
             {
@@ -127,24 +126,15 @@ namespace NuGet.Services.Staging.Manager
             applicationBuilder.UseMvc();
         }
 
-        private void ConfigureLogging(IHostingEnvironment hostingEnvironment, ILoggerFactory loggerFactory)
+        private void ConfigureLogging(IServiceCollection serviceCollection)
         {
-            var serilogConfig = new LoggerConfiguration().MinimumLevel.Verbose();
+            var loggingConfig = LoggingSetup.CreateDefaultLoggerConfiguration();
 
             // Add application insights
-            serilogConfig.WriteTo.ApplicationInsights(Configuration["ApplicationInsights:InstrumentationKey"]);
+            ApplicationInsights.Initialize(Configuration["ApplicationInsights:InstrumentationKey"]);
 
-            // Hook into anything that is being traced in other libs using system.diagnostics.trace
-            Trace.Listeners.Add(new SerilogTraceListener.SerilogTraceListener());
-
-            if (hostingEnvironment.IsEnvironment(_localEnvironmentName))
-            {
-                serilogConfig.WriteTo.Console();
-                loggerFactory.AddDebug();
-            }
-
-            Log.Logger = serilogConfig.CreateLogger();
-            loggerFactory.AddSerilog();
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggingConfig);
+            serviceCollection.AddInstance<ILoggerFactory>(loggerFactory);
         }
 
         // Entry point for the application.

@@ -9,8 +9,6 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 {
     public class StageCommitWorker : IWorker
     {
-        private const string LogDetails = "Stage id: {Stage} Package id: {Package} Version: {Version}";
-
         private readonly IMessageListener<PackageBatchPushData> _messageListener;
         private readonly IMessageHandlerFactory _messageHandlerFactory;
 

@@ -131,7 +131,9 @@ namespace NuGet.Services.V3Repository
             var data = new byte[stream.Length];
             using (var ms = new MemoryStream(data, writable: true))
             {
+                stream.Position = 0;
                 await stream.CopyToAsync(ms);
+                ms.Position = 0;
                 var packageLocations =
                     await _dnxMaker.AddPackage(ms, packageMetadata.Nuspec.ToString(), id, version, CancellationToken.None);
 

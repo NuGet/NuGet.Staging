@@ -45,5 +45,23 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                 return content;
             }
         }
+
+        public async Task<Stream> ReadAsStream(Uri resourceUri)
+        {
+            var blob = new CloudBlockBlob(resourceUri);
+
+            var originalStream = new MemoryStream();
+
+            await blob.DownloadToStreamAsync(originalStream, CancellationToken.None);
+
+            originalStream.Seek(0, SeekOrigin.Begin);
+
+            if (blob.Properties.ContentEncoding == "gzip")
+            {
+                return new GZipStream(originalStream, CompressionMode.Decompress, leaveOpen: false);
+            }
+
+            return originalStream;
+        }
     }
 }

@@ -6,13 +6,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Microsoft.Data.Entity;
+using Microsoft.Data.Entity.Infrastructure;
+using Microsoft.Data.Entity.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NuGet.Services.Staging.Authentication;
+using NuGet.Services.Logging;
 using NuGet.Services.Staging.BackgroundWorkers;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.PackageService;
-using Serilog;
 using Serilog.Sinks.RollingFile;
 
 namespace NuGet.Services.Staging.Runner
@@ -56,56 +59,57 @@ namespace NuGet.Services.Staging.Runner
 
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddOptions();
-            serviceCollection.AddLogging();
 
-            var connectionString = _configuration["StageDatabase:ConnectionString"];
+            ConfigureLog(environment, serviceCollection);
 
-            serviceCollection.AddEntityFramework()
-                .AddSqlServer()
-                .AddDbContext<StageContext>(options => options.UseSqlServer(connectionString));
+            serviceCollection.AddEntityFramework().AddSqlServer();
+
 
             ConfigureDependencies(serviceCollection);
 
             _serviceProvider = serviceCollection.BuildServiceProvider();
-            ConfigureLog(environment);
         }
 
         private static void ConfigureDependencies(IServiceCollection serviceCollection)
         {
             serviceCollection.Configure<TopicMessageListenerOptions>(_configuration.GetSection("TopicMessageListenerOptions"));
             serviceCollection.AddTransient<IMessageListener<PackageBatchPushData>, TopicMessageListener<PackageBatchPushData>>();
+
             serviceCollection.AddTransient<StageCommitWorker, StageCommitWorker>();
             serviceCollection.AddTransient<ICommitStatusService, CommitStatusService>();
             serviceCollection.AddTransient<IReadOnlyStorage, AzureReadOnlyStorage>();
             serviceCollection.AddTransient<IPackageMetadataService, PackageMetadataService>();
-            serviceCollection.AddTransient<IPackagePushService, EmptyPackagePushService>();
-            serviceCollection.AddTransient<IMessageHandlerFactory, MessageHandlerFactory>();
+
+            serviceCollection.AddTransient<IPackagePushService, PackagePushService>();
+            serviceCollection.Configure<PackagePushServiceOptions>(_configuration.GetSection("PackagePushServiceOptions"));
+
+            serviceCollection.Configure<ApiKeyAuthenticationServiceOptions>(_configuration.GetSection("ApiKeyAuthenticationServiceOptions"));
+            serviceCollection.AddSingleton<ApiKeyAuthenticationService, ApiKeyAuthenticationService>();
+
+            serviceCollection.AddSingleton<IMessageHandlerFactory, MessageHandlerFactory>();
             serviceCollection.AddTransient<IMessageHandler<PackageBatchPushData>, BatchPushHandler>();
+
+            // Configure StageContext explicitly, instead of using extension method AddDBContext,
+            // since the extension method adds the context as scoped, and we need it to be Transient
+            var connectionString = _configuration["StageDatabase:ConnectionString"];
+            var optionsBuilder = new DbContextOptionsBuilder<StageContext>();
+            optionsBuilder.UseSqlServer(connectionString);
+            serviceCollection.AddSingleton<DbContextOptions<StageContext>>(_ => optionsBuilder.Options);
+            serviceCollection.AddTransient<StageContext>(DbContextActivator.CreateInstance<StageContext>);
         }
 
-        private static void ConfigureLog(string environment)
+        private static void ConfigureLog(string environment, IServiceCollection serviceCollection)
         {
-            var loggerFactory = _serviceProvider.GetService<ILoggerFactory>();
-
-            var serilogConfig = new LoggerConfiguration().MinimumLevel.Verbose();
-            
-            // Add application insights
-            serilogConfig.WriteTo.ApplicationInsights(_configuration["ApplicationInsights:InstrumentationKey"]);
-
-            // Hook into anything that is being traced in other libs using system.diagnostics.trace
-            Trace.Listeners.Add(new SerilogTraceListener.SerilogTraceListener());
+            var loggingConfig = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: IsLocalEnvironment(environment));
 
             // Write to file
-            serilogConfig.WriteTo.RollingFile("StageRunnerLog-{Date}.txt");
+            loggingConfig.WriteTo.RollingFile("StageRunnerLog-{Date}.txt");
 
-            if (IsLocalEnvironment(environment))
-            {
-                loggerFactory.AddDebug();
-                serilogConfig.WriteTo.Console();
-            }
+            // Write to AI
+            ApplicationInsights.Initialize(_configuration["ApplicationInsights:InstrumentationKey"]);
 
-            Log.Logger = serilogConfig.CreateLogger();
-            loggerFactory.AddSerilog();
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggingConfig);
+            serviceCollection.AddInstance<ILoggerFactory>(loggerFactory);
         }
 
         private static void InitializeConfiguration(string environment)
