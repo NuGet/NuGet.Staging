@@ -15,7 +15,7 @@
         "WindowsAzure.ServiceBus": "3.1.7",
         "NuGet.Services.Staging.Database": "1.0.0-*",
         "WindowsAzure.Storage": "4.3.0",
-        "NuGet.Protocol.Core.v3": "3.4.3",
+        "NuGet.Protocol.Core.v3": "3.5.0-beta-1034",
         "NuGet.Services.Staging.Authentication": "1.0.0-*",
     }
 }
