@@ -8,6 +8,6 @@
         "Microsoft.Extensions.OptionsModel": "1.0.0-rc1-final",
         "Microsoft.Extensions.Logging": "1.0.0-rc1-final",
         "Newtonsoft.Json": "8.0.3",
-        "NuGet.Services.Metadata.Catalog": "3.0.2137-r-searchcloud"
+        "NuGet.Services.Metadata.Catalog": "3.0.2496-r-master"
     }
 }
