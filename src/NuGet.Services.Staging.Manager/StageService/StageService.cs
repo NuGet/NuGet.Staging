@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.PackageService;
@@ -113,6 +113,12 @@ namespace NuGet.Services.Staging.Manager
             }
 
             return JsonConvert.DeserializeObject<BatchPushProgressReport>(commit.Progress);
+        }
+
+        public Task AddPackageToStage(Database.Models.Stage stage, StagedPackage package)
+        {
+            stage.Packages.Add(package);
+            return _context.SaveChangesAsync();
         }
     }
 }

@@ -2,13 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
-using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Hosting;
-using Microsoft.Data.Entity;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -19,7 +19,6 @@ using NuGet.Services.Staging.Manager.Filters;
 using NuGet.Services.Staging.Manager.Search;
 using NuGet.Services.Staging.PackageService;
 using NuGet.Services.V3Repository;
-using Serilog;
 using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceCollection;
 
 namespace NuGet.Services.Staging.Manager
@@ -35,13 +34,13 @@ namespace NuGet.Services.Staging.Manager
 
         public IConfigurationRoot Configuration { get; set; }
 
-        public Startup(IHostingEnvironment hostingEnvironment, IApplicationEnvironment applicationEnvironment)
+        public Startup(IHostingEnvironment hostingEnvironment)
         {
             // Setup configuration sources.
             var builder = new ConfigurationBuilder()
-                .SetBasePath(applicationEnvironment.ApplicationBasePath)
+                .SetBasePath(hostingEnvironment.ContentRootPath)
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile(Path.Combine("Config", $"config.{hostingEnvironment.EnvironmentName}.json") )
+                .AddJsonFile(Path.Combine("Config", $"config.{hostingEnvironment.EnvironmentName}.json"))
                 .AddEnvironmentVariables();
 
             Configuration = builder.Build();
@@ -63,8 +62,8 @@ namespace NuGet.Services.Staging.Manager
             var connectionString = Configuration["StageDatabase:ConnectionString"];
 
             services.AddEntityFramework()
-                .AddSqlServer()
-                .AddDbContext<StageContext>(options => options.UseSqlServer(connectionString));
+                .AddEntityFrameworkSqlServer()
+                .AddDbContext<StageContext>(options => options.UseSqlServer(connectionString, b => b.MigrationsAssembly("NuGet.Services.Staging.Manager")));
 
             ConfigureLogging(services);
             ConfigureDependencies(services);
@@ -90,7 +89,7 @@ namespace NuGet.Services.Staging.Manager
 
             string storageAccountConnectionString = Configuration["PackageRepository:StorageAccountConnectionString"];
             CloudStorageAccount account = CloudStorageAccount.Parse(storageAccountConnectionString);
-            services.AddInstance<StorageFactory>(new AzureStorageFactory(account, Constants.StagesContainerName));
+            services.AddSingleton<StorageFactory>(new AzureStorageFactory(account, Constants.StagesContainerName));
 
             // Search
             services.AddScoped<ISearchService, DummySearchService>();
@@ -128,16 +127,27 @@ namespace NuGet.Services.Staging.Manager
 
         private void ConfigureLogging(IServiceCollection serviceCollection)
         {
-            var loggingConfig = LoggingSetup.CreateDefaultLoggerConfiguration();
-
             // Add application insights
             ApplicationInsights.Initialize(Configuration["ApplicationInsights:InstrumentationKey"]);
 
-            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggingConfig);
-            serviceCollection.AddInstance<ILoggerFactory>(loggerFactory);
+            var loggerFactory = LoggingSetup.CreateLoggerFactory();
+            serviceCollection.AddSingleton<ILoggerFactory>(loggerFactory);
         }
 
         // Entry point for the application.
-        public static void Main(string[] args) => WebApplication.Run<Startup>(args);
+        public static void Main(string[] args)
+        {
+            var configuration = new ConfigurationBuilder().AddEnvironmentVariables("ASPNETCORE_").Build();
+
+            var host = new WebHostBuilder()
+                        .UseConfiguration(configuration)
+                        .UseKestrel()
+                        .UseContentRoot(Directory.GetCurrentDirectory())
+                        .UseIISIntegration()
+                        .UseStartup<Startup>()
+                        .Build();
+
+            host.Run();
+        }
     }
 }

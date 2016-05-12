@@ -67,5 +67,11 @@ namespace NuGet.Services.Staging.Manager
         /// Get progress report for this commit.
         /// </summary>
         BatchPushProgressReport GetCommitProgress(StageCommit commit);
+
+
+        /// <summary>
+        /// Adds a package to the stage
+        /// </summary>
+        Task AddPackageToStage(Database.Models.Stage stage, StagedPackage package);
     }
 }

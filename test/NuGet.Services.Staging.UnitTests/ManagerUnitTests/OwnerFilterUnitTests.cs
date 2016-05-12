@@ -4,11 +4,12 @@
 using System;
 using System.Collections.Generic;
 using FluentAssertions;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.Abstractions;
-using Microsoft.AspNet.Mvc.Filters;
-using Microsoft.AspNet.Routing;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NuGet.Services.Staging.Manager.Filters;
 using Xunit;
@@ -35,13 +36,17 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             };
 
             var actionContext = new ActionContext();
-            var httpContext = new Mock<HttpContext>().WithUser(DefaultUserKey);
+            var httpContext = new Mock<HttpContext>()
+                                .WithUser(DefaultUserKey)
+                                .WithRegisteredService((sc) => sc.AddSingleton<IStageService>(_stageServiceMock.Object));
+
             actionContext.HttpContext = httpContext.Object;
             actionContext.RouteData = new Mock<RouteData>().Object;
             actionContext.ActionDescriptor = new Mock<ActionDescriptor>().Object;
 
             _actionExecutionContext = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), dictionary, null);
-            _OwnerFilter = new OwnerFilter(_stageServiceMock.Object);
+
+            _OwnerFilter = new OwnerFilter();
         }
 
         [Fact]
@@ -71,7 +76,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             _OwnerFilter.OnActionExecuting(_actionExecutionContext);
 
             // Assert
-            _actionExecutionContext.Result.Should().BeOfType<HttpUnauthorizedResult>();
+            _actionExecutionContext.Result.Should().BeOfType<UnauthorizedResult>();
         }
     }
 }

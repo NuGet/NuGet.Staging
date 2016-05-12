@@ -1,37 +1,37 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace NuGet.Services.Staging.Manager.Filters
 {
+    public class OwnerFilterServiceAttribute : ServiceFilterAttribute
+    {
+        public OwnerFilterServiceAttribute() : base(typeof(OwnerFilter))
+        {
+        }
+    }
+
     public class OwnerFilter : ActionFilterAttribute
     {
-        private readonly IStageService _stageService;
-
-        public OwnerFilter(IStageService stageService)
+        public OwnerFilter()
         {
-            if (stageService == null)
-            {
-                throw new ArgumentNullException(nameof(stageService));
-            }
-
-            _stageService = stageService;
         }
 
         public override void OnActionExecuting(ActionExecutingContext actionContext)
         {
+            var stageService = (IStageService)actionContext.HttpContext.RequestServices.GetService(typeof(IStageService));
+
             // We assume this filter is called after StageIdFilter, and "stage" parameter exists and set
             var stage = (Database.Models.Stage)actionContext.ActionArguments["stage"];
 
             int userKey = GetUserKey(actionContext.HttpContext);
 
-            if (!_stageService.IsStageMember(stage, userKey))
+            if (!stageService.IsStageMember(stage, userKey))
             {
-                actionContext.Result =  new HttpUnauthorizedResult();
+                actionContext.Result =  new UnauthorizedResult();
             }
         }
 

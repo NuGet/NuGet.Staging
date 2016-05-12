@@ -7,7 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Newtonsoft.Json;
 using NuGet.Services.Staging.Database.Models;
@@ -73,8 +73,8 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             // Assert
 
             // Verify return value
-            actionResult.Should().BeOfType<HttpStatusCodeResult>();
-            var result = actionResult as HttpStatusCodeResult;
+            actionResult.Should().BeOfType<StatusCodeResult>();
+            var result = actionResult as StatusCodeResult;
             result.StatusCode.Should().Be((int)HttpStatusCode.Created);
 
             // Verify the pushed data
@@ -123,8 +123,8 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             IActionResult actionResult = _stageController.GetCommitProgress(stage);
 
             // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
-            var result = actionResult as HttpOkObjectResult;
+            actionResult.Should().BeOfType<OkObjectResult>();
+            var result = actionResult as OkObjectResult;
             result.Value.Should().BeOfType<ViewStageCommitProgress>();
             var progress = result.Value as ViewStageCommitProgress;
             progress.CommitStatus.Should().Be(commit2.Status.ToString());
@@ -144,8 +144,8 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             IActionResult actionResult = _stageController.GetCommitProgress(stage);
 
             // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
-            var result = actionResult as HttpOkObjectResult;
+            actionResult.Should().BeOfType<OkObjectResult>();
+            var result = actionResult as OkObjectResult;
             result.Value.Should().BeOfType<ViewStageCommitProgress>();
             var progress = result.Value as ViewStageCommitProgress;
 
@@ -189,8 +189,8 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             IActionResult actionResult = _stageController.GetCommitProgress(stage);
 
             // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
-            var result = actionResult as HttpOkObjectResult;
+            actionResult.Should().BeOfType<OkObjectResult>();
+            var result = actionResult as OkObjectResult;
             result.Value.Should().BeOfType<ViewStageCommitProgress>();
             var progress = result.Value as ViewStageCommitProgress;
 

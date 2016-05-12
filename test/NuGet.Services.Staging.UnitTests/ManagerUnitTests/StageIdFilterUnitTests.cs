@@ -3,13 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.Abstractions;
-using Microsoft.AspNet.Mvc.Filters;
-using Microsoft.AspNet.Routing;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NuGet.Services.Staging.Manager.Filters;
 using Xunit;
@@ -35,12 +35,15 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             };
 
             var actionContext = new ActionContext();
-            actionContext.HttpContext = new Mock<HttpContext>().Object;
+            var httpContext = new Mock<HttpContext>()
+                               .WithRegisteredService((sc) => sc.AddSingleton<IStageService>(_stageServiceMock.Object));
+
+            actionContext.HttpContext = httpContext.Object;
             actionContext.RouteData = new Mock<RouteData>().Object;
             actionContext.ActionDescriptor = new Mock<ActionDescriptor>().Object;
 
             _actionExecutionContext = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), dictionary, null);
-            _stageIdFilter = new StageIdFilter(_stageServiceMock.Object);
+            _stageIdFilter = new StageIdFilter();
         }
 
         [Fact]
@@ -70,7 +73,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             _stageIdFilter.OnActionExecuting(_actionExecutionContext);
 
             // Assert
-            _actionExecutionContext.Result.Should().BeOfType<HttpNotFoundResult>();
+            _actionExecutionContext.Result.Should().BeOfType<NotFoundResult>();
         }
     }
 }

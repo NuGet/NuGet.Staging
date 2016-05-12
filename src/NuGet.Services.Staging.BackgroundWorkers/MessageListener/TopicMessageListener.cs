@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 using Microsoft.ServiceBus.Messaging;
 using Newtonsoft.Json;
 

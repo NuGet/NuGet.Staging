@@ -5,8 +5,7 @@ using System;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Http;
+using Microsoft.AspNetCore.Http;
 using NuGet.Services.Staging.Authentication;
 
 namespace NuGet.Services.Staging.Manager.Authentication

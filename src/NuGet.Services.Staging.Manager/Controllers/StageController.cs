@@ -5,8 +5,8 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Authorization;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Staging.Database.Models;
@@ -74,16 +74,16 @@ namespace NuGet.Services.Staging.Manager.Controllers
             var userMemberships =_stageService.GetUserMemberships(userKey).ToList();
             var stageViews = userMemberships.Select(sm => new ListViewStage(sm.Stage, sm, GetBaseAddress())).ToList();
 
-            return new HttpOkObjectResult(stageViews);
+            return new OkObjectResult(stageViews);
         }
 
         // GET api/stage/e92156e2d6a74a19853a3294cf681dfc
         [HttpGet("{id:guid}")]
         [AllowAnonymous]
-        [ServiceFilter(typeof(StageIdFilter))]
+        [StageIdFilterService]
         public IActionResult GetDetails(Database.Models.Stage stage)
         {
-            return new HttpOkObjectResult(new DetailedViewStage(stage, GetBaseAddress()));
+            return new OkObjectResult(new DetailedViewStage(stage, GetBaseAddress()));
         }
 
         // POST api/stage
@@ -100,13 +100,13 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
             _logger.LogInformation(MessageFormat, userKey, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
 
-            return new HttpOkObjectResult(new ListViewStage(stage, stage.Memberships.First(), GetBaseAddress()));
+            return new OkObjectResult(new ListViewStage(stage, stage.Memberships.First(), GetBaseAddress()));
         }
 
         // DELETE api/stage/e92156e2d6a74a19853a3294cf681dfc
         [HttpDelete("{id:guid}")]
-        [ServiceFilter(typeof(StageIdFilter))]
-        [ServiceFilter(typeof(OwnerFilter))]
+        [StageIdFilterService]
+        [OwnerFilterService]
         public async Task<IActionResult> Drop(Database.Models.Stage stage)
         {
             var userKey = GetUserKey();
@@ -119,13 +119,13 @@ namespace NuGet.Services.Staging.Manager.Controllers
             await _stageService.DropStage(stage);
 
             _logger.LogInformation(MessageFormat, userKey, stage.Id, "Drop was successful");
-            return new HttpOkObjectResult(new ViewStage(stage, GetBaseAddress()));
+            return new OkObjectResult(new ViewStage(stage, GetBaseAddress()));
         }
 
         // POST api/stage/e92156e2d6a74a19853a3294cf681dfc
         [HttpPost("{id:guid}")]
-        [ServiceFilter(typeof(StageIdFilter))]
-        [ServiceFilter(typeof(OwnerFilter))]
+        [StageIdFilterService]
+        [OwnerFilterService]
         public async Task<IActionResult> Commit(Database.Models.Stage stage)
         {
             // TODO: https://github.com/NuGet/NuGet.Staging/issues/32
@@ -155,12 +155,12 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
             _logger.LogInformation(MessageFormat, GetUserKey(), stage.Id, "Commit initiated successfully");
 
-            return new HttpStatusCodeResult((int) HttpStatusCode.Created);
+            return new StatusCodeResult((int) HttpStatusCode.Created);
         }
 
         [AllowAnonymous]
         [HttpGet("{id:guid}/commit")]
-        [ServiceFilter(typeof(StageIdFilter))]
+        [StageIdFilterService]
         public IActionResult GetCommitProgress(Database.Models.Stage stage)
         {
             var commit = _stageService.GetCommit(stage);
@@ -172,12 +172,12 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
             var commitProgressView = CreateViewStageCommitProgress(stage, commit);
 
-            return new HttpOkObjectResult(commitProgressView);
+            return new OkObjectResult(commitProgressView);
         }
 
         [AllowAnonymous]
         [HttpGet("{id:guid}/index.json")]
-        [ServiceFilter(typeof(StageIdFilter))]
+        [StageIdFilterService]
         public IActionResult Index(Database.Models.Stage stage)
         {
             var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), stage.Id, _storageFactory.BaseAddress);
@@ -186,7 +186,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
         [AllowAnonymous]
         [HttpGet("{id:guid}/query")]
-        [ServiceFilter(typeof(StageIdFilter))]
+        [StageIdFilterService]
         public async Task<IActionResult> Query(Database.Models.Stage stage)
         {
             if (_searchService is DummySearchService)

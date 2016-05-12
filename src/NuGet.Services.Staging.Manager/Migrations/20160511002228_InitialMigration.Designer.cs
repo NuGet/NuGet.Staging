@@ -1,20 +1,20 @@
-using System;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.Infrastructure;
-using Microsoft.Data.Entity.Metadata;
-using Microsoft.Data.Entity.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using NuGet.Services.Staging.Database.Models;
 
 namespace NuGet.Services.Staging.Manager.Migrations
 {
     [DbContext(typeof(StageContext))]
-    [Migration("20160420181303_Initial migration")]
-    partial class Initialmigration
+    [Migration("20160511002228_InitialMigration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.0-rc1-16348")
+                .HasAnnotation("ProductVersion", "1.0.0-rc2-20828")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("NuGet.Services.Staging.Database.Models.Stage", b =>
@@ -38,6 +38,8 @@ namespace NuGet.Services.Staging.Manager.Migrations
                     b.HasKey("Key");
 
                     b.HasIndex("Id");
+
+                    b.ToTable("Stages");
                 });
 
             modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StageCommit", b =>
@@ -62,6 +64,8 @@ namespace NuGet.Services.Staging.Manager.Migrations
                     b.HasKey("Key");
 
                     b.HasIndex("StageKey");
+
+                    b.ToTable("StageCommit");
                 });
 
             modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StagedPackage", b =>
@@ -96,6 +100,8 @@ namespace NuGet.Services.Staging.Manager.Migrations
                     b.HasKey("Key");
 
                     b.HasIndex("StageKey");
+
+                    b.ToTable("StagedPackage");
                 });
 
             modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StageMembership", b =>
@@ -114,27 +120,32 @@ namespace NuGet.Services.Staging.Manager.Migrations
                     b.HasIndex("StageKey");
 
                     b.HasIndex("UserKey");
+
+                    b.ToTable("StageMemberships");
                 });
 
             modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StageCommit", b =>
                 {
                     b.HasOne("NuGet.Services.Staging.Database.Models.Stage")
                         .WithMany()
-                        .HasForeignKey("StageKey");
+                        .HasForeignKey("StageKey")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StagedPackage", b =>
                 {
                     b.HasOne("NuGet.Services.Staging.Database.Models.Stage")
                         .WithMany()
-                        .HasForeignKey("StageKey");
+                        .HasForeignKey("StageKey")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StageMembership", b =>
                 {
                     b.HasOne("NuGet.Services.Staging.Database.Models.Stage")
                         .WithMany()
-                        .HasForeignKey("StageKey");
+                        .HasForeignKey("StageKey")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
         }
     }

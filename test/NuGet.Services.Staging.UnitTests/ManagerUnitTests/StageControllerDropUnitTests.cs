@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Filters;
 using Xunit;
@@ -26,9 +26,9 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             IActionResult actionResult = await _stageController.Drop(stage1);
 
             // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
+            actionResult.Should().BeOfType<OkObjectResult>();
 
-            object result = (actionResult as HttpOkObjectResult).Value;
+            object result = (actionResult as OkObjectResult).Value;
             string displayName = (string)result.GetType().GetProperty("DisplayName").GetValue(result);
 
             displayName.Should().Be(stageName1);

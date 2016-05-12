@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 namespace NuGet.Services.Staging.Manager.UnitTests
@@ -13,13 +15,22 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         public static Mock<HttpContext> WithMockHttpContext(this Controller controller)
         {
             var mockHttpContext = new Mock<HttpContext>();
-            controller.ActionContext.HttpContext = mockHttpContext.Object;
+            controller.ControllerContext.HttpContext = mockHttpContext.Object;
             return mockHttpContext;
         }
 
         public static Mock<HttpContext> WithUser(this Mock<HttpContext> httpContextMock, int userKey)
         {
             httpContextMock.SetupGet(x => x.User.Identity.Name).Returns(userKey.ToString);
+            return httpContextMock;
+        }
+
+        public static Mock<HttpContext> WithRegisteredService(this Mock<HttpContext> httpContextMock, Action<IServiceCollection> registedService)
+        {
+            var serviceCollection = new ServiceCollection();
+            registedService(serviceCollection);
+
+            httpContextMock.SetupGet(x => x.RequestServices).Returns(serviceCollection.BuildServiceProvider());
             return httpContextMock;
         }
 

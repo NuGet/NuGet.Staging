@@ -4,8 +4,8 @@
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Authorization;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NuGet.Packaging;
 using NuGet.Versioning;
@@ -20,25 +20,19 @@ namespace NuGet.Services.Staging.Manager.Controllers
     [Route("api/[controller]")]
     public class PackageController : Controller
     {
-        internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("3.4.0.0");
+        internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("3.5.0.0");
 
         private readonly ILogger<PackageController> _logger;
-        private readonly StageContext _context;
         private readonly IPackageService _packageService;
         private readonly IStageService _stageService;
         private readonly IV3ServiceFactory _v3ServiceFactory;
 
-        public PackageController(ILogger<PackageController> logger, StageContext context, IPackageService packageService, IStageService stageService,
+        public PackageController(ILogger<PackageController> logger, IPackageService packageService, IStageService stageService,
                                 IV3ServiceFactory v3ServiceFactory)
         {
             if (logger == null)
             {
                 throw new ArgumentNullException(nameof(logger));
-            }
-
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
             }
 
             if (packageService == null)
@@ -57,7 +51,6 @@ namespace NuGet.Services.Staging.Manager.Controllers
             }
 
             _logger = logger;
-            _context = context;
             _packageService = packageService;
             _stageService = stageService;
             _v3ServiceFactory = v3ServiceFactory;
@@ -65,8 +58,8 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
         [HttpPut("{id:guid}")]
         [HttpPost("{id:guid}")]
-        [ServiceFilter(typeof(StageIdFilter))]
-        [ServiceFilter(typeof(OwnerFilter))]
+        [StageIdFilterService]
+        [OwnerFilterService]
         public async Task<IActionResult> PushPackageToStage(NuGet.Services.Staging.Database.Models.Stage stage)
         {
             var userKey = GetUserKey();
@@ -123,12 +116,12 @@ namespace NuGet.Services.Staging.Manager.Controllers
                 // Check if user can write to this registration id
                 if (!await _packageService.IsUserOwnerOfPackageAsync(userKey, registrationId))
                 {
-                    return new ObjectResult(ApiKeyUnauthorizedMessage) { StatusCode = (int)HttpStatusCode.Forbidden };
+                    return new ObjectResult(ApiKeyUnauthorizedMessage) { StatusCode = (int)HttpStatusCode.Conflict };
                 }
                
                 var packageLocations = await v3Service.AddPackage(packageStream, packageMetadata);
 
-                stage.Packages.Add(new StagedPackage
+                await _stageService.AddPackageToStage(stage, new StagedPackage
                 {
                     Id = registrationId,
                     NormalizedVersion = normalizedVersion,
@@ -139,8 +132,6 @@ namespace NuGet.Services.Staging.Manager.Controllers
                     NuspecUrl = packageLocations.Nuspec.ToString()
                 });
 
-                await _context.SaveChangesAsync();
-
                 // Check if package exists in the Gallery (warning message if so)
                 bool packageAlreadyExists =
                     await _packageService.DoesPackageExistsAsync(registrationId, normalizedVersion);
@@ -150,7 +141,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
                     {
                                 StatusCode = (int)HttpStatusCode.Created
                     }
-                    : (IActionResult)new HttpStatusCodeResult((int)HttpStatusCode.Created);
+                    : (IActionResult)new StatusCodeResult((int)HttpStatusCode.Created);
             }
         }
         private int GetUserKey()

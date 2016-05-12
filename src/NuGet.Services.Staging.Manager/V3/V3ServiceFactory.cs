@@ -3,7 +3,7 @@
 
 using System;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.V3Repository;
 using Stage.V3;

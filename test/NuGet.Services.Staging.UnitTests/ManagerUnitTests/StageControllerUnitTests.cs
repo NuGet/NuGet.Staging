@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -83,9 +83,9 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             IActionResult actionResult = _stageController.ListUserStages();
 
             // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
+            actionResult.Should().BeOfType<OkObjectResult>();
 
-            object result = (actionResult as HttpOkObjectResult).Value;
+            object result = (actionResult as OkObjectResult).Value;
             result.Should().BeOfType<List<ListViewStage>>();
             var stages = result as List<ListViewStage>;
             stages.Count.Should().Be(2);
@@ -111,9 +111,9 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             IActionResult actionResult = _stageController.GetDetails(secondStage);
 
             // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
+            actionResult.Should().BeOfType<OkObjectResult>();
 
-            var result = (actionResult as HttpOkObjectResult).Value;
+            var result = (actionResult as OkObjectResult).Value;
             result.Should().BeOfType<DetailedViewStage>();
 
             var stageDetails = result as DetailedViewStage;
@@ -178,7 +178,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             }
             stage.Packages = new List<StagedPackage>();
             stage.Commits = new List<StageCommit>();
-            object result = (actionResult as HttpOkObjectResult).Value;
+            object result = (actionResult as OkObjectResult).Value;
             string id = (string)result.GetType().GetProperty("Id").GetValue(result);
             return _stageContextMock.Object.Stages.First(x => x.Id == id);
         }
