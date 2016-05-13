@@ -16,22 +16,22 @@ namespace NuGet.Services.Staging.Manager
         /// <param name="displayName">The display name.</param>
         /// <param name="userKey">The creating user.</param>
         /// <returns>The new stage.</returns>
-        Task<Database.Models.Stage> CreateStage(string displayName, int userKey);
+        Task<Stage> CreateStage(string displayName, int userKey);
 
         /// <summary>
         /// Retrieves a stage.
         /// </summary>
-        Database.Models.Stage GetStage(string stageId);
+        Stage GetStage(string stageId);
 
         /// <summary>
         /// Removes a stage.
         /// </summary>
-        Task DropStage(Database.Models.Stage stage);
+        Task DropStage(Stage stage);
 
         /// <summary>
         /// Checks if a package exists on stage.
         /// </summary>
-        bool DoesPackageExistOnStage(Database.Models.Stage stage, string registrationId, string version);
+        bool DoesPackageExistOnStage(Stage stage, string registrationId, string version);
 
         /// <summary>
         /// Retrieve user memberships.
@@ -41,7 +41,7 @@ namespace NuGet.Services.Staging.Manager
         /// <summary>
         /// Is the user an owner/contributor of this stage
         /// </summary>
-        bool IsStageMember(Database.Models.Stage stage, int userKey);
+        bool IsStageMember(Stage stage, int userKey);
 
         /// <summary>
         /// Is the display name valid (non empty and not too long)
@@ -51,21 +51,27 @@ namespace NuGet.Services.Staging.Manager
         /// <summary>
         /// Is pushing/deleting packages from this stage allowed
         /// </summary>
-        bool IsStageEditAllowed(Database.Models.Stage stage);
+        bool IsStageEditAllowed(Stage stage);
 
         /// <summary>
         /// Commit stage (DB changes)
         /// </summary>
-        Task CommitStage(Database.Models.Stage stage, string trackingId);
+        Task CommitStage(Stage stage, string trackingId);
 
         /// <summary>
         /// Get the latest commit of the stage.
         /// </summary>
-        StageCommit GetCommit(Database.Models.Stage stage);
+        StageCommit GetCommit(Stage stage);
 
         /// <summary>
         /// Get progress report for this commit.
         /// </summary>
         BatchPushProgressReport GetCommitProgress(StageCommit commit);
+
+
+        /// <summary>
+        /// Adds a package to the stage
+        /// </summary>
+        Task AddPackageToStage(Stage stage, StagedPackage package);
     }
 }

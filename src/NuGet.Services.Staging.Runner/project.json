@@ -1,30 +1,27 @@
 {
-  "compilationOptions": {
-    "emitEntryPoint": true
-  },
-
-    "dependencies": {
-        "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0-rc1-final",
-        "Microsoft.Extensions.Configuration.Json": "1.0.0-rc1-final",
-        "Microsoft.Extensions.DependencyInjection": "1.0.0-rc1-final",
-        "Microsoft.Extensions.Logging": "1.0.0-rc1-final",
-        "Microsoft.Extensions.Logging.Debug": "1.0.0-rc1-final",
-        "Microsoft.Extensions.Logging.TraceSource": "1.0.0-rc1-final",
-        "Serilog.Sinks.RollingFile": "2.0.0-beta-700",
-        "EntityFramework.MicrosoftSqlServer": "7.0.0-rc1-final",
-        "NuGet.Services.Logging": "1.0.0-rc2-update2",
-        "Serilog": "2.0.0-beta-531"
+    "buildOptions": {
+        "emitEntryPoint": true
     },
-
-  "commands": {
-    "NuGet.Services.Staging.Runner": "NuGet.Services.Staging.Runner"
-  },
-
-  "frameworks": {
-    "dnx451": {
-        "dependencies": {
-            "NuGet.Services.Staging.BackgroundWorkers": "1.0.0-*"
+    "dependencies": {
+        "Microsoft.ApplicationInsights": "2.1.0-beta4",
+        "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0-rc2-*",
+        "Microsoft.Extensions.Configuration.Json": "1.0.0-rc2-*",
+        "Microsoft.Extensions.DependencyInjection": "1.0.0-rc2-*",
+        "Microsoft.Extensions.Logging": "1.0.0-rc2-*",
+        "Microsoft.Extensions.Logging.Debug": "1.0.0-rc2-*",
+        "Microsoft.Extensions.Logging.TraceSource": "1.0.0-rc2-*",
+        "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0-rc2-*",
+        "EnterpriseLibrary.TransientFaultHandling.Data": "6.0.1304.1",
+        "NuGet.Services.Logging": "2.0.0-rc2-*"
+    },
+    "commands": {
+        "NuGet.Services.Staging.Runner": "NuGet.Services.Staging.Runner"
+    },
+   "frameworks": {
+        "net451": {
+            "dependencies": {
+                "NuGet.Services.Staging.BackgroundWorkers": "1.0.0-*"
+            }
         }
     }
-  }
 }

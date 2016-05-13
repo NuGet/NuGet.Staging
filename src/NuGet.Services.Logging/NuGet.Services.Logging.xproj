@@ -6,12 +6,12 @@
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\DotNet\Microsoft.DotNet.Props" Condition="'$(VSToolsPath)' != ''" />
   <PropertyGroup Label="Globals">
-    <ProjectGuid>7d2708c0-c770-48e8-bcba-1466fc03c1cf</ProjectGuid>
-    <RootNamespace>NuGet.Services.Staging.Database</RootNamespace>
+    <ProjectGuid>3a70a370-5abe-4a53-b5b9-297db288964e</ProjectGuid>
+    <RootNamespace>NuGet.Services.Logging</RootNamespace>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'=='' ">.\obj</BaseIntermediateOutputPath>
     <OutputPath Condition="'$(OutputPath)'=='' ">.\bin\</OutputPath>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
-
   <PropertyGroup>
     <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>

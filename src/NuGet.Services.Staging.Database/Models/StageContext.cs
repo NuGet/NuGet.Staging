@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace NuGet.Services.Staging.Database.Models
 {
@@ -14,6 +14,18 @@ namespace NuGet.Services.Staging.Database.Models
         public virtual DbSet<Stage> Stages { get; set; }
 
         public virtual DbSet<StageMembership> StageMemberships { get; set; }
+
+        /// <summary>
+        /// For Unit test only
+        /// </summary>
+        public StageContext()
+        {
+            
+        }
+
+        public StageContext(DbContextOptions<StageContext> options) : base(options)
+        {
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

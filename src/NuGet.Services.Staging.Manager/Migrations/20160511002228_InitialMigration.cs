@@ -1,16 +1,19 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.Entity.Migrations;
-using Microsoft.Data.Entity.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace NuGet.Services.Staging.Manager.Migrations
 {
-    public partial class Initialmigration : Migration
+    public partial class InitialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Stage",
+                name: "Stages",
                 columns: table => new
                 {
                     Key = table.Column<int>(nullable: false)
@@ -23,8 +26,9 @@ namespace NuGet.Services.Staging.Manager.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Stage", x => x.Key);
+                    table.PrimaryKey("PK_Stages", x => x.Key);
                 });
+
             migrationBuilder.CreateTable(
                 name: "StageCommit",
                 columns: table => new
@@ -42,12 +46,13 @@ namespace NuGet.Services.Staging.Manager.Migrations
                 {
                     table.PrimaryKey("PK_StageCommit", x => x.Key);
                     table.ForeignKey(
-                        name: "FK_StageCommit_Stage_StageKey",
+                        name: "FK_StageCommit_Stages_StageKey",
                         column: x => x.StageKey,
-                        principalTable: "Stage",
+                        principalTable: "Stages",
                         principalColumn: "Key",
                         onDelete: ReferentialAction.Cascade);
                 });
+
             migrationBuilder.CreateTable(
                 name: "StagedPackage",
                 columns: table => new
@@ -67,14 +72,15 @@ namespace NuGet.Services.Staging.Manager.Migrations
                 {
                     table.PrimaryKey("PK_StagedPackage", x => x.Key);
                     table.ForeignKey(
-                        name: "FK_StagedPackage_Stage_StageKey",
+                        name: "FK_StagedPackage_Stages_StageKey",
                         column: x => x.StageKey,
-                        principalTable: "Stage",
+                        principalTable: "Stages",
                         principalColumn: "Key",
                         onDelete: ReferentialAction.Cascade);
                 });
+
             migrationBuilder.CreateTable(
-                name: "StageMembership",
+                name: "StageMemberships",
                 columns: table => new
                 {
                     Key = table.Column<int>(nullable: false)
@@ -85,42 +91,54 @@ namespace NuGet.Services.Staging.Manager.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StageMembership", x => x.Key);
+                    table.PrimaryKey("PK_StageMemberships", x => x.Key);
                     table.ForeignKey(
-                        name: "FK_StageMembership_Stage_StageKey",
+                        name: "FK_StageMemberships_Stages_StageKey",
                         column: x => x.StageKey,
-                        principalTable: "Stage",
+                        principalTable: "Stages",
                         principalColumn: "Key",
                         onDelete: ReferentialAction.Cascade);
                 });
+
             migrationBuilder.CreateIndex(
-                name: "IX_Stage_Id",
-                table: "Stage",
+                name: "IX_Stages_Id",
+                table: "Stages",
                 column: "Id");
+
             migrationBuilder.CreateIndex(
                 name: "IX_StageCommit_StageKey",
                 table: "StageCommit",
                 column: "StageKey");
+
             migrationBuilder.CreateIndex(
                 name: "IX_StagedPackage_StageKey",
                 table: "StagedPackage",
                 column: "StageKey");
+
             migrationBuilder.CreateIndex(
-                name: "IX_StageMembership_StageKey",
-                table: "StageMembership",
+                name: "IX_StageMemberships_StageKey",
+                table: "StageMemberships",
                 column: "StageKey");
+
             migrationBuilder.CreateIndex(
-                name: "IX_StageMembership_UserKey",
-                table: "StageMembership",
+                name: "IX_StageMemberships_UserKey",
+                table: "StageMemberships",
                 column: "UserKey");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable("StageCommit");
-            migrationBuilder.DropTable("StagedPackage");
-            migrationBuilder.DropTable("StageMembership");
-            migrationBuilder.DropTable("Stage");
+            migrationBuilder.DropTable(
+                name: "StageCommit");
+
+            migrationBuilder.DropTable(
+                name: "StagedPackage");
+
+            migrationBuilder.DropTable(
+                name: "StageMemberships");
+
+            migrationBuilder.DropTable(
+                name: "Stages");
         }
     }
 }

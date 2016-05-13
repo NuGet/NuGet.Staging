@@ -9,7 +9,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 using NuGet.Protocol;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.PackageService;
@@ -71,12 +71,12 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             // 1. Get user APiKey
             var credentials = await _authenticationService.GetCredentials(new UserInformation { UserKey = Int32.Parse(pushData.UserKey) });
 
-            _logger.LogVerbose("Extracted ApiKey for user {User}", pushData.UserKey);
+            _logger.LogTrace("Extracted ApiKey for user {User}", pushData.UserKey);
 
             // 2. Load package to memory
             using (var packageStream = await GetPackage(pushData.NupkgPath))
             {
-                _logger.LogVerbose("Loaded package {@Package} to memory.", pushData);
+                _logger.LogTrace("Loaded package {@Package} to memory.", pushData);
 
                 // 3. Upload to the gallery
                 var response = await SendPackage(packageStream, credentials.ApiKey);

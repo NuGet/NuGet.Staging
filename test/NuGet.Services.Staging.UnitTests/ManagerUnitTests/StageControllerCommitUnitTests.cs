@@ -7,12 +7,11 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Newtonsoft.Json;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Controllers;
-using NuGet.Services.Staging.Manager.Filters;
 using NuGet.Services.Staging.PackageService;
 using Xunit;
 
@@ -40,7 +39,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         [Fact]
         public void VerifyOnlyStageOwnerCanCommitStage()
         {
-            AttributeHelper.HasServiceFilterAttribute<StageIdFilter>(_stageController, "Commit", methodTypes: null).Should().BeTrue();
+            AttributeHelper.HasServiceFilterAttribute<EnsureStageExistsFilter>(_stageController, "Commit", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
@@ -73,8 +72,8 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             // Assert
 
             // Verify return value
-            actionResult.Should().BeOfType<HttpStatusCodeResult>();
-            var result = actionResult as HttpStatusCodeResult;
+            actionResult.Should().BeOfType<StatusCodeResult>();
+            var result = actionResult as StatusCodeResult;
             result.StatusCode.Should().Be((int)HttpStatusCode.Created);
 
             // Verify the pushed data
@@ -123,8 +122,8 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             IActionResult actionResult = _stageController.GetCommitProgress(stage);
 
             // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
-            var result = actionResult as HttpOkObjectResult;
+            actionResult.Should().BeOfType<OkObjectResult>();
+            var result = actionResult as OkObjectResult;
             result.Value.Should().BeOfType<ViewStageCommitProgress>();
             var progress = result.Value as ViewStageCommitProgress;
             progress.CommitStatus.Should().Be(commit2.Status.ToString());
@@ -144,8 +143,8 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             IActionResult actionResult = _stageController.GetCommitProgress(stage);
 
             // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
-            var result = actionResult as HttpOkObjectResult;
+            actionResult.Should().BeOfType<OkObjectResult>();
+            var result = actionResult as OkObjectResult;
             result.Value.Should().BeOfType<ViewStageCommitProgress>();
             var progress = result.Value as ViewStageCommitProgress;
 
@@ -189,15 +188,15 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             IActionResult actionResult = _stageController.GetCommitProgress(stage);
 
             // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
-            var result = actionResult as HttpOkObjectResult;
+            actionResult.Should().BeOfType<OkObjectResult>();
+            var result = actionResult as OkObjectResult;
             result.Value.Should().BeOfType<ViewStageCommitProgress>();
             var progress = result.Value as ViewStageCommitProgress;
 
             VerifyCommitProgress(progress, stage);
         }
 
-        private void VerifyCommitProgress(ViewStageCommitProgress actual, Database.Models.Stage expected)
+        private void VerifyCommitProgress(ViewStageCommitProgress actual, Stage expected)
         {
             VerifyViewStage(actual, expected);
 
@@ -229,7 +228,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             }
         }
 
-        private StageCommit AddMockCommit(Database.Models.Stage stage, DateTime requestTime)
+        private StageCommit AddMockCommit(Stage stage, DateTime requestTime)
         {
             var commit = new StageCommit
             {

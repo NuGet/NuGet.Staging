@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Microsoft.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using NuGet.Services.Staging.Database.Models;
 
@@ -32,10 +32,8 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             if (table is List<S>)
             {
                 var list = (List<S>)table;
-                mockDbSet.Setup(set => set.Add(It.IsAny<S>(), It.IsAny<GraphBehavior>()))
-                    .Callback<S, GraphBehavior>((s, g) => list.Add(s));
-                mockDbSet.Setup(set => set.AddRange(It.IsAny<IEnumerable<S>>(), It.IsAny<GraphBehavior>()))
-                    .Callback<IEnumerable<S>, GraphBehavior>((s, g) => list.AddRange(s));
+                mockDbSet.Setup(set => set.Add(It.IsAny<S>())).Callback<S>((s) => list.Add(s));
+                mockDbSet.Setup(set => set.AddRange(It.IsAny<IEnumerable<S>>())).Callback<IEnumerable<S>>((s) => list.AddRange(s));
                 mockDbSet.Setup(set => set.Remove(It.IsAny<S>())).Callback<S>(t => list.Remove(t));
                 mockDbSet.Setup(set => set.RemoveRange(It.IsAny<IEnumerable<S>>())).Callback<IEnumerable<S>>(
                     ts =>

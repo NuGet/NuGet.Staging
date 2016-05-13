@@ -4,7 +4,7 @@
 using System;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
 
 namespace NuGet.Services.Staging.Authentication

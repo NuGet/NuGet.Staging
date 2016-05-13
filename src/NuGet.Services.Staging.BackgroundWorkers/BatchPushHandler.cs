@@ -86,7 +86,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                 {
                     if (packageProgressReport.Status == PushProgressStatus.Pending)
                     {
-                        _logger.LogVerbose("Pushing: " + LogDetails, pushData.StageId, package.Id, package.Version);
+                        _logger.LogTrace("Pushing: " + LogDetails, pushData.StageId, package.Id, package.Version);
 
                         await UpdateProgress(stageCommit, progressReport, packageProgressReport, PushProgressStatus.InProgress);
 
@@ -98,7 +98,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                         // We don't know if it was already pushed to Gallery or not. 
                         // Try to push, if fails on conflict, ignore. If success, update commit
 
-                        _logger.LogVerbose("Retrying push: " + LogDetails, pushData.StageId, package.Id,
+                        _logger.LogTrace("Retrying push: " + LogDetails, pushData.StageId, package.Id,
                             package.Version);
 
                         await PushPackageAndUpdateProgress(pushData, package, stageCommit, progressReport, packageProgressReport, succeedOnExists: true);
@@ -116,7 +116,12 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(new FormattedLogValues("Unexpected exception was caught while commiting." + LogDetails, pushData.StageId, package.Id, package.Version), e);
+                    _logger.Log(
+                        LogLevel.Error,
+                        0,
+                        new FormattedLogValues("Unexpected exception was caught while commiting." + LogDetails, pushData.StageId, package.Id, package.Version),
+                        e,
+                        (values, exception) =>  values.ToString());
 
                     try
                     {
@@ -207,7 +212,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             var packageIds = new HashSet<string>(packages.Select(p => p.Id));
             var resolverPackages = new List<ResolverPackage>();
 
-            _logger.LogVerbose($"Sorting {packages.Count} packages: {string.Join(", ", packagesDictionary.Keys)}");
+            _logger.LogTrace($"Sorting {packages.Count} packages: {string.Join(", ", packagesDictionary.Keys)}");
 
             foreach (var package in packages)
             {
@@ -222,7 +227,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 
             var sortedPackages = ResolverUtility.TopologicalSort(resolverPackages).ToList();
 
-            _logger.LogVerbose($"Sorted order: {string.Join(", ", sortedPackages.Select(x => GetPackageKey(x.Id, x.Version.ToString())))}");
+            _logger.LogTrace($"Sorted order: {string.Join(", ", sortedPackages.Select(x => GetPackageKey(x.Id, x.Version.ToString())))}");
 
             return sortedPackages.Select(p => packagesDictionary[GetPackageKey(p.Id, p.Version.ToString())]).ToImmutableList();
         }

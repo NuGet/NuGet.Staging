@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace NuGet.Services.Staging.BackgroundWorkers
 {
-    public class NuGetLoggerAdapter : NuGet.Logging.ILogger
+    public class NuGetLoggerAdapter : NuGet.Common.ILogger
     {
         private readonly Microsoft.Extensions.Logging.ILogger _internalLogger;
 
@@ -27,7 +27,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 
         public void LogVerbose(string data)
         {
-            _internalLogger.LogVerbose(data);
+            _internalLogger.LogTrace(data);
         }
 
         public void LogInformation(string data)
@@ -48,6 +48,16 @@ namespace NuGet.Services.Staging.BackgroundWorkers
         public void LogError(string data)
         {
             _internalLogger.LogError(data);
+        }
+
+        public void LogInformationSummary(string data)
+        {
+            _internalLogger.LogInformation(data);
+        }
+
+        public void LogErrorSummary(string data)
+        {
+            _internalLogger.LogInformation(data);
         }
 
         public void LogSummary(string data)

@@ -4,7 +4,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using NuGet.Services.Staging.Database.Models;
 using Xunit;
 
@@ -19,10 +19,10 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             IActionResult actionResult = await _stageController.Create(DisplayName);
 
             // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
+            actionResult.Should().BeOfType<OkObjectResult>();
             _stageContextMock.Object.Stages.Count().Should().Be(1);
 
-            Database.Models.Stage stage = _stageContextMock.Object.Stages.First();
+            Stage stage = _stageContextMock.Object.Stages.First();
 
             stage.DisplayName.Should().Be(DisplayName);
             stage.Status.Should().Be(StageStatus.Active);

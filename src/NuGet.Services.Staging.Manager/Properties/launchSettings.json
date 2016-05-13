@@ -11,15 +11,16 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "environmentVariables": {
-        "Hosting:Environment": "Local"
-      }
+        "environmentVariables": {
+            "ASPNETCORE_ENVIRONMENT": "Local"
+        }
     },
-    "web": {
-      "commandName": "web",
-      "environmentVariables": {
-        "Hosting:Environment": "Local"
-      }
+    "NuGet.Services.Staging.Manager": {
+        "commandName": "Project",
+        "launchUrl": "http://localhost:5000",
+        "environmentVariables": {
+            "ASPNETCORE_ENVIRONMENT": "Local"
+        }
     }
   }
 }

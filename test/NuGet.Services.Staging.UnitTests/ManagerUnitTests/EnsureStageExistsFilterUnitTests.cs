@@ -3,51 +3,54 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.Abstractions;
-using Microsoft.AspNet.Mvc.Filters;
-using Microsoft.AspNet.Routing;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using NuGet.Services.Staging.Manager.Filters;
+using NuGet.Services.Staging.Database.Models;
 using Xunit;
 
 namespace NuGet.Services.Staging.Manager.UnitTests
 {
-    public class StageIdFilterUnitTests
+    public class EnsureStageExistsFilterUnitTests
     {
         private string DefaultStageId = Guid.NewGuid().ToString();
-        private StageIdFilter _stageIdFilter;
+        private EnsureStageExistsFilter _ensureStageExistsFilter;
         private ActionExecutingContext _actionExecutionContext;
         private Mock<IStageService> _stageServiceMock;
 
 
-        public StageIdFilterUnitTests()
+        public EnsureStageExistsFilterUnitTests()
         {
             _stageServiceMock = new Mock<IStageService>();
 
             var dictionary = new Dictionary<string, object>();
-            dictionary[StageIdFilter.StageKeyName] = new Database.Models.Stage
+            dictionary[EnsureStageExistsFilter.StageKeyName] = new Stage
             {
                 Id = DefaultStageId
             };
 
             var actionContext = new ActionContext();
-            actionContext.HttpContext = new Mock<HttpContext>().Object;
+            var httpContext = new Mock<HttpContext>()
+                               .WithRegisteredService((sc) => sc.AddSingleton<IStageService>(_stageServiceMock.Object));
+
+            actionContext.HttpContext = httpContext.Object;
             actionContext.RouteData = new Mock<RouteData>().Object;
             actionContext.ActionDescriptor = new Mock<ActionDescriptor>().Object;
 
             _actionExecutionContext = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), dictionary, null);
-            _stageIdFilter = new StageIdFilter(_stageServiceMock.Object);
+            _ensureStageExistsFilter = new EnsureStageExistsFilter();
         }
 
         [Fact]
         public void WhenStageExistsStageIsSet()
         {
             // Arrange
-            var stage = new Database.Models.Stage
+            var stage = new Stage
             {
                 Id = DefaultStageId,
                 DisplayName = "some name"
@@ -56,10 +59,10 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             _stageServiceMock.Setup(x => x.GetStage(DefaultStageId)).Returns(stage);
 
             // Act
-            _stageIdFilter.OnActionExecuting(_actionExecutionContext);
+            _ensureStageExistsFilter.OnActionExecuting(_actionExecutionContext);
 
             // Assert
-            var updatedStage = (Database.Models.Stage)_actionExecutionContext.ActionArguments[StageIdFilter.StageKeyName];
+            var updatedStage = (Stage)_actionExecutionContext.ActionArguments[EnsureStageExistsFilter.StageKeyName];
             updatedStage.DisplayName.Should().Be(stage.DisplayName);
         }
 
@@ -67,10 +70,10 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         public void WhenStageDoesNotExist404IsReturned()
         {
             // Act
-            _stageIdFilter.OnActionExecuting(_actionExecutionContext);
+            _ensureStageExistsFilter.OnActionExecuting(_actionExecutionContext);
 
             // Assert
-            _actionExecutionContext.Result.Should().BeOfType<HttpNotFoundResult>();
+            _actionExecutionContext.Result.Should().BeOfType<NotFoundResult>();
         }
     }
 }

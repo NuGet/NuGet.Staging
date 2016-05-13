@@ -5,18 +5,16 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.Infrastructure;
-using Microsoft.Data.Entity.Internal;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Logging;
+using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.BackgroundWorkers;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.PackageService;
-using Serilog.Sinks.RollingFile;
 
 namespace NuGet.Services.Staging.Runner
 {
@@ -62,7 +60,7 @@ namespace NuGet.Services.Staging.Runner
 
             ConfigureLog(environment, serviceCollection);
 
-            serviceCollection.AddEntityFramework().AddSqlServer();
+            serviceCollection.AddEntityFramework().AddEntityFrameworkSqlServer();
 
 
             ConfigureDependencies(serviceCollection);
@@ -95,26 +93,23 @@ namespace NuGet.Services.Staging.Runner
             var optionsBuilder = new DbContextOptionsBuilder<StageContext>();
             optionsBuilder.UseSqlServer(connectionString);
             serviceCollection.AddSingleton<DbContextOptions<StageContext>>(_ => optionsBuilder.Options);
-            serviceCollection.AddTransient<StageContext>(DbContextActivator.CreateInstance<StageContext>);
+            serviceCollection.AddSingleton<DbContextOptions>(p => p.GetRequiredService<DbContextOptions<StageContext>>());
+            serviceCollection.AddTransient<StageContext, StageContext>();
         }
 
         private static void ConfigureLog(string environment, IServiceCollection serviceCollection)
         {
-            var loggingConfig = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: IsLocalEnvironment(environment));
-
-            // Write to file
-            loggingConfig.WriteTo.RollingFile("StageRunnerLog-{Date}.txt");
-
-            // Write to AI
+            //// Write to AI
             ApplicationInsights.Initialize(_configuration["ApplicationInsights:InstrumentationKey"]);
 
-            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggingConfig);
-            serviceCollection.AddInstance<ILoggerFactory>(loggerFactory);
+            var loggerFactory = LoggingSetup.CreateLoggerFactory();
+            serviceCollection.AddSingleton<ILoggerFactory>(loggerFactory);
         }
 
         private static void InitializeConfiguration(string environment)
         {
             var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile(Path.Combine("Config", $"config.{environment}.json"));
 

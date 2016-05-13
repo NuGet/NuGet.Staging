@@ -7,15 +7,14 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.V3Repository;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Controllers;
-using NuGet.Services.Staging.Manager.Filters;
 using NuGet.Services.Staging.PackageService;
 using Xunit;
 
@@ -66,7 +65,6 @@ namespace NuGet.Services.Staging.Manager.UnitTests
 
             _packageController = new PackageController(
                 new Mock<ILogger<PackageController>>().Object,
-                _stageContextMock.Object,
                 _packageServiceMock.Object,
                 stageServiceMock.Object,
                 v3Factory);
@@ -90,7 +88,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             stage.Packages.First().Version.Should().Be(DefaultVersion);
             stage.Packages.First().NormalizedVersion.Should().Be(DefaultVersion);
 
-            actionResult.Should().BeOfType<HttpStatusCodeResult>();
+            actionResult.Should().BeOfType<StatusCodeResult>();
 
             _testStorageFactory.CreatedStorages.Any().Should().BeTrue();
             ((MemoryStorage) _testStorageFactory.CreatedStorages.Values.First()).Content.Count()
@@ -173,7 +171,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         }
 
         [Fact]
-        public async Task WhenPushIsCalledAndUserIsNotOwnerOfPackage403IsReturned()
+        public async Task WhenPushIsCalledAndUserIsNotOwnerOfPackage409IsReturned()
         {
             // Arrange
             ArrangeRequestWithPackage();
@@ -187,7 +185,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             // Assert
             actionResult.Should().BeOfType<ObjectResult>();
             var objectResult = actionResult as ObjectResult;
-            objectResult.StatusCode.Should().Be(403);
+            objectResult.StatusCode.Should().Be(409);
         }
 
         [Fact]
@@ -221,7 +219,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         [Fact]
         public void WhenPushIsCalledAndUserIsNotOwnerOfStage401IsReturned()
         {
-            AttributeHelper.HasServiceFilterAttribute<StageIdFilter>(_packageController, "PushPackageToStage", methodTypes: null).Should().BeTrue();
+            AttributeHelper.HasServiceFilterAttribute<EnsureStageExistsFilter>(_packageController, "PushPackageToStage", methodTypes: null).Should().BeTrue();
         }
 
         [Theory]
@@ -246,7 +244,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             _httpContextMock.WithFile(testPackage.Stream);
         }
 
-        private Database.Models.Stage AddMockStage()
+        private Stage AddMockStage()
         {
             const int stageKey = 1;
 
@@ -258,7 +256,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
                 UserKey = UserKey
             };
 
-            var stage = new Database.Models.Stage
+            var stage = new Stage
             {
                 Key = stageKey,
                 Id = Guid.NewGuid().ToString(),

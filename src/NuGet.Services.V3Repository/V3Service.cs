@@ -15,7 +15,6 @@ using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Dnx;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Metadata.Catalog.Registration;
-using Stage.V3;
 using VDS.RDF;
 
 namespace NuGet.Services.V3Repository

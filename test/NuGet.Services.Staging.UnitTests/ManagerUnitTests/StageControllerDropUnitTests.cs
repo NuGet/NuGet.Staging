@@ -3,9 +3,8 @@
 
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using NuGet.Services.Staging.Database.Models;
-using NuGet.Services.Staging.Manager.Filters;
 using Xunit;
 
 namespace NuGet.Services.Staging.Manager.UnitTests
@@ -26,9 +25,9 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             IActionResult actionResult = await _stageController.Drop(stage1);
 
             // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
+            actionResult.Should().BeOfType<OkObjectResult>();
 
-            object result = (actionResult as HttpOkObjectResult).Value;
+            object result = (actionResult as OkObjectResult).Value;
             string displayName = (string)result.GetType().GetProperty("DisplayName").GetValue(result);
 
             displayName.Should().Be(stageName1);
@@ -39,7 +38,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         [Fact]
         public void WhenDropIsCalledWithNonExistingStageId404IsReturned()
         {
-            AttributeHelper.HasServiceFilterAttribute<StageIdFilter>(_stageController, "Drop", methodTypes: null).Should().BeTrue();
+            AttributeHelper.HasServiceFilterAttribute<EnsureStageExistsFilter>(_stageController, "Drop", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
@@ -51,7 +50,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         [Fact]
         public void WhenDropIsCalledWithUnauthorizedUser401IsReturned()
         {
-            AttributeHelper.HasServiceFilterAttribute<OwnerFilter>(_stageController, "Drop", methodTypes: null).Should().BeTrue();
+            AttributeHelper.HasServiceFilterAttribute<EnsureUserIsOwnerOfStageFilter>(_stageController, "Drop", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]

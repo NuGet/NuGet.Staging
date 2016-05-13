@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -15,7 +15,6 @@ using NuGet.Protocol.Core.v3;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Controllers;
-using NuGet.Services.Staging.Manager.Filters;
 using NuGet.Services.Staging.Manager.Search;
 using NuGet.Services.Staging.PackageService;
 using Xunit;
@@ -83,9 +82,9 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             IActionResult actionResult = _stageController.ListUserStages();
 
             // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
+            actionResult.Should().BeOfType<OkObjectResult>();
 
-            object result = (actionResult as HttpOkObjectResult).Value;
+            object result = (actionResult as OkObjectResult).Value;
             result.Should().BeOfType<List<ListViewStage>>();
             var stages = result as List<ListViewStage>;
             stages.Count.Should().Be(2);
@@ -111,9 +110,9 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             IActionResult actionResult = _stageController.GetDetails(secondStage);
 
             // Assert
-            actionResult.Should().BeOfType<HttpOkObjectResult>();
+            actionResult.Should().BeOfType<OkObjectResult>();
 
-            var result = (actionResult as HttpOkObjectResult).Value;
+            var result = (actionResult as OkObjectResult).Value;
             result.Should().BeOfType<DetailedViewStage>();
 
             var stageDetails = result as DetailedViewStage;
@@ -130,14 +129,14 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         [Fact]
         public void WhenGetDetailsIsCalledWithNonExistingStageId404IsReturned()
         {
-            AttributeHelper.HasServiceFilterAttribute<StageIdFilter>(_stageController, "GetDetails", methodTypes: null).Should().BeTrue();
+            AttributeHelper.HasServiceFilterAttribute<EnsureStageExistsFilter>(_stageController, "GetDetails", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
         public void WhenIndexIsCalledJsonIsReturned()
         {
             // Act
-            IActionResult actionResult = _stageController.Index(new Database.Models.Stage { Id = Guid.NewGuid().ToString() });
+            IActionResult actionResult = _stageController.Index(new Stage { Id = Guid.NewGuid().ToString() });
 
             // Assert
             actionResult.Should().BeOfType<JsonResult>();
@@ -165,7 +164,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             AuthorizationTest.IsAnonymous(_stageController, "Query", methodTypes: null).Should().BeTrue();
         }
 
-        protected async Task<Database.Models.Stage> AddMockStage(string displayName)
+        protected async Task<Stage> AddMockStage(string displayName)
         {
             IActionResult actionResult = await _stageController.Create(displayName);
 
@@ -178,12 +177,12 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             }
             stage.Packages = new List<StagedPackage>();
             stage.Commits = new List<StageCommit>();
-            object result = (actionResult as HttpOkObjectResult).Value;
+            object result = (actionResult as OkObjectResult).Value;
             string id = (string)result.GetType().GetProperty("Id").GetValue(result);
             return _stageContextMock.Object.Stages.First(x => x.Id == id);
         }
 
-        protected StagedPackage AddMockPackage(Database.Models.Stage stage, string packageId)
+        protected StagedPackage AddMockPackage(Stage stage, string packageId)
         {
             const string version = "1.0.0";
             var package = new StagedPackage
@@ -207,7 +206,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             actual.Version.Should().Be(expected.NormalizedVersion, "versions should match");
         }
 
-        protected void VerifyViewStage(ViewStage actual, Database.Models.Stage expected)
+        protected void VerifyViewStage(ViewStage actual, Stage expected)
         {
             actual.Id.Should().Be(expected.Id);
             actual.CreationDate.Should().Be(expected.CreationDate);
@@ -216,13 +215,13 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             actual.Status.Should().Be(expected.Status.ToString());
         }
 
-        protected void VerifyListViewStage(ListViewStage actual, Database.Models.Stage expected)
+        protected void VerifyListViewStage(ListViewStage actual, Stage expected)
         {
             VerifyViewStage(actual, expected);
             actual.MembershipType.Should().Be(expected.Memberships.First().MembershipType.ToString());
         }
 
-        protected void VerifyDetailedViewStage(DetailedViewStage actual, Database.Models.Stage expected)
+        protected void VerifyDetailedViewStage(DetailedViewStage actual, Stage expected)
         {
             VerifyViewStage(actual, expected);
             actual.PackagesCount.Should().Be(expected.Packages.Count);

@@ -3,11 +3,11 @@
         "net451": {
             "frameworkAssemblies": {
                 "System.Data": ""
-            },
+            }
         }
     },
     "dependencies": {
-        "Microsoft.Extensions.OptionsModel": "1.0.0-rc1-final",
+        "Microsoft.Extensions.Options": "1.0.0-rc2-*",
         "Newtonsoft.Json": "8.0.3",
         "WindowsAzure.ServiceBus": "3.1.7"
     }
