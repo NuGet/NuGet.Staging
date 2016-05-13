@@ -125,21 +125,13 @@ namespace NuGet.Services.V3Repository
         {
             _logger.LogInformation($"Adding package: {id}, {version}");
 
-            // This is a workaround for this issue: https://github.com/Azure/azure-storage-net/issues/202
-            // When resolved, we can save directly from the stream
-            var data = new byte[stream.Length];
-            using (var ms = new MemoryStream(data, writable: true))
-            {
-                stream.Position = 0;
-                await stream.CopyToAsync(ms);
-                ms.Position = 0;
-                var packageLocations =
-                    await _dnxMaker.AddPackage(ms, packageMetadata.Nuspec.ToString(), id, version, CancellationToken.None);
+            stream.Position = 0;
+            var packageLocations =
+                await _dnxMaker.AddPackage(stream, packageMetadata.Nuspec.ToString(), id, version, CancellationToken.None);
 
-                _logger.LogInformation($"Package {id}, {version} was added to flat container");
+            _logger.LogInformation($"Package {id}, {version} was added to flat container");
 
-                return packageLocations;
-            }
+            return packageLocations;
         }
 
         private async Task<Tuple<Uri, IGraph>> AddToCatalog(V3PackageMetadata packageMetadata, string id, string version)
