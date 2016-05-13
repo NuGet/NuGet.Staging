@@ -12,7 +12,6 @@ using Moq;
 using Newtonsoft.Json;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Controllers;
-using NuGet.Services.Staging.Manager.Filters;
 using NuGet.Services.Staging.PackageService;
 using Xunit;
 
@@ -40,7 +39,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         [Fact]
         public void VerifyOnlyStageOwnerCanCommitStage()
         {
-            AttributeHelper.HasServiceFilterAttribute<StageIdFilter>(_stageController, "Commit", methodTypes: null).Should().BeTrue();
+            AttributeHelper.HasServiceFilterAttribute<EnsureStageExistsFilter>(_stageController, "Commit", methodTypes: null).Should().BeTrue();
         }
 
         [Fact]
@@ -197,7 +196,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             VerifyCommitProgress(progress, stage);
         }
 
-        private void VerifyCommitProgress(ViewStageCommitProgress actual, Database.Models.Stage expected)
+        private void VerifyCommitProgress(ViewStageCommitProgress actual, Stage expected)
         {
             VerifyViewStage(actual, expected);
 
@@ -229,7 +228,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             }
         }
 
-        private StageCommit AddMockCommit(Database.Models.Stage stage, DateTime requestTime)
+        private StageCommit AddMockCommit(Stage stage, DateTime requestTime)
         {
             var commit = new StageCommit
             {

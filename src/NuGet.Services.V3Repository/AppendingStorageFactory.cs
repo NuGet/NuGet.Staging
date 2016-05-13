@@ -4,7 +4,7 @@
 using System;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
-namespace Stage.V3
+namespace NuGet.Services.V3Repository
 {
     public class AppendingStorageFactory : StorageFactory
     {

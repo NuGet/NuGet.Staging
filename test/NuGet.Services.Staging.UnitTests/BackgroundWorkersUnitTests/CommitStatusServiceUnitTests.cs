@@ -39,7 +39,7 @@ namespace NuGet.Services.Staging.UnitTests.BackgroundWorkersUnitTests
                     LastProgressUpdate = DateTime.MinValue
                 };
 
-                var stage = new Database.Models.Stage
+                var stage = new Stage
                 {
                     Key = commit.StageKey
                 };

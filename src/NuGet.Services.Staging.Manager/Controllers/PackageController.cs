@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGet.Services.Staging.Database.Models;
-using NuGet.Services.Staging.Manager.Filters;
 using NuGet.Services.Staging.PackageService;
 using static NuGet.Services.Staging.Manager.Controllers.Messages;
 
@@ -58,9 +57,9 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
         [HttpPut("{id:guid}")]
         [HttpPost("{id:guid}")]
-        [StageIdFilterService]
-        [OwnerFilterService]
-        public async Task<IActionResult> PushPackageToStage(NuGet.Services.Staging.Database.Models.Stage stage)
+        [EnsureStageExists]
+        [EnsureUserIsOwnerOfStage]
+        public async Task<IActionResult> PushPackageToStage(Stage stage)
         {
             var userKey = GetUserKey();
 

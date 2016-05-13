@@ -10,7 +10,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
 {
     public class DetailedViewStage : ViewStage
     {
-        internal DetailedViewStage(Database.Models.Stage stage, string baseAddress) : base(stage, baseAddress)
+        internal DetailedViewStage(Stage stage, string baseAddress) : base(stage, baseAddress)
         {
             Packages = new List<ViewPackage>(stage.Packages.Select(package => new ViewPackage(package)));
             PackagesCount = Packages.Count;
@@ -24,7 +24,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
     public class ListViewStage : ViewStage
     {
-        internal ListViewStage(Database.Models.Stage stage, StageMembership membership, string baseAddress) : base(stage, baseAddress)
+        internal ListViewStage(Stage stage, StageMembership membership, string baseAddress) : base(stage, baseAddress)
         {
             MembershipType = membership.MembershipType.ToString();
         }
@@ -41,7 +41,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
         public DateTime ExpirationDate { get; internal set; }
         public string Feed { get; internal set; }
 
-        internal ViewStage(Database.Models.Stage stage, string baseAddress)
+        internal ViewStage(Stage stage, string baseAddress)
         {
             Id = stage.Id;
             DisplayName = stage.DisplayName;
@@ -88,7 +88,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
     public class ViewStageCommitProgress : ViewStage
     {
-        internal ViewStageCommitProgress(Database.Models.Stage stage, string baseAddress) : base(stage, baseAddress)
+        internal ViewStageCommitProgress(Stage stage, string baseAddress) : base(stage, baseAddress)
         {
         }
 

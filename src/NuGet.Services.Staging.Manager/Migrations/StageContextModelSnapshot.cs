@@ -19,7 +19,7 @@ namespace NuGet.Services.Staging.Manager.Migrations
                 .HasAnnotation("ProductVersion", "1.0.0-rc2-20828")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("NuGet.Services.Staging.Database.Models.Stage", b =>
+            modelBuilder.Entity("NuGet.Services.Staging.Stage", b =>
                 {
                     b.Property<int>("Key")
                         .ValueGeneratedOnAdd();
@@ -44,7 +44,7 @@ namespace NuGet.Services.Staging.Manager.Migrations
                     b.ToTable("Stages");
                 });
 
-            modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StageCommit", b =>
+            modelBuilder.Entity("NuGet.Services.Staging.StageCommit", b =>
                 {
                     b.Property<int>("Key")
                         .ValueGeneratedOnAdd();
@@ -70,7 +70,7 @@ namespace NuGet.Services.Staging.Manager.Migrations
                     b.ToTable("StageCommit");
                 });
 
-            modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StagedPackage", b =>
+            modelBuilder.Entity("NuGet.Services.Staging.StagedPackage", b =>
                 {
                     b.Property<int>("Key")
                         .ValueGeneratedOnAdd();
@@ -106,7 +106,7 @@ namespace NuGet.Services.Staging.Manager.Migrations
                     b.ToTable("StagedPackage");
                 });
 
-            modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StageMembership", b =>
+            modelBuilder.Entity("NuGet.Services.Staging.StageMembership", b =>
                 {
                     b.Property<int>("Key")
                         .ValueGeneratedOnAdd();
@@ -126,25 +126,25 @@ namespace NuGet.Services.Staging.Manager.Migrations
                     b.ToTable("StageMemberships");
                 });
 
-            modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StageCommit", b =>
+            modelBuilder.Entity("NuGet.Services.Staging.StageCommit", b =>
                 {
-                    b.HasOne("NuGet.Services.Staging.Database.Models.Stage")
+                    b.HasOne("NuGet.Services.Staging.Stage")
                         .WithMany()
                         .HasForeignKey("StageKey")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StagedPackage", b =>
+            modelBuilder.Entity("NuGet.Services.Staging.StagedPackage", b =>
                 {
-                    b.HasOne("NuGet.Services.Staging.Database.Models.Stage")
+                    b.HasOne("NuGet.Services.Staging.Stage")
                         .WithMany()
                         .HasForeignKey("StageKey")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("NuGet.Services.Staging.Database.Models.StageMembership", b =>
+            modelBuilder.Entity("NuGet.Services.Staging.StageMembership", b =>
                 {
-                    b.HasOne("NuGet.Services.Staging.Database.Models.Stage")
+                    b.HasOne("NuGet.Services.Staging.Stage")
                         .WithMany()
                         .HasForeignKey("StageKey")
                         .OnDelete(DeleteBehavior.Cascade);

@@ -15,7 +15,6 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Authentication;
-using NuGet.Services.Staging.Manager.Filters;
 using NuGet.Services.Staging.Manager.Search;
 using NuGet.Services.Staging.PackageService;
 using NuGet.Services.V3Repository;
@@ -99,8 +98,8 @@ namespace NuGet.Services.Staging.Manager
             services.AddSingleton<ApiKeyAuthenticationService, ApiKeyAuthenticationService>();
 
             // Filters
-            services.AddScoped<StageIdFilter, StageIdFilter>();
-            services.AddScoped<OwnerFilter, OwnerFilter>();
+            services.AddScoped<EnsureStageExistsFilter, EnsureStageExistsFilter>();
+            services.AddScoped<EnsureUserIsOwnerOfStageFilter, EnsureUserIsOwnerOfStageFilter>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

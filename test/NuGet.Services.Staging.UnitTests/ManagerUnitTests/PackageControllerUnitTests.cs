@@ -15,7 +15,6 @@ using Moq;
 using NuGet.Services.V3Repository;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Controllers;
-using NuGet.Services.Staging.Manager.Filters;
 using NuGet.Services.Staging.PackageService;
 using Xunit;
 
@@ -220,7 +219,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         [Fact]
         public void WhenPushIsCalledAndUserIsNotOwnerOfStage401IsReturned()
         {
-            AttributeHelper.HasServiceFilterAttribute<StageIdFilter>(_packageController, "PushPackageToStage", methodTypes: null).Should().BeTrue();
+            AttributeHelper.HasServiceFilterAttribute<EnsureStageExistsFilter>(_packageController, "PushPackageToStage", methodTypes: null).Should().BeTrue();
         }
 
         [Theory]
@@ -245,7 +244,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             _httpContextMock.WithFile(testPackage.Stream);
         }
 
-        private Database.Models.Stage AddMockStage()
+        private Stage AddMockStage()
         {
             const int stageKey = 1;
 
@@ -257,7 +256,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
                 UserKey = UserKey
             };
 
-            var stage = new Database.Models.Stage
+            var stage = new Stage
             {
                 Key = stageKey,
                 Id = Guid.NewGuid().ToString(),

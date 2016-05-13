@@ -4,19 +4,13 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using NuGet.Services.Staging.Database.Models;
 
-namespace NuGet.Services.Staging.Manager.Filters
+namespace NuGet.Services.Staging.Manager
 {
-    public class OwnerFilterServiceAttribute : ServiceFilterAttribute
+    public class EnsureUserIsOwnerOfStageFilter : ActionFilterAttribute
     {
-        public OwnerFilterServiceAttribute() : base(typeof(OwnerFilter))
-        {
-        }
-    }
-
-    public class OwnerFilter : ActionFilterAttribute
-    {
-        public OwnerFilter()
+        public EnsureUserIsOwnerOfStageFilter()
         {
         }
 
@@ -24,8 +18,8 @@ namespace NuGet.Services.Staging.Manager.Filters
         {
             var stageService = (IStageService)actionContext.HttpContext.RequestServices.GetService(typeof(IStageService));
 
-            // We assume this filter is called after StageIdFilter, and "stage" parameter exists and set
-            var stage = (Database.Models.Stage)actionContext.ActionArguments["stage"];
+            // We assume this filter is called after EnsureStageExistsFilter, and "stage" parameter exists and set
+            var stage = (Stage)actionContext.ActionArguments["stage"];
 
             int userKey = GetUserKey(actionContext.HttpContext);
 

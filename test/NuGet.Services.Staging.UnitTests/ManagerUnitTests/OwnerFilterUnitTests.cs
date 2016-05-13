@@ -11,26 +11,26 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using NuGet.Services.Staging.Manager.Filters;
+using NuGet.Services.Staging.Database.Models;
 using Xunit;
 
 namespace NuGet.Services.Staging.Manager.UnitTests
 {
-    public class OwnerFilterUnitTests
+    public class EnsureUserIsOwnerOfStageFilterUnitTests
     {
         protected string DefaultStageId = Guid.NewGuid().ToString();
         protected int DefaultUserKey = 1;
-        protected OwnerFilter _OwnerFilter;
+        protected EnsureUserIsOwnerOfStageFilter EnsureUserIsOwnerOfStageFilter;
         protected ActionExecutingContext _actionExecutionContext;
         protected Mock<IStageService> _stageServiceMock;
 
 
-        public OwnerFilterUnitTests()
+        public EnsureUserIsOwnerOfStageFilterUnitTests()
         {
             _stageServiceMock = new Mock<IStageService>();
             
             var dictionary = new Dictionary<string, object>();
-            dictionary[StageIdFilter.StageKeyName] = new Database.Models.Stage
+            dictionary[EnsureStageExistsFilter.StageKeyName] = new Stage
             {
                 Id = DefaultStageId
             };
@@ -46,7 +46,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
 
             _actionExecutionContext = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), dictionary, null);
 
-            _OwnerFilter = new OwnerFilter();
+            EnsureUserIsOwnerOfStageFilter = new EnsureUserIsOwnerOfStageFilter();
         }
 
         [Fact]
@@ -54,11 +54,11 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         {
             // Arrange
             _stageServiceMock.Setup(x =>
-                                    x.IsStageMember((Database.Models.Stage)_actionExecutionContext.ActionArguments[StageIdFilter.StageKeyName], DefaultUserKey))
+                                    x.IsStageMember((Stage)_actionExecutionContext.ActionArguments[EnsureStageExistsFilter.StageKeyName], DefaultUserKey))
                               .Returns(true);
 
             // Act
-            _OwnerFilter.OnActionExecuting(_actionExecutionContext);
+            EnsureUserIsOwnerOfStageFilter.OnActionExecuting(_actionExecutionContext);
 
             // Assert
             Assert.Null(_actionExecutionContext.Result);
@@ -69,11 +69,11 @@ namespace NuGet.Services.Staging.Manager.UnitTests
         {
             // Arrange
             _stageServiceMock.Setup(x =>
-                                    x.IsStageMember((Database.Models.Stage)_actionExecutionContext.ActionArguments[StageIdFilter.StageKeyName], DefaultUserKey))
+                                    x.IsStageMember((Stage)_actionExecutionContext.ActionArguments[EnsureStageExistsFilter.StageKeyName], DefaultUserKey))
                               .Returns(false);
 
             // Act
-            _OwnerFilter.OnActionExecuting(_actionExecutionContext);
+            EnsureUserIsOwnerOfStageFilter.OnActionExecuting(_actionExecutionContext);
 
             // Assert
             _actionExecutionContext.Result.Should().BeOfType<UnauthorizedResult>();

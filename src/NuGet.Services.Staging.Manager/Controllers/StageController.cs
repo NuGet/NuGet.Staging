@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Staging.Database.Models;
-using NuGet.Services.Staging.Manager.Filters;
 using NuGet.Services.Staging.Manager.Search;
 using NuGet.Services.Staging.Manager.V3;
 using NuGet.Services.Staging.PackageService;
@@ -80,8 +79,8 @@ namespace NuGet.Services.Staging.Manager.Controllers
         // GET api/stage/e92156e2d6a74a19853a3294cf681dfc
         [HttpGet("{id:guid}")]
         [AllowAnonymous]
-        [StageIdFilterService]
-        public IActionResult GetDetails(Database.Models.Stage stage)
+        [EnsureStageExists]
+        public IActionResult GetDetails(Stage stage)
         {
             return new OkObjectResult(new DetailedViewStage(stage, GetBaseAddress()));
         }
@@ -105,9 +104,9 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
         // DELETE api/stage/e92156e2d6a74a19853a3294cf681dfc
         [HttpDelete("{id:guid}")]
-        [StageIdFilterService]
-        [OwnerFilterService]
-        public async Task<IActionResult> Drop(Database.Models.Stage stage)
+        [EnsureStageExists]
+        [EnsureUserIsOwnerOfStage]
+        public async Task<IActionResult> Drop(Stage stage)
         {
             var userKey = GetUserKey();
 
@@ -124,9 +123,9 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
         // POST api/stage/e92156e2d6a74a19853a3294cf681dfc
         [HttpPost("{id:guid}")]
-        [StageIdFilterService]
-        [OwnerFilterService]
-        public async Task<IActionResult> Commit(Database.Models.Stage stage)
+        [EnsureStageExists]
+        [EnsureUserIsOwnerOfStage]
+        public async Task<IActionResult> Commit(Stage stage)
         {
             // TODO: https://github.com/NuGet/NuGet.Staging/issues/32
 
@@ -160,8 +159,8 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
         [AllowAnonymous]
         [HttpGet("{id:guid}/commit")]
-        [StageIdFilterService]
-        public IActionResult GetCommitProgress(Database.Models.Stage stage)
+        [EnsureStageExists]
+        public IActionResult GetCommitProgress(Stage stage)
         {
             var commit = _stageService.GetCommit(stage);
 
@@ -177,8 +176,8 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
         [AllowAnonymous]
         [HttpGet("{id:guid}/index.json")]
-        [StageIdFilterService]
-        public IActionResult Index(Database.Models.Stage stage)
+        [EnsureStageExists]
+        public IActionResult Index(Stage stage)
         {
             var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), stage.Id, _storageFactory.BaseAddress);
             return Json(index);
@@ -186,8 +185,8 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
         [AllowAnonymous]
         [HttpGet("{id:guid}/query")]
-        [StageIdFilterService]
-        public async Task<IActionResult> Query(Database.Models.Stage stage)
+        [EnsureStageExists]
+        public async Task<IActionResult> Query(Stage stage)
         {
             if (_searchService is DummySearchService)
             {
@@ -208,7 +207,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
             return $"{Request.Scheme}://{Request.Host.Value}";
         }
 
-        private PackageBatchPushData CreatePackageBatchPushData(Database.Models.Stage stage)
+        private PackageBatchPushData CreatePackageBatchPushData(Stage stage)
         {
             return
                 new PackageBatchPushData
@@ -226,7 +225,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
                 };
         }
 
-        private ViewStageCommitProgress CreateViewStageCommitProgress(Database.Models.Stage stage, StageCommit commit)
+        private ViewStageCommitProgress CreateViewStageCommitProgress(Stage stage, StageCommit commit)
         {
             BatchPushProgressReport progressReport = _stageService.GetCommitProgress(commit);
             var commitProgressView = new ViewStageCommitProgress(stage, GetBaseAddress());

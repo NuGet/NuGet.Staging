@@ -22,7 +22,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             actionResult.Should().BeOfType<OkObjectResult>();
             _stageContextMock.Object.Stages.Count().Should().Be(1);
 
-            Database.Models.Stage stage = _stageContextMock.Object.Stages.First();
+            Stage stage = _stageContextMock.Object.Stages.First();
 
             stage.DisplayName.Should().Be(DisplayName);
             stage.Status.Should().Be(StageStatus.Active);
