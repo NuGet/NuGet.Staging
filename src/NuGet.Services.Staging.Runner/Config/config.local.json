@@ -4,7 +4,9 @@
     },
     "TopicMessageListenerOptions": {
         "ProcessingConcurrency": 10,
-        "ServiceBusConnectionString": "Endpoint=sb://nugetlocal.servicebus.windows.net/;SharedAccessKeyName=ListenerSharesAccessKey;SharedAccessKey=<key here>",
+        "ServiceBusUri": "",
+        "SharedAccessPolicyName": "Reader",
+        "SharedAccessPolicyKey": "",
         "SubscriptionName": "stagecommitworker",
         "TopicName": "batchpush",
         "MaxDeliveryCount": 10

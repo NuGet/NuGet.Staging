@@ -5,7 +5,9 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 {
     public class TopicMessageListenerOptions
     {
-        public string ServiceBusConnectionString { get; set; }
+        public string ServiceBusUri { get; set; }
+        public string SharedAccessPolicyName { get; set; }
+        public string SharedAccessPolicyKey { get; set; }
         public string TopicName { get; set; }
         public string SubscriptionName { get; set; }
         public int ProcessingConcurrency { get; set; }

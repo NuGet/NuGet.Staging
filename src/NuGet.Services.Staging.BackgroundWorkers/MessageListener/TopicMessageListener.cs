@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using Newtonsoft.Json;
 
@@ -40,7 +41,10 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             _options = options.Value;
             _logger = logger;
 
-            var factory = MessagingFactory.CreateFromConnectionString(_options.ServiceBusConnectionString);
+            var factory = MessagingFactory.Create(
+                _options.ServiceBusUri,
+                TokenProvider.CreateSharedAccessSignatureTokenProvider(_options.SharedAccessPolicyName, _options.SharedAccessPolicyKey));
+
             _subscriptionClient = factory.CreateSubscriptionClient(_options.TopicName, _options.SubscriptionName, ReceiveMode.PeekLock);
 
             _activeTaskCollection = new ConcurrentDictionary<string, BrokeredMessage>();
