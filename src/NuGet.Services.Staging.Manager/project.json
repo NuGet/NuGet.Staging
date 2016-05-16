@@ -3,7 +3,7 @@
         "emitEntryPoint": true
     },
     "dependencies": {
-        "Microsoft.ApplicationInsights.AspNetCore": "1.0.0-rc2",
+        "Microsoft.ApplicationInsights.AspNetCore": "1.0.0-rc2-*",
         "NuGet.Services.Staging.Database": "1.0.0-*",
         "NuGet.Services.Staging.PackageService": "1.0.0-*",
         "NuGet.Services.V3Repository": "1.0.0-*",
