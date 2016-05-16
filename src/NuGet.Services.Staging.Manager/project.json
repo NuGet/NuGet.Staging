@@ -13,7 +13,6 @@
         "Microsoft.EntityFrameworkCore.SqlServer": "1.0.0-rc2-*",
         "Microsoft.AspNetCore.Diagnostics": "1.0.0-rc2-*",
         "Microsoft.AspNetCore.Http.Abstractions": "1.0.0-rc2-*",
-        "Microsoft.AspNetCore.IISPlatformHandler": "1.0.0-rc2-*",
         "Microsoft.AspNetCore.Mvc": "1.0.0-rc2-*",
         "Microsoft.AspNetCore.Server.Kestrel": "1.0.0-rc2-*",
         "Microsoft.AspNetCore.Hosting": "1.0.0-rc2-*",
@@ -33,7 +32,7 @@
         "NuGet.Services.Logging": "2.0.0-rc2-*",
         "Microsoft.EntityFrameworkCore.Tools": {
             "type": "build",
-            "version": "1.0.0-rc2-*"
+            "version": "1.0.0-preview1-*"
         }
     },
 
@@ -43,8 +42,15 @@
     "tools": {
         "Microsoft.EntityFrameworkCore.Tools": {
             "imports": [ "portable-net451+win8" ],
-            "version": "1.0.0-rc2-*"
+            "version": "1.0.0-preview1-*"
+        },
+        "Microsoft.AspNetCore.Server.IISIntegration.Tools": {
+            "version": "1.0.0-*",
+            "imports": "portable-net45+wp80+win8+wpa81+dnxcore50"
         }
+    },
+    "scripts": {
+        "postpublish": "dotnet publish-iis --publish-folder %publish:OutputPath% --framework %publish:FullTargetFramework%"
     },
 
     "userSecretsId": "aspnet5-Stage.Manager-20160219110719"
