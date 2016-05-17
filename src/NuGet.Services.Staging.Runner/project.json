@@ -17,11 +17,15 @@
     "commands": {
         "NuGet.Services.Staging.Runner": "NuGet.Services.Staging.Runner"
     },
-   "frameworks": {
+    "frameworks": {
         "net451": {
             "dependencies": {
                 "NuGet.Services.Staging.BackgroundWorkers": "1.0.0-*"
             }
         }
+    },
+    "publishOptions": {
+        "include": [ "Config" ],
+        "includeFiles": [ "appsettings.json", "NuGet.Services.Staging.Runner.nuspec" ]
     }
 }
