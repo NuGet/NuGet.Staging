@@ -25,7 +25,7 @@
         }
     },
     "publishOptions": {
-        "include": [ "Config" ],
+        "include": [ "Config", "Scripts" ],
         "includeFiles": [ "appsettings.json", "NuGet.Services.Staging.Runner.nuspec" ]
     }
 }
