@@ -25,7 +25,14 @@
         }
     },
     "publishOptions": {
-        "include": [ "Config", "Scripts" ],
-        "includeFiles": [ "appsettings.json", "NuGet.Services.Staging.Runner.nuspec" ]
+        "include": [ "Config" ],
+        "includeFiles": [ "appsettings.json", "NuGet.Services.Staging.Runner.nuspec" ],
+        "mappings": {
+            "Functions.ps1": "Scripts/Functions.ps1",
+            "nssm.exe": "Scripts/nssm.exe",
+            "NuGet.Services.Staging.Runner.cmd": "Scripts/NuGet.Services.Staging.Runner.cmd",
+            "PostDeploy.ps1": "Scripts/PostDeploy.ps1",
+            "PreDeploy.ps1": "Scripts/PreDeploy.ps1"
+        }
     }
 }

@@ -8,11 +8,4 @@
     <description>NuGet.Services.Staging.Runner</description>
     <copyright>Copyright 2016</copyright>
   </metadata>
-  <files>
-    <file src="Scripts\NuGet.Services.Staging.Runner.cmd" />
-    <file src="Scripts\Functions.ps1" />
-    <file src="Scripts\PreDeploy.ps1" />
-    <file src="Scripts\PostDeploy.ps1" />
-    <file src="Scripts\nssm.exe" />
-  </files>
-</package>
+ </package>
