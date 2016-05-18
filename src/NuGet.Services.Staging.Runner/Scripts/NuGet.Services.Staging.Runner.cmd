@@ -1,14 +1,13 @@
 @echo OFF
 	
-cd bin
 
 :Top
-	echo "Starting job - #{Jobs.staging.runner.Title}"
+	echo "Starting job - #{Jobs.NuGet.Services.Staging.Runner.Title}"
 	
-	title #{Jobs.staging.runner.Title}
+	title #{Jobs.NuGet.Services.Staging.Runner.Title}
 
-    start /w NuGet.Services.Staging.Runner.exe  #{Jobs.staging.runner.Environment}
+    start /w NuGet.Services.Staging.Runner.exe  #{Jobs.NuGet.Services.Staging.Runner.Environment}
 	
-	echo "Finished #{Jobs.staging.runner.Title}"
+	echo "Finished #{Jobs.NuGet.Services.Staging.Runner.Title}"
 
 	goto Top
