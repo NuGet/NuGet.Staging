@@ -7,13 +7,13 @@
         "NuGet.Services.Staging.PackageService": "1.0.0-*",
         "Microsoft.Extensions.Options": "1.0.0-rc2-*",
         "Newtonsoft.Json": "8.0.3",
-        "NuGet.Resolver": "3.5.0-*",
+        "NuGet.Resolver": "3.5.0-beta-final",
         "WindowsAzure.ServiceBus": "3.1.7",
         "NuGet.Services.Staging.Database": "1.0.0-*",
         "WindowsAzure.Storage": "4.3.0",
         "NuGet.Services.Staging.Authentication": "1.0.0-*",
         "Microsoft.Extensions.Logging": "1.0.0-rc2-*",
-        "NuGet.Protocol.Core.v3": "3.5.0-rc-*",
+        "NuGet.Protocol.Core.v3": "3.5.0-beta-final",
         "EnterpriseLibrary.TransientFaultHandling.Data": "6.0.1304.1"
     }
 }

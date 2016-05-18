@@ -129,10 +129,11 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             };
 
             var retryHandler = new HttpRetryHandler();
-            var handlerRequest = new HttpRetryHandlerRequest(_httpClient, requestFactory);
 
             var response = await retryHandler.SendAsync(
-                handlerRequest,
+                _httpClient,
+                requestFactory,
+                HttpCompletionOption.ResponseHeadersRead,
                 _loggerAdapter,
                 CancellationToken.None);
 
