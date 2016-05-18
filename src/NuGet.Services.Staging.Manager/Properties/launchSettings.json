@@ -17,7 +17,8 @@
     },
     "NuGet.Services.Staging.Manager": {
         "commandName": "Project",
-        "launchUrl": "http://localhost:5000",
+        "launchBrowser": true,
+        "launchUrl": "http://localhost:56215",
         "environmentVariables": {
             "ASPNETCORE_ENVIRONMENT": "Local"
         }

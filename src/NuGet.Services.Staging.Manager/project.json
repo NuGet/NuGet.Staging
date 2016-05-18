@@ -1,7 +1,20 @@
 {
     "buildOptions": {
-        "emitEntryPoint": true
+        "emitEntryPoint": true,
+        "preserveCompilationContext": true,
+        "copyToOutput": {
+            "include": [ "Config", "wwwroot", "web.config", "appsettings.json" ]
+        }
     },
+    "publishOptions": {
+        "include": [ "Config", "wwroot", "appsettings.json", "web.config" ]
+    },
+
+    "runtimeOptions": {
+        "gcServer": true,
+        "gcConcurrent": true
+    },
+
     "dependencies": {
         "Microsoft.ApplicationInsights.AspNetCore": "1.0.0-rc2-*",
         "NuGet.Services.Staging.Database": "1.0.0-*",
@@ -51,7 +64,5 @@
     },
     "scripts": {
         "postpublish": "dotnet publish-iis --publish-folder %publish:OutputPath% --framework %publish:FullTargetFramework%"
-    },
-
-    "userSecretsId": "aspnet5-Stage.Manager-20160219110719"
+    }
 }
