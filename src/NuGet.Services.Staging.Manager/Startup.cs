@@ -124,10 +124,12 @@ namespace NuGet.Services.Staging.Manager
 
         private void ConfigureLogging(IServiceCollection serviceCollection)
         {
+            var loggingConfig = LoggingSetup.CreateDefaultLoggerConfiguration();
+
             // Add application insights
             ApplicationInsights.Initialize(Configuration["ApplicationInsights:InstrumentationKey"]);
 
-            var loggerFactory = LoggingSetup.CreateLoggerFactory();
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggingConfig);
             serviceCollection.AddSingleton<ILoggerFactory>(loggerFactory);
         }
 
