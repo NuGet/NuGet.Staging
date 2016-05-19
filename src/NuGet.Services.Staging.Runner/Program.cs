@@ -15,6 +15,7 @@ using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.BackgroundWorkers;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.PackageService;
+using Serilog.Sinks.RollingFile;
 
 namespace NuGet.Services.Staging.Runner
 {
@@ -99,10 +100,15 @@ namespace NuGet.Services.Staging.Runner
 
         private static void ConfigureLog(string environment, IServiceCollection serviceCollection)
         {
-            //// Write to AI
+            var loggingConfig = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: IsLocalEnvironment(environment));
+
+            // Write to file
+            loggingConfig.WriteTo.RollingFile("StageRunnerLog-{Date}.txt");
+
+            // Write to AI
             ApplicationInsights.Initialize(_configuration["ApplicationInsights:InstrumentationKey"]);
 
-            var loggerFactory = LoggingSetup.CreateLoggerFactory();
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggingConfig);
             serviceCollection.AddSingleton<ILoggerFactory>(loggerFactory);
         }
 

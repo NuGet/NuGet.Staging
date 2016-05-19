@@ -12,7 +12,8 @@
         "Microsoft.Extensions.Logging.TraceSource": "1.0.0-rc2-*",
         "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0-rc2-*",
         "EnterpriseLibrary.TransientFaultHandling.Data": "6.0.1304.1",
-        "NuGet.Services.Logging": "2.0.0-rc2-*"
+        "NuGet.Services.Logging": "2.0.0-rc2-*",
+        "Serilog.Sinks.RollingFile": "2.0.0-rc-703"
     },
     "commands": {
         "NuGet.Services.Staging.Runner": "NuGet.Services.Staging.Runner"
