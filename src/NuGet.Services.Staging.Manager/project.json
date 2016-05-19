@@ -7,7 +7,12 @@
         }
     },
     "publishOptions": {
-        "include": [ "Config", "wwroot", "appsettings.json", "web.config" ]
+        "include": [
+            "Config",
+            "wwroot",
+            "appsettings.json",
+            "web.config", 
+            "NuGet.Services.Staging.Manager.nuspec" ]
     },
 
     "runtimeOptions": {
