@@ -6,12 +6,12 @@
         "FluentAssertions": "4.3.2",
         "Microsoft.AspNetCore.Mvc": "1.0.0-rc2-*",
         "Newtonsoft.Json": "8.0.3",
-        "NuGet.Packaging": "3.5.0-rc-*",
+        "NuGet.Packaging": "3.5.0-beta-final",
         "NuGet.Services.Staging.BackgroundWorkers": "1.0.0-*",
         "NuGet.Services.Staging.Manager": "1.0.0-*",
         "dotnet-test-xunit": "1.0.0-rc2-*",
         "xunit": "2.1.0",
-        "Microsoft.NETCore.Platforms":  "1.0.1-rc2-*"
+        "Microsoft.NETCore.Platforms": "1.0.1-rc2-*"
     },
    "frameworks": {
     "net451": {

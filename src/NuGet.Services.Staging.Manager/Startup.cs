@@ -111,8 +111,6 @@ namespace NuGet.Services.Staging.Manager
                 applicationBuilder.UseDeveloperExceptionPage();
             }
 
-            applicationBuilder.UseIISPlatformHandler();
-
             // Add Application Insights monitoring to the request pipeline as a very first middleware.
             applicationBuilder.UseApplicationInsightsRequestTelemetry();
 

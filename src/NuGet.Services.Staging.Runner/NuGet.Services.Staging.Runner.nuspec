@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>NuGet.Services.Staging.Runner</id>
+    <version>$version$</version>
+    <authors>NuGet</authors>
+    <owners>NuGet</owners>
+    <description>NuGet.Services.Staging.Runner</description>
+    <copyright>Copyright 2016</copyright>
+  </metadata>
+ </package>

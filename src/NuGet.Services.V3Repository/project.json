@@ -8,6 +8,6 @@
         "Newtonsoft.Json": "8.0.3",
         "NuGet.Services.Metadata.Catalog": "3.0.2496-r-master",
         "Microsoft.Extensions.Logging": "1.0.0-rc2-*",
-        "NuGet.Packaging": "3.5.0-rc-*"
+        "NuGet.Packaging": "3.5.0-beta-final"
     }
 }

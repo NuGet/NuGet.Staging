@@ -17,11 +17,22 @@
     "commands": {
         "NuGet.Services.Staging.Runner": "NuGet.Services.Staging.Runner"
     },
-   "frameworks": {
+    "frameworks": {
         "net451": {
             "dependencies": {
                 "NuGet.Services.Staging.BackgroundWorkers": "1.0.0-*"
             }
+        }
+    },
+    "publishOptions": {
+        "include": [ "Config" ],
+        "includeFiles": [ "appsettings.json", "NuGet.Services.Staging.Runner.nuspec" ],
+        "mappings": {
+            "Functions.ps1": "Scripts/Functions.ps1",
+            "nssm.exe": "Scripts/nssm.exe",
+            "NuGet.Services.Staging.Runner.cmd": "Scripts/NuGet.Services.Staging.Runner.cmd",
+            "PostDeploy.ps1": "Scripts/PostDeploy.ps1",
+            "PreDeploy.ps1": "Scripts/PreDeploy.ps1"
         }
     }
 }

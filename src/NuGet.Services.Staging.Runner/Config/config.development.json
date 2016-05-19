@@ -4,9 +4,11 @@
     },
     "TopicMessageListenerOptions": {
         "ProcessingConcurrency": 10,
-        "ServiceBusConnectionString": "",
-        "SubscriptionName": "",
-        "TopicName": "",
+        "ServiceBusUri": "",
+        "SharedAccessPolicyName": "Reader",
+        "SharedAccessPolicyKey": "",
+        "SubscriptionName": "stagecommitworker",
+        "TopicName": "batchpush",
         "MaxDeliveryCount": 10
     },
     "StageDatabase": {
