@@ -1,8 +1,14 @@
-﻿{
+{
   "version": "2.0.0-rc2-*",
     "dependencies": {
         "Microsoft.ApplicationInsights": "2.1.0-beta4",
-        "Microsoft.Extensions.Logging": "1.0.0-rc2-*"
+        "Microsoft.Extensions.Logging": "1.0.0-rc2-*",
+        "Serilog": "2.0.0-rc-556",
+        "Serilog.Enrichers.Environment": "2.0.0-rc-708",
+        "Serilog.Extensions.Logging": "1.0.0-rc2-10099",
+        "Serilog.Sinks.ApplicationInsights": "2.0.28",
+        "Serilog.Sinks.ColoredConsole": "2.0.0-beta-700",
+        "SerilogTraceListener": "1.0.15"
     },
 
   "frameworks": {
