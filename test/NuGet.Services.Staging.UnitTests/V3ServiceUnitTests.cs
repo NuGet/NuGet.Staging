@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Test.Common;
 using NuGet.Services.V3Repository;
 using Xunit;
 

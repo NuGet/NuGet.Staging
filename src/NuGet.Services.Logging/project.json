@@ -1,5 +1,5 @@
 {
-  "version": "2.0.0-rc2-*",
+    "version": "2.0.0-rc2-1",
     "dependencies": {
         "Microsoft.ApplicationInsights": "2.1.0-beta4",
         "Microsoft.Extensions.Logging": "1.0.0-rc2-*",
@@ -11,13 +11,17 @@
         "SerilogTraceListener": "1.0.15"
     },
 
-  "frameworks": {
-    "net451": {
-        "frameworkAssemblies": {
-            "System.Data": "",
-            "System.Threading.Tasks": "",
-            "System.Runtime": ""
+    "frameworks": {
+        "net451": {
+            "frameworkAssemblies": {
+                "System.Data": "",
+                "System.Threading.Tasks": "",
+                "System.Runtime": ""
+            }
         }
+    },
+    "packOptions": {
+        "owners": [ "nuget" ],
+        "licenseUrl": "https://github.com/NuGet/Home/blob/dev/LICENSE.txt"
     }
-  }
 }

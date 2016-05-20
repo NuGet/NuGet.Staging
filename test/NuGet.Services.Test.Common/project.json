@@ -1,0 +1,15 @@
+﻿{
+    "buildOptions": {
+        "warningsAsErrors": true
+    },
+    "dependencies": {
+        "NuGet.Packaging": "3.5.0-beta-final"
+    },
+    "frameworks": {
+        "net451": {
+            "dependencies": {
+                "Moq": "4.2.1510.2205"
+            }
+        }
+    }
+}

@@ -22,7 +22,7 @@ namespace NuGet.Services.Staging.Manager.Controllers {
     // with the /str option, or rebuild your VS project.
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Messages {
+    public class Messages {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -35,10 +35,10 @@ namespace NuGet.Services.Staging.Manager.Controllers {
         ///    Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NuGet.Services.Staging.Manager.Controllers.Messages", typeof(Messages).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NuGet.Services.Staging.Manager.Messages", typeof(Messages).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -50,7 +50,7 @@ namespace NuGet.Services.Staging.Manager.Controllers {
         ///    resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -62,7 +62,7 @@ namespace NuGet.Services.Staging.Manager.Controllers {
         /// <summary>
         ///    Looks up a localized string similar to The specified API key is invalid or does not have permission to access the specified package..
         /// </summary>
-        internal static string ApiKeyUnauthorizedMessage {
+        public static string ApiKeyUnauthorizedMessage {
             get {
                 return ResourceManager.GetString("ApiKeyUnauthorizedMessage", resourceCulture);
             }
@@ -71,16 +71,25 @@ namespace NuGet.Services.Staging.Manager.Controllers {
         /// <summary>
         ///    Looks up a localized string similar to Commit for stage &apos;{0}&apos; is in progress or completed..
         /// </summary>
-        internal static string CommitInProgressMessage {
+        public static string CommitInProgressMessage {
             get {
                 return ResourceManager.GetString("CommitInProgressMessage", resourceCulture);
             }
         }
         
         /// <summary>
+        ///    Looks up a localized string similar to Commit for stage &apos;{0}&apos; does not exist.
+        /// </summary>
+        public static string CommitNotFound {
+            get {
+                return ResourceManager.GetString("CommitNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///    Looks up a localized string similar to Stage &apos;{0}&apos; is empty. Add packages before commiting, or delete stage..
         /// </summary>
-        internal static string EmptyStageCommitMessage {
+        public static string EmptyStageCommitMessage {
             get {
                 return ResourceManager.GetString("EmptyStageCommitMessage", resourceCulture);
             }
@@ -89,7 +98,7 @@ namespace NuGet.Services.Staging.Manager.Controllers {
         /// <summary>
         ///    Looks up a localized string similar to Provide a non-empty display name with length up to {0} characters.
         /// </summary>
-        internal static string InvalidStageDisplayName {
+        public static string InvalidStageDisplayName {
             get {
                 return ResourceManager.GetString("InvalidStageDisplayName", resourceCulture);
             }
@@ -98,7 +107,7 @@ namespace NuGet.Services.Staging.Manager.Controllers {
         /// <summary>
         ///    Looks up a localized string similar to Provide a valid stage id Guid.
         /// </summary>
-        internal static string InvalidStageIdMessage {
+        public static string InvalidStageIdMessage {
             get {
                 return ResourceManager.GetString("InvalidStageIdMessage", resourceCulture);
             }
@@ -107,7 +116,7 @@ namespace NuGet.Services.Staging.Manager.Controllers {
         /// <summary>
         ///    Looks up a localized string similar to This package requires version &apos;{0}&apos; of NuGet, which this gallery does not currently support. Please contact us if you have questions..
         /// </summary>
-        internal static string MinClientVersionOutOfRangeMessage {
+        public static string MinClientVersionOutOfRangeMessage {
             get {
                 return ResourceManager.GetString("MinClientVersionOutOfRangeMessage", resourceCulture);
             }
@@ -116,7 +125,7 @@ namespace NuGet.Services.Staging.Manager.Controllers {
         /// <summary>
         ///    Looks up a localized string similar to The NuGet package contains an invaid .nuspec file. The error encountered was:&apos;{0}&apos;. Correct the error and try again..
         /// </summary>
-        internal static string NuspecErrorMessage {
+        public static string NuspecErrorMessage {
             get {
                 return ResourceManager.GetString("NuspecErrorMessage", resourceCulture);
             }
@@ -125,7 +134,7 @@ namespace NuGet.Services.Staging.Manager.Controllers {
         /// <summary>
         ///    Looks up a localized string similar to A package with id &apos;{0}&apos; and version &apos;{1}&apos; already exists on NuGet.org. Commit of this stage will fail..
         /// </summary>
-        internal static string PackageAlreadyExists {
+        public static string PackageAlreadyExists {
             get {
                 return ResourceManager.GetString("PackageAlreadyExists", resourceCulture);
             }
@@ -134,7 +143,7 @@ namespace NuGet.Services.Staging.Manager.Controllers {
         /// <summary>
         ///    Looks up a localized string similar to The NuGet package is invalid. The error encountered was:&apos;{0}&apos;. Correct the error and try again..
         /// </summary>
-        internal static string PackageErrorMessage {
+        public static string PackageErrorMessage {
             get {
                 return ResourceManager.GetString("PackageErrorMessage", resourceCulture);
             }
@@ -143,7 +152,7 @@ namespace NuGet.Services.Staging.Manager.Controllers {
         /// <summary>
         ///    Looks up a localized string similar to A package with id &apos;{0}&apos; and version &apos;{1}&apos; already exists on stage &apos;{2}&apos;. Delete and add to modify..
         /// </summary>
-        internal static string PackageExistsOnStageMessage {
+        public static string PackageExistsOnStageMessage {
             get {
                 return ResourceManager.GetString("PackageExistsOnStageMessage", resourceCulture);
             }
@@ -152,7 +161,7 @@ namespace NuGet.Services.Staging.Manager.Controllers {
         /// <summary>
         ///    Looks up a localized string similar to Edits of stage &apos;{0}&apos; are not allowed..
         /// </summary>
-        internal static string StageEditNotAllowed {
+        public static string StageEditNotAllowed {
             get {
                 return ResourceManager.GetString("StageEditNotAllowed", resourceCulture);
             }

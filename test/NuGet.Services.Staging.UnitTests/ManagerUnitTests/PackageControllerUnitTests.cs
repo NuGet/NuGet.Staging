@@ -16,6 +16,7 @@ using NuGet.Services.V3Repository;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Controllers;
 using NuGet.Services.Staging.PackageService;
+using NuGet.Services.Test.Common;
 using Xunit;
 
 namespace NuGet.Services.Staging.Manager.UnitTests
