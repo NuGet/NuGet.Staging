@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -14,7 +13,6 @@ using NuGet.Protocol;
 using Xunit.Abstractions;
 using NuGet.Protocol.Core.v3;
 using System.Linq;
-using System.Net;
 
 namespace NuGet.Services.Staging.Test.EndToEnd
 {
@@ -22,12 +20,12 @@ namespace NuGet.Services.Staging.Test.EndToEnd
     {
         private const string ApiKeyHeader = "X-NuGet-ApiKey";
         private const string StagePath = "api/stage";
-        private const string PackagePath = "api/package";
-
+        private const string MediaType = "application/json";
+        private const string ContentType = "application/octet-stream";
         private readonly Uri _stagingServiceUri;
         private readonly HttpClient _httpClient;
         private readonly ITestOutputHelper _logger;
-        private readonly NuGetLoggerAdapter _loggerAdapter;
+        private readonly XUnitLoggerAdapter _loggerAdapter;
 
         public StagingClient(Uri stagingServiceUri, ITestOutputHelper logger)
         {
@@ -43,7 +41,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
             _stagingServiceUri = stagingServiceUri;
             _logger = logger;
-            _loggerAdapter = new NuGetLoggerAdapter(_logger);
+            _loggerAdapter = new XUnitLoggerAdapter(_logger);
 
             _httpClient = new HttpClient();
         }
@@ -91,7 +89,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
                 request.Headers.Add(ApiKeyHeader, apiKey);
 
                 request.Content = new StringContent("\"" + displayName + "\"", Encoding.UTF8);
-                request.Content.Headers.ContentType.MediaType = "application/json";
+                request.Content.Headers.ContentType.MediaType = MediaType;
 
                 return request;
             };
@@ -195,7 +193,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
             var content = new MultipartFormDataContent();
             packageStream.Position = 0;
             var packageContent = new StreamContent(packageStream);
-            packageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
+            packageContent.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
             content.Add(packageContent, "package", "package.nupkg");
 
             Func<HttpRequestMessage> requestFactory = () =>
@@ -243,38 +241,6 @@ namespace NuGet.Services.Staging.Test.EndToEnd
                         $"Response status code does not indicate success: {response.StatusCode}. Message: {serverMessage}");
                 }
             }
-        }
-    }
-
-    public class ReusableContent : HttpContent
-    {
-        private readonly HttpContent _innerContent;
-
-        public ReusableContent(HttpContent innerContent)
-        {
-            _innerContent = innerContent;
-
-            foreach (var header in innerContent.Headers)
-            {
-                Headers.Add(header.Key, header.Value);
-            }
-        }
-
-        protected override async Task SerializeToStreamAsync(Stream stream, TransportContext context)
-        {
-            await _innerContent.CopyToAsync(stream);
-        }
-
-        protected override bool TryComputeLength(out long length)
-        {
-            length = -1;
-            return false;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            // Don't call base dispose
-            //base.Dispose(disposing);
         }
     }
 }

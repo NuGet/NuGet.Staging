@@ -6,11 +6,11 @@ using Xunit.Abstractions;
 
 namespace NuGet.Services.Staging.Test.EndToEnd
 {
-    public class NuGetLoggerAdapter : NuGet.Common.ILogger
+    public class XUnitLoggerAdapter : NuGet.Common.ILogger
     {
         private readonly ITestOutputHelper _outputHelper;
 
-        public NuGetLoggerAdapter(ITestOutputHelper outputHelper)
+        public XUnitLoggerAdapter(ITestOutputHelper outputHelper)
         {
             if (outputHelper == null)
             {

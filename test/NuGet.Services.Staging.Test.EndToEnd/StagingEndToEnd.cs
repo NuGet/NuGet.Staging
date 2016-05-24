@@ -38,7 +38,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
     {
         private readonly ITestOutputHelper _output;
         private readonly StagingEndToEndConfiguration _configuration;
-        
+       
         public StagingEndToEnd(ITestOutputHelper output)
         {
             _output = output;
@@ -53,7 +53,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
             // Create stage
             var createStageResult = await VerifyCreateStage(client);
 
-            string stageId = createStageResult["Id"].ToString();
+            string stageId = createStageResult[Constants.Stage_Id].ToString();
 
             // Push packages
             var pushedPackages = await VerifyPushPackages(client, stageId, _configuration.PackagesToPushCount);
@@ -83,7 +83,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
             // Drop the stages
             for (int i = 0; i < stagesCount; i++)
             {
-                await VerifyDropStage(client, createdStageResults[i]["Id"].ToString());
+                await VerifyDropStage(client, createdStageResults[i][Constants.Stage_Id].ToString());
             }
         }
 
@@ -93,8 +93,8 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
             var dropResult = await client.DropStage(stageId, _configuration.ApiKey);
 
-            dropResult["Id"].ShouldAllBeEquivalentTo(stageId, "Stage Id should be correct");
-            dropResult["Status"].ShouldAllBeEquivalentTo("Deleted");
+            dropResult[Constants.Stage_Id].ShouldAllBeEquivalentTo(stageId, "Stage Id should be correct");
+            dropResult[Constants.Stage_Status].ShouldAllBeEquivalentTo("Deleted");
         }
 
         private async Task VerifyListUserStages(StagingClient client, int stagesCount, List<JObject> createdStageResults)
@@ -104,11 +104,11 @@ namespace NuGet.Services.Staging.Test.EndToEnd
             foreach (var createdStageResult in createdStageResults)
             {
                 var listUserStage = listUserStagesResult
-                    .First(x => x["Id"].ToString() == createdStageResult["Id"].ToString());
+                    .First(x => x[Constants.Stage_Id].ToString() == createdStageResult[Constants.Stage_Id].ToString());
 
-                listUserStage.Should().NotBeNull($"Failed to find a list stage for stage {createdStageResult["Id"]}");
-                listUserStage["Status"].ToString().ShouldBeEquivalentTo("Active");
-                listUserStage["MembershipType"].ToString().ShouldBeEquivalentTo("Owner");
+                listUserStage.Should().NotBeNull($"Failed to find a list stage for stage {createdStageResult[Constants.Stage_Id]}");
+                listUserStage[Constants.Stage_Status].ToString().ShouldBeEquivalentTo("Active");
+                listUserStage[Constants.Stage_MembershipType].ToString().ShouldBeEquivalentTo("Owner");
             }
         }
 
@@ -129,23 +129,23 @@ namespace NuGet.Services.Staging.Test.EndToEnd
                 _output.WriteLine($"Getting commit progress for stage {stageId}");
                 var commitProgress = await client.GetCommitProgress(stageId);
 
-                string commitStatus = commitProgress["CommitStatus"].ToString();
-                string errorMessage = commitProgress["ErrorMessage"].ToString();
+                string commitStatus = commitProgress[Constants.CommitProgress_CommitStatus].ToString();
+                string errorMessage = commitProgress[Constants.CommitProgress_ErrorMessage].ToString();
 
                 _output.WriteLine($"Commit status: {commitStatus}, Error message: {errorMessage}");
 
-                var packagesProgress = commitProgress["PackageProgressList"];
+                var packagesProgress = commitProgress[Constants.CommitProgress_PackageProgressList];
 
                 foreach (var pushedPackage in pushedPackages)
                 {
-                    var packageProgress = packagesProgress.FirstOrDefault(x => x["Id"].ToString() == pushedPackage.Id);
+                    var packageProgress = packagesProgress.FirstOrDefault(x => x[Constants.Stage_Id].ToString() == pushedPackage.Id);
                     packageProgress.Should().NotBeNull($"Package {pushedPackage.Id} should be shown in stage commit progress.");
-                    packageProgress["Version"].ToString().ShouldBeEquivalentTo(pushedPackage.Version);
+                    packageProgress[Constants.Package_Version].ToString().ShouldBeEquivalentTo(pushedPackage.Version);
                     
-                    _output.WriteLine($"Package {packageProgress["Id"]} {packageProgress["Version"]} is {packageProgress["Progress"]}");
+                    _output.WriteLine($"Package {packageProgress[Constants.Stage_Id]} {packageProgress[Constants.Package_Version]} is {packageProgress[Constants.Package_Progress]}");
                 }
 
-                if (commitStatus != "InProgress" && commitStatus != "Pending")
+                if (commitStatus != Constants.CommitStatus_InProgress && commitStatus != Constants.CommitStatus_Pending)
                 {
                     commitCompleted = true;
                 }
@@ -176,16 +176,16 @@ namespace NuGet.Services.Staging.Test.EndToEnd
             }
 
             var stageDetails = await client.GetDetails(stageId);
-            stageDetails["PackagesCount"].Value<int>()
+            stageDetails[Constants.Stage_PackageCount].Value<int>()
                 .ShouldBeEquivalentTo(packagesCount, "Details should show correct packages count");
 
-            var packages = stageDetails["Packages"];
+            var packages = stageDetails[Constants.Stage_Packages];
 
             foreach (var pushedPackage in pushedPackages)
             {
-                var packageInDetails = packages.FirstOrDefault(x => x["Id"].ToString() == pushedPackage.Id);
+                var packageInDetails = packages.FirstOrDefault(x => x[Constants.Stage_Id].ToString() == pushedPackage.Id);
                 packageInDetails.Should().NotBeNull($"Package {pushedPackage.Id} should be shown in stage details.");
-                packageInDetails["Version"].ToString().ShouldBeEquivalentTo(pushedPackage.Version);
+                packageInDetails[Constants.Package_Version].ToString().ShouldBeEquivalentTo(pushedPackage.Version);
             }
 
             return pushedPackages;
@@ -200,9 +200,9 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
             var createStageResult = await client.CreateStage(stageName, _configuration.ApiKey);
 
-            createStageResult["DisplayName"].ToString().ShouldBeEquivalentTo(stageName, "Display name should be correct");
-            createStageResult["Status"].ToString().ShouldBeEquivalentTo("Active");
-            createStageResult["MembershipType"].ToString().ShouldBeEquivalentTo("Owner");
+            createStageResult[Constants.Stage_DisplayName].ToString().ShouldBeEquivalentTo(stageName, "Display name should be correct");
+            createStageResult[Constants.Stage_Status].ToString().ShouldBeEquivalentTo(Constants.StageStatus_Active);
+            createStageResult[Constants.Stage_MembershipType].ToString().ShouldBeEquivalentTo(Constants.MembershipType_Owner);
 
             return createStageResult;
         }
