@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using NuGet.Services.Staging.Database.Models;
+using NuGet.Services.Staging.Manager;
 using Xunit;
 
 namespace NuGet.Services.Staging.Test.UnitTest
@@ -50,8 +51,11 @@ namespace NuGet.Services.Staging.Test.UnitTest
         [Fact]
         public async Task WhenCreateCalledWithLongDisplayName400IsReturned()
         {
+            // Arrange
+            string longName = new string('a', StageService.MaxDisplayNameLength + 1);
+
             // Act 
-            IActionResult actionResult = await _stageController.Create("abcdefghijklmnoprstuvwxyzabcdefghijklmnoprstuvwxyz");
+            IActionResult actionResult = await _stageController.Create(longName);
 
             // Assert
             actionResult.Should().BeOfType<BadRequestObjectResult>();

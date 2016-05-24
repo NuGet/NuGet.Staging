@@ -107,7 +107,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
             IActionResult actionResult = _stageController.GetCommitProgress(stage);
 
             // Assert
-            actionResult.Should().BeOfType<BadRequestResult>();
+            actionResult.Should().BeOfType<BadRequestObjectResult>();
         }
 
         [Fact]

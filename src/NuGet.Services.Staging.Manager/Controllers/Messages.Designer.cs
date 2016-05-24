@@ -38,7 +38,7 @@ namespace NuGet.Services.Staging.Manager.Controllers {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NuGet.Services.Staging.Manager.Messages", typeof(Messages).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NuGet.Services.Staging.Manager.Controllers.Messages", typeof(Messages).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
