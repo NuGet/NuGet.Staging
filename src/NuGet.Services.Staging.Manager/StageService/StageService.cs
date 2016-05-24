@@ -18,7 +18,7 @@ namespace NuGet.Services.Staging.Manager
 
         // After this period the stage will expire and be deleted
         public const int DefaultExpirationPeriodDays = 30;
-        public const int MaxDisplayNameLength = 32;
+        public const int MaxDisplayNameLength = 128;
 
         public StageService(StageContext context)
         {

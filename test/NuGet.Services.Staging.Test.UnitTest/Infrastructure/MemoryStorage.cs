@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Staging.Test.UnitTest
 {
     public class MemoryStorage
          : Storage

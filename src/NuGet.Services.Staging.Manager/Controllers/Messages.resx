@@ -150,4 +150,7 @@
   <data name="EmptyStageCommitMessage" xml:space="preserve">
     <value>Stage '{0}' is empty. Add packages before commiting, or delete stage.</value>
   </data>
+  <data name="CommitNotFound" xml:space="preserve">
+    <value>Commit for stage '{0}' does not exist</value>
+  </data>
 </root>

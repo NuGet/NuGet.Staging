@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Staging.Test.UnitTest
 {
     public static class TestExtensions
     {

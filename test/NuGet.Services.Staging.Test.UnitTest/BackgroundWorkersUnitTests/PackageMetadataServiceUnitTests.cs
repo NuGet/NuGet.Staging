@@ -10,8 +10,8 @@ using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Services.Staging.BackgroundWorkers;
-using NuGet.Services.Staging.Manager.UnitTests;
 using NuGet.Services.Staging.PackageService;
+using NuGet.Services.Test.Common;
 using Xunit;
 
 namespace NuGet.Services.Staging.UnitTests.BackgroundWorkersUnitTests

@@ -166,7 +166,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
             if (commit == null)
             {
-                return new BadRequestResult();
+                return new BadRequestObjectResult(string.Format(Messages.CommitNotFound, stage.DisplayName));
             }
 
             var commitProgressView = CreateViewStageCommitProgress(stage, commit);

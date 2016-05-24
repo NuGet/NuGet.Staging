@@ -9,9 +9,10 @@
         "NuGet.Packaging": "3.5.0-beta-final",
         "NuGet.Services.Staging.BackgroundWorkers": "1.0.0-*",
         "NuGet.Services.Staging.Manager": "1.0.0-*",
-        "dotnet-test-xunit": "1.0.0-rc2-*",
+        "dotnet-test-xunit": "1.0.0-rc3-build10019",
         "xunit": "2.1.0",
-        "Microsoft.NETCore.Platforms": "1.0.1-rc2-*"
+        "Microsoft.NETCore.Platforms": "1.0.1-rc2-*",
+        "NuGet.Services.Test.Common": "1.0.0-*"
     },
    "frameworks": {
     "net451": {

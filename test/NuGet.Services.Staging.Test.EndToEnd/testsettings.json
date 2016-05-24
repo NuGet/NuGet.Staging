@@ -1,0 +1,8 @@
+﻿{
+    "StagingEndToEnd": {
+        "ApiKey": "",
+        "PackagesToPushCount": 10,
+        "StagingUri": "https://nuget-dev-stage.azurewebsites.net",
+        "CommitTimeoutInMinutes":  5
+    }
+}

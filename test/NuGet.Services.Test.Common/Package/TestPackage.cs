@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using NuGet.Packaging;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Test.Common
 {
     public class TestPackage
     {
@@ -84,10 +84,7 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             var packageStream = new MemoryStream();
             using (var packageArchive = new ZipArchive(packageStream, ZipArchiveMode.Create, leaveOpen: true))
             {
-                if (populatePackage != null)
-                {
-                    populatePackage(packageArchive);
-                }
+                populatePackage?.Invoke(packageArchive);
             }
 
             packageStream.Position = 0;
@@ -102,12 +99,12 @@ namespace NuGet.Services.Staging.Manager.UnitTests
             string version,
             string minClientVersion = null,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
-            string title = "Package Id",
-            string summary = "Package Summary",
-            string authors = "Package author",
+            string title = "Test Package",
+            string summary = "This package is for testing NuGet",
+            string authors = "nuget",
             string owners = "Package owners",
-            string description = "Package Description",
-            string tags = "Package tags",
+            string description = "This package is for testing NuGet",
+            string tags = "nuget test",
             string language = null,
             string copyright = null,
             string releaseNotes = null,

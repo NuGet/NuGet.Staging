@@ -7,7 +7,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Staging.Test.UnitTest
 {
     public static class AttributeHelper
     {
