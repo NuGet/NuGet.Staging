@@ -14,12 +14,13 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.V3Repository;
 using NuGet.Services.Staging.Database.Models;
+using NuGet.Services.Staging.Manager;
 using NuGet.Services.Staging.Manager.Controllers;
 using NuGet.Services.Staging.PackageService;
 using NuGet.Services.Test.Common;
 using Xunit;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Staging.Test.UnitTest
 {
     [Collection("Packages test collection")]
     public class PackageControllerUnitTests

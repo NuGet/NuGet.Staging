@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace NuGet.Services.Staging.EndToEndTests
+namespace NuGet.Services.Staging.Test.EndToEnd
 {
     interface IStagingClient
     {

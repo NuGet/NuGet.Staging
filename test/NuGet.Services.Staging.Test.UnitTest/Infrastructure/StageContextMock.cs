@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using NuGet.Services.Staging.Database.Models;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Staging.Test.UnitTest
 {
     public class StageContextMock : Mock<StageContext>
     {

@@ -4,7 +4,7 @@
 using System;
 using Xunit.Abstractions;
 
-namespace NuGet.Services.Staging.EndToEndTests
+namespace NuGet.Services.Staging.Test.EndToEnd
 {
     public class NuGetLoggerAdapter : NuGet.Common.ILogger
     {

@@ -5,7 +5,7 @@ using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Staging.Test.UnitTest
 {
     /// <summary>
     /// Taken from: https://datatellblog.wordpress.com/2015/05/05/unit-testing-asp-net-mvc-authorization/

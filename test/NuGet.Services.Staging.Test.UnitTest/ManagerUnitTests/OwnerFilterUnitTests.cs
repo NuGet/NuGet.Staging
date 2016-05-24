@@ -12,9 +12,10 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NuGet.Services.Staging.Database.Models;
+using NuGet.Services.Staging.Manager;
 using Xunit;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Staging.Test.UnitTest
 {
     public class EnsureUserIsOwnerOfStageFilterUnitTests
     {

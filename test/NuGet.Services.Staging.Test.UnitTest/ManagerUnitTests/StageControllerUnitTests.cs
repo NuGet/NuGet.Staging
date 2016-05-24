@@ -14,12 +14,13 @@ using Newtonsoft.Json.Linq;
 using NuGet.Protocol.Core.v3;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Staging.Database.Models;
+using NuGet.Services.Staging.Manager;
 using NuGet.Services.Staging.Manager.Controllers;
 using NuGet.Services.Staging.Manager.Search;
 using NuGet.Services.Staging.PackageService;
 using Xunit;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Staging.Test.UnitTest
 {
     /// <summary>
     /// Helpful links:

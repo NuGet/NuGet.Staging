@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using NuGet.Services.Staging.Database.Models;
 using Xunit;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Staging.Test.UnitTest
 {
     public class StageControllerCreateUnitTests : StageControllerUnitTests
     {

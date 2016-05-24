@@ -5,9 +5,10 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using NuGet.Services.Staging.Database.Models;
+using NuGet.Services.Staging.Manager;
 using Xunit;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Staging.Test.UnitTest
 {
     public class StageControllerDropUnitTests : StageControllerUnitTests
     {

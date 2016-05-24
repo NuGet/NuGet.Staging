@@ -14,7 +14,7 @@ using NuGet.Services.Test.Common;
 using NuGet.Services.V3Repository;
 using Xunit;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Staging.Test.UnitTest
 {
     [Collection("Packages test collection")]
     public class V3ServiceUnitTests

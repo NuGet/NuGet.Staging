@@ -13,7 +13,7 @@ using NuGet.Services.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace NuGet.Services.Staging.EndToEndTests
+namespace NuGet.Services.Staging.Test.EndToEnd
 {
     public class StagingEndToEndConfiguration
     {

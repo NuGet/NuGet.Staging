@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
-namespace NuGet.Services.Staging.Manager.UnitTests
+namespace NuGet.Services.Staging.Test.UnitTest
 {
     public class TestStorageFactory
         : StorageFactory

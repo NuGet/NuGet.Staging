@@ -16,7 +16,7 @@ using NuGet.Protocol.Core.v3;
 using System.Linq;
 using System.Net;
 
-namespace NuGet.Services.Staging.EndToEndTests
+namespace NuGet.Services.Staging.Test.EndToEnd
 {
     public class StagingClient : IStagingClient
     {

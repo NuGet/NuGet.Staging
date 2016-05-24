@@ -12,4 +12,4 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: InternalsVisibleTo("NuGet.Services.Staging.UnitTests")]
+[assembly: InternalsVisibleTo("NuGet.Services.Staging.Test.UnitTest")]

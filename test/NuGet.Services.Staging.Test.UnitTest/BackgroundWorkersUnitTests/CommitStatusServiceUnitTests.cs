@@ -7,7 +7,7 @@ using FluentAssertions;
 using Moq;
 using NuGet.Services.Staging.BackgroundWorkers;
 using NuGet.Services.Staging.Database.Models;
-using NuGet.Services.Staging.Manager.UnitTests;
+using NuGet.Services.Staging.Test.UnitTest;
 using NuGet.Services.Staging.PackageService;
 using Xunit;
 
