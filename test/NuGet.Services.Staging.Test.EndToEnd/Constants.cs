@@ -19,8 +19,8 @@ namespace NuGet.Services.Staging.Test.EndToEnd
         public const string Package_Version = "Version";
         public const string Package_Progress = "Progress";
 
-        public const string CommitStatus_InProgress = "InProgress";
-        public const string CommitStatus_Pending = "Pending";
+        public const string CommitStatus_Failed = "Failed";
+        public const string CommitStatus_Completed = "Completed";
 
         public const string StageStatus_Active = "Active";
         public const string MembershipType_Owner = "Owner";

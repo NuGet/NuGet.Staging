@@ -145,15 +145,18 @@ namespace NuGet.Services.Staging.Test.EndToEnd
                     _output.WriteLine($"Package {packageProgress[Constants.Stage_Id]} {packageProgress[Constants.Package_Version]} is {packageProgress[Constants.Package_Progress]}");
                 }
 
-                if (commitStatus != Constants.CommitStatus_InProgress && commitStatus != Constants.CommitStatus_Pending)
+                if (commitStatus == Constants.CommitStatus_Failed)
+                {
+                    Assert.True(false, "Commit failed.");    
+                }
+                else if (commitStatus == Constants.CommitStatus_Completed)
                 {
                     commitCompleted = true;
                 }
-
-                if (!commitCompleted && commitTime.Elapsed > TimeSpan.FromMinutes(_configuration.CommitTimeoutInMinutes))
+                else if (commitTime.Elapsed > TimeSpan.FromMinutes(_configuration.CommitTimeoutInMinutes))
                 {
-                    commitCompleted = true;
                     _output.WriteLine($"Commit of stage {stageId} timed out. Waited for {_configuration.CommitTimeoutInMinutes} minutes.");
+                    Assert.True(false, "Commit timed out");
                 }
             }
         }
