@@ -110,19 +110,17 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 
         private async Task<HttpResponseMessage> SendPackage(Stream packageStream, string apiKey)
         {
+            var content = new MultipartFormDataContent();
+            packageStream.Position = 0;
+            var packageContent = new StreamContent(packageStream);
+            packageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
+            content.Add(packageContent, "package", "package.nupkg");
+
             Func<HttpRequestMessage> requestFactory = () =>
             {
-                var request = new HttpRequestMessage(HttpMethod.Put, _options.PushUri);
-                var content = new MultipartFormDataContent();
+                var request = new HttpRequestMessage(HttpMethod.Put, new Uri(_options.PushUri));
 
-                packageStream.Position = 0;
-
-                var packageContent = new StreamContent(packageStream);
-                packageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
-                //"package" and "package.nupkg" are random names for content deserializing
-                //not tied to actual package name.  
-                content.Add(packageContent, "package", "package.nupkg");
-                request.Content = content;
+                request.Content = new ReusableContent(content);
                 request.Headers.Add(ApiKeyHeader, apiKey);
 
                 return request;
