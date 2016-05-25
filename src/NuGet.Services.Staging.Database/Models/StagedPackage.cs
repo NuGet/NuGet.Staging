@@ -24,5 +24,7 @@ namespace NuGet.Services.Staging.Database.Models
         public string NupkgUrl { get; set; }
 
         public string NuspecUrl { get; set; }
+
+        public PackageMetadata PackageMetadata { get; set; }
     }
 }

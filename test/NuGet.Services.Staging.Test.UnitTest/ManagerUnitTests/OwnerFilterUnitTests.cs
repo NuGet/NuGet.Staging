@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager;
 using Xunit;
@@ -20,7 +21,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
     public class EnsureUserIsOwnerOfStageFilterUnitTests
     {
         protected string DefaultStageId = Guid.NewGuid().ToString();
-        protected int DefaultUserKey = 1;
+        protected UserInformation DefaultUser = new UserInformation { UserKey = 1, UserName = "testUser" };
         protected EnsureUserIsOwnerOfStageFilter EnsureUserIsOwnerOfStageFilter;
         protected ActionExecutingContext _actionExecutionContext;
         protected Mock<IStageService> _stageServiceMock;
@@ -38,7 +39,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
 
             var actionContext = new ActionContext();
             var httpContext = new Mock<HttpContext>()
-                                .WithUser(DefaultUserKey)
+                                .WithUser(DefaultUser)
                                 .WithRegisteredService((sc) => sc.AddSingleton<IStageService>(_stageServiceMock.Object));
 
             actionContext.HttpContext = httpContext.Object;
@@ -55,7 +56,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         {
             // Arrange
             _stageServiceMock.Setup(x =>
-                                    x.IsStageMember((Stage)_actionExecutionContext.ActionArguments[EnsureStageExistsFilter.StageKeyName], DefaultUserKey))
+                                    x.IsStageMember((Stage)_actionExecutionContext.ActionArguments[EnsureStageExistsFilter.StageKeyName], DefaultUser.UserKey))
                               .Returns(true);
 
             // Act
@@ -70,7 +71,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         {
             // Arrange
             _stageServiceMock.Setup(x =>
-                                    x.IsStageMember((Stage)_actionExecutionContext.ActionArguments[EnsureStageExistsFilter.StageKeyName], DefaultUserKey))
+                                    x.IsStageMember((Stage)_actionExecutionContext.ActionArguments[EnsureStageExistsFilter.StageKeyName], DefaultUser.UserKey))
                               .Returns(false);
 
             // Act

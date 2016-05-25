@@ -13,6 +13,7 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Protocol.Core.v3;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager;
 using NuGet.Services.Staging.Manager.Controllers;
@@ -31,7 +32,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
     {
         protected const string DisplayName = "display name";
         protected const string TrackId = "trackId";
-        protected const int UserKey = 3;
+        protected UserInformation DefaultUser = new UserInformation { UserKey = 3, UserName = "testUser" };
 
         protected StageController _stageController;
         protected StageContextMock _stageContextMock;
@@ -68,7 +69,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
                 new Mock<ISearchService>().Object,
                 _packageServiceMock.Object);
 
-            _httpContextMock = _stageController.WithMockHttpContext().WithUser(UserKey).WithBaseAddress();
+            _httpContextMock = _stageController.WithMockHttpContext().WithUser(DefaultUser).WithBaseAddress();
         }
 
       
@@ -192,7 +193,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
                 Version = version,
                 NormalizedVersion = version,
                 NupkgUrl = $"http://api.nuget.org/{stage.Id}/{packageId}/{version}/{packageId}.{version}.nupkg",
-                UserKey = UserKey
+                UserKey = DefaultUser.UserKey
             };
 
             stage.Packages.Add(package);

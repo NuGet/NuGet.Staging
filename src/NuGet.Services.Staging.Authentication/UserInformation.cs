@@ -6,5 +6,7 @@ namespace NuGet.Services.Staging.Authentication
     public class UserInformation
     {
         public int UserKey { get; set; }
+
+        public string UserName { get; set; }
     }
 }

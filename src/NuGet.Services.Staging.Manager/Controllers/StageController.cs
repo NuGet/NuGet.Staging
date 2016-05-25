@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Search;
 using NuGet.Services.Staging.Manager.V3;
@@ -28,7 +29,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
         private readonly StorageFactory _storageFactory;
         private readonly IPackageService _packageService;
 
-        private const string MessageFormat = "User: {UserKey}, Stage: {StageId}, {Message}";
+        private const string MessageFormat = "Stage: {StageId}, {Message}";
 
         public StageController(ILogger<StageController> logger, IStageService stageService,
                                StorageFactory storageFactory, ISearchService searchService, IPackageService packageService)
@@ -69,7 +70,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
         [HttpGet]
         public IActionResult ListUserStages()
         {
-            var userKey = GetUserKey();
+            var userKey = GetUserInformation().UserKey;
             var userMemberships =_stageService.GetUserMemberships(userKey).ToList();
             var stageViews = userMemberships.Select(sm => new ListViewStage(sm.Stage, sm, GetBaseAddress())).ToList();
 
@@ -94,10 +95,10 @@ namespace NuGet.Services.Staging.Manager.Controllers
                 return new BadRequestObjectResult(string.Format(InvalidStageDisplayName, StageService.MaxDisplayNameLength));
             }
 
-            var userKey = GetUserKey();
+            var userKey = GetUserInformation().UserKey;
             var stage = await _stageService.CreateStage(displayName, userKey);
 
-            _logger.LogInformation(MessageFormat, userKey, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
+            _logger.LogInformation(MessageFormat, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
 
             return new OkObjectResult(new ListViewStage(stage, stage.Memberships.First(), GetBaseAddress()));
         }
@@ -108,8 +109,6 @@ namespace NuGet.Services.Staging.Manager.Controllers
         [EnsureUserIsOwnerOfStage]
         public async Task<IActionResult> Drop(Stage stage)
         {
-            var userKey = GetUserKey();
-
             if (stage.Status == StageStatus.Committing)
             {
                 return new BadRequestObjectResult(string.Format(CommitInProgressMessage, stage.DisplayName));
@@ -117,7 +116,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
             await _stageService.DropStage(stage);
 
-            _logger.LogInformation(MessageFormat, userKey, stage.Id, "Drop was successful");
+            _logger.LogInformation(MessageFormat, stage.Id, "Drop was successful");
             return new OkObjectResult(new ViewStage(stage, GetBaseAddress()));
         }
 
@@ -152,7 +151,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
             // 4. Save tracking id in the DB
             await _stageService.CommitStage(stage, trackingId);
 
-            _logger.LogInformation(MessageFormat, GetUserKey(), stage.Id, "Commit initiated successfully");
+            _logger.LogInformation(MessageFormat, stage.Id, "Commit initiated successfully");
 
             return new StatusCodeResult((int) HttpStatusCode.Created);
         }
@@ -197,9 +196,9 @@ namespace NuGet.Services.Staging.Manager.Controllers
             return new JsonResult(searchResult);
         }
 
-        private int GetUserKey()
+        private UserInformation GetUserInformation()
         {
-            return int.Parse(HttpContext.User.Identity.Name);
+            return (UserInformation) HttpContext.Items[Constants.UserInformationKey];
         }
 
         private string GetBaseAddress()

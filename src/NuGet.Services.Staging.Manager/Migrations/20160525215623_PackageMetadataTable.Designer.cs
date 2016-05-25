@@ -8,9 +8,10 @@ using NuGet.Services.Staging.Database.Models;
 namespace NuGet.Services.Staging.Manager.Migrations
 {
     [DbContext(typeof(StageContext))]
-    partial class StageContextModelSnapshot : ModelSnapshot
+    [Migration("20160525215623_PackageMetadataTable")]
+    partial class PackageMetadataTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.0.0-rc2-20896")

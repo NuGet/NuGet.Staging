@@ -2,12 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NuGet.Packaging;
+using NuGet.Services.Staging.Authentication;
 using NuGet.Versioning;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.PackageService;
@@ -61,7 +64,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
         [EnsureUserIsOwnerOfStage]
         public async Task<IActionResult> PushPackageToStage(Stage stage)
         {
-            var userKey = GetUserKey();
+            var userKey = GetUserInformation().UserKey;
 
             if (!_stageService.IsStageEditAllowed(stage))
             {
@@ -120,16 +123,20 @@ namespace NuGet.Services.Staging.Manager.Controllers
                
                 var packageLocations = await v3Service.AddPackage(packageStream, packageMetadata);
 
-                await _stageService.AddPackageToStage(stage, new StagedPackage
-                {
-                    Id = registrationId,
-                    NormalizedVersion = normalizedVersion,
-                    Version = version.ToString(),
-                    UserKey = userKey,
-                    Published = DateTime.UtcNow,
-                    NupkgUrl = packageLocations.Nupkg.ToString(),
-                    NuspecUrl = packageLocations.Nuspec.ToString()
-                });
+                await _stageService.AddPackageToStage(
+                    stage,
+                    new StagedPackage
+                    {
+                        Id = registrationId,
+                        NormalizedVersion = normalizedVersion,
+                        Version = version.ToString(),
+                        UserKey = userKey,
+                        Published = DateTime.UtcNow,
+                        NupkgUrl = packageLocations.Nupkg.ToString(),
+                        NuspecUrl = packageLocations.Nuspec.ToString(),
+                        PackageMetadata = new PackageMetadata().LoadFromNuspec(nuspec, GetUserInformation())
+                    }
+                  );
 
                 // Check if package exists in the Gallery (warning message if so)
                 bool packageAlreadyExists =
@@ -143,9 +150,12 @@ namespace NuGet.Services.Staging.Manager.Controllers
                     : (IActionResult)new StatusCodeResult((int)HttpStatusCode.Created);
             }
         }
-        private int GetUserKey()
+
+    
+
+        private UserInformation GetUserInformation()
         {
-            return int.Parse(HttpContext.User.Identity.Name);
+            return (UserInformation)HttpContext.Items[Constants.UserInformationKey];
         }
     }
 }

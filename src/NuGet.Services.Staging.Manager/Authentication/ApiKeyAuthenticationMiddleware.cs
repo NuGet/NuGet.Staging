@@ -28,6 +28,7 @@ namespace NuGet.Services.Staging.Manager.Authentication
             context.User = userInfo != null ?
                 new ClaimsPrincipal(new NuGetIdentity(userInfo.UserKey, "ApiKey")) :
                 new ClaimsPrincipal();
+            context.Items[Constants.UserInformationKey] = userInfo;
 
             await _next.Invoke(context);
         }

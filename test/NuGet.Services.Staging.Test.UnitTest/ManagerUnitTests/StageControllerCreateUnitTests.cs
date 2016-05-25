@@ -29,7 +29,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
             stage.Status.Should().Be(StageStatus.Active);
             stage.Memberships.Count.Should().Be(1);
             stage.Memberships.First().MembershipType.Should().Be(MembershipType.Owner);
-            stage.Memberships.First().UserKey.Should().Be(UserKey);
+            stage.Memberships.First().UserKey.Should().Be(DefaultUser.UserKey);
         }
 
         [Fact]

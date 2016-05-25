@@ -2,11 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using NuGet.Services.Staging.Authentication;
+using NuGet.Services.Staging.Manager;
 
 namespace NuGet.Services.Staging.Test.UnitTest
 {
@@ -19,9 +22,10 @@ namespace NuGet.Services.Staging.Test.UnitTest
             return mockHttpContext;
         }
 
-        public static Mock<HttpContext> WithUser(this Mock<HttpContext> httpContextMock, int userKey)
+        public static Mock<HttpContext> WithUser(this Mock<HttpContext> httpContextMock, UserInformation userInformation)
         {
-            httpContextMock.SetupGet(x => x.User.Identity.Name).Returns(userKey.ToString);
+            httpContextMock.SetupGet(x => x.User.Identity.Name).Returns(userInformation.UserKey.ToString);
+            httpContextMock.Setup(x => x.Items).Returns(new Dictionary<object, object> { { Constants.UserInformationKey, userInformation } });
             return httpContextMock;
         }
 

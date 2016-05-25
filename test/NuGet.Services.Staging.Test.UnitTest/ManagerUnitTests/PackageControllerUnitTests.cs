@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGet.Services.Staging.Authentication;
 using NuGet.Services.V3Repository;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager;
@@ -28,7 +29,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         private const string DefaultRegistrationId = "DefaultId";
         private const string DefaultVersion = "1.0.0";
         private const string BaseAddress = "http://nuget.org/";
-        private const int UserKey = 2;
+        protected UserInformation DefaultUser = new UserInformation { UserKey = 2, UserName = "testUser" };
 
         private StageContextMock _stageContextMock;
         private PackageController _packageController;
@@ -71,7 +72,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
                 stageServiceMock.Object,
                 v3Factory);
 
-            _httpContextMock = _packageController.WithMockHttpContext().WithUser(UserKey);
+            _httpContextMock = _packageController.WithMockHttpContext().WithUser(DefaultUser);
         }
 
         [Fact]
@@ -85,10 +86,25 @@ namespace NuGet.Services.Staging.Test.UnitTest
             IActionResult actionResult = await _packageController.PushPackageToStage(stage);
 
             // Assert
-            stage.Packages.Count().Should().Be(1);
-            stage.Packages.First().Id.Should().Be(DefaultRegistrationId);
-            stage.Packages.First().Version.Should().Be(DefaultVersion);
-            stage.Packages.First().NormalizedVersion.Should().Be(DefaultVersion);
+            stage.Packages.Count.Should().Be(1);
+
+            var package = stage.Packages.First();
+
+            package.Id.Should().Be(DefaultRegistrationId);
+            package.Version.Should().Be(DefaultVersion);
+            package.NormalizedVersion.Should().Be(DefaultVersion);
+
+            package.PackageMetadata.Id.Should().Be(DefaultRegistrationId);
+            package.PackageMetadata.Version.Should().Be(DefaultVersion);
+            package.PackageMetadata.Owners.Should().Be(DefaultUser.UserName);
+            package.PackageMetadata.Authors.Should().Be(TestPackage.DefaultAuthors);
+            package.PackageMetadata.Description.Should().Be(TestPackage.DefaultDescription);
+            package.PackageMetadata.IconUrl.Should().Be(TestPackage.DefaultIconUrl);
+            package.PackageMetadata.LicenseUrl.Should().Be(TestPackage.DefaultLicenseUrl);
+            package.PackageMetadata.ProjectUrl.Should().Be(TestPackage.DefaultProjectUrl);
+            package.PackageMetadata.Summary.Should().Be(TestPackage.DefaultSummary);
+            package.PackageMetadata.Tags.Should().Be(TestPackage.DefaultTags);
+            package.PackageMetadata.Title.Should().Be(TestPackage.DefaultTitle);
 
             actionResult.Should().BeOfType<StatusCodeResult>();
 
@@ -255,7 +271,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
                 Key = 1,
                 MembershipType = MembershipType.Owner,
                 StageKey = stageKey,
-                UserKey = UserKey
+                UserKey = DefaultUser.UserKey
             };
 
             var stage = new Stage
