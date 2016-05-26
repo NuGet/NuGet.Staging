@@ -33,7 +33,7 @@ namespace NuGet.Services.Staging.Manager
 
         private static string GetValue(IDictionary<string, string> dictionary, string key)
         {
-            string value = string.Empty;
+            var value = string.Empty;
             dictionary.TryGetValue(key, out value);
 
             return value;
