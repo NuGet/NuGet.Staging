@@ -47,6 +47,8 @@ namespace NuGet.Services.Staging.Authentication
             {
                 using (var connection = new SqlConnection(_options.DatabaseConnectionString))
                 {
+                    int userKey;
+
                     using (var command = new SqlCommand(@"SELECT [UserKey]
                                                       FROM [dbo].[Credentials]
                                                       WHERE [Type]='apikey.v1' AND [Value]=@ApiKey", connection))
@@ -54,9 +56,30 @@ namespace NuGet.Services.Staging.Authentication
                         command.Parameters.AddWithValue("@ApiKey", credentials.ApiKey);
 
                         await connection.OpenAsync();
-                        var userKey = await command.ExecuteScalarAsync();
+                        var result = await command.ExecuteScalarAsync();
 
-                        return userKey == null ? null : new UserInformation {UserKey = (int) userKey};
+                        if (result == null)
+                        {
+                            return null;
+                        }
+
+                        userKey = (int) result;
+                    }
+
+                    using (var command = new SqlCommand(@"SELECT [Username]
+                                                      FROM [dbo].[Users]
+                                                      WHERE [Key]=@UserKey", connection))
+                    {
+                        command.Parameters.AddWithValue("@UserKey", userKey);
+
+                        var result = await command.ExecuteScalarAsync();
+
+                        if (result == null)
+                        {
+                            return null;
+                        }
+
+                        return new UserInformation { UserKey = userKey, UserName = (string)result };
                     }
                 }
             });

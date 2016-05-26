@@ -9,5 +9,7 @@ namespace NuGet.Services.Staging.Manager
         public const string RegistrationFolderName = "registration";
         public const string CatalogFolderName = "catalog";
         public const string FlatContainerFolderName = "flatcontainer";
+
+        public const string UserInformationKey = "user";
     }
 }

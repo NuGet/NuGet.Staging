@@ -117,6 +117,8 @@ namespace NuGet.Services.Staging.Manager
 
         public Task AddPackageToStage(Stage stage, StagedPackage package)
         {
+            package.PackageMetadata.Stage = stage;
+
             stage.Packages.Add(package);
             return _context.SaveChangesAsync();
         }

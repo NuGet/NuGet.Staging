@@ -20,6 +20,16 @@ namespace NuGet.Services.Test.Common
 
         public string Nuspec { get; private set; }
 
+        public const string DefaultTitle = "Test Package";
+        public const string DefaultSummary = "This package is for testing NuGet";
+        public const string DefaultAuthors = "nuget";
+        public const string DefaultOwners = "Package owners";
+        public const string DefaultDescription = "This package is for testing NuGet";
+        public const string DefaultTags = "nuget test";
+        public const string DefaultIconUrl = "http://myicon";
+        public const string DefaultLicenseUrl = "http://license";
+        public const string DefaultProjectUrl = "http://projecturl";
+
         public TestPackage(string id, string version)
         {
             Id = id;
@@ -99,18 +109,18 @@ namespace NuGet.Services.Test.Common
             string version,
             string minClientVersion = null,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
-            string title = "Test Package",
-            string summary = "This package is for testing NuGet",
-            string authors = "nuget",
-            string owners = "Package owners",
-            string description = "This package is for testing NuGet",
-            string tags = "nuget test",
+            string title = DefaultTitle,
+            string summary = DefaultSummary,
+            string authors = DefaultAuthors,
+            string owners = DefaultOwners,
+            string description = DefaultDescription,
+            string tags = DefaultTags,
             string language = null,
             string copyright = null,
             string releaseNotes = null,
-            Uri licenseUrl = null,
-            Uri projectUrl = null,
-            Uri iconUrl = null,
+            string licenseUrl = DefaultLicenseUrl,
+            string projectUrl = DefaultProjectUrl,
+            string iconUrl = DefaultIconUrl,
             bool requireLicenseAcceptance = false)
         {
             using (var streamWriter = new StreamWriter(stream, new UTF8Encoding(false, true), 1024, leaveStreamOpen))
@@ -133,9 +143,9 @@ namespace NuGet.Services.Test.Common
                             <language>" + (language ?? string.Empty) + @"</language>
                             <copyright>" + (copyright ?? string.Empty) + @"</copyright>
                             <releaseNotes>" + (releaseNotes ?? string.Empty) + @"</releaseNotes>
-                            <licenseUrl>" + (licenseUrl?.ToString() ?? string.Empty) + @"</licenseUrl>
-                            <projectUrl>" + (projectUrl?.ToString() ?? string.Empty) + @"</projectUrl>
-                            <iconUrl>" + (iconUrl?.ToString() ?? string.Empty) + @"</iconUrl>
+                            <licenseUrl>" + licenseUrl + @"</licenseUrl>
+                            <projectUrl>" + projectUrl + @"</projectUrl>
+                            <iconUrl>" + iconUrl + @"</iconUrl>
                             <dependencies>" + WriteDependencies(packageDependencyGroups) + @"</dependencies>
                         </metadata>
                     </package>";

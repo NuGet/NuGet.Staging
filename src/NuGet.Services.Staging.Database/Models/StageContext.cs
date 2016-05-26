@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace NuGet.Services.Staging.Database.Models
 {
@@ -14,6 +15,8 @@ namespace NuGet.Services.Staging.Database.Models
         public virtual DbSet<Stage> Stages { get; set; }
 
         public virtual DbSet<StageMembership> StageMemberships { get; set; }
+
+        public virtual DbSet<PackageMetadata> PackagesMetadata { get; set; } 
 
         /// <summary>
         /// For Unit test only
@@ -98,6 +101,18 @@ namespace NuGet.Services.Staging.Database.Models
                 .Property(sc => sc.Status).IsRequired();
             modelBuilder.Entity<StageCommit>()
                 .HasIndex(sc => sc.StageKey);
+
+            modelBuilder.Entity<PackageMetadata>()
+                .HasKey(pm => pm.Key);
+            modelBuilder.Entity<PackageMetadata>()
+                .Property(pm => pm.Id).IsRequired();
+            modelBuilder.Entity<PackageMetadata>()
+                .Property(pm => pm.StageKey).IsRequired();
+            modelBuilder.Entity<PackageMetadata>()
+                .HasOne(pm => pm.StagedPackage)
+                .WithOne(sp => sp.PackageMetadata);
+            modelBuilder.Entity<PackageMetadata>()
+                .HasOne(pm => pm.Stage);
         }
     }
 }
