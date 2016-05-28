@@ -9,7 +9,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
-using NuGet.Packaging.Core;
 using NuGet.Services.Staging.BackgroundWorkers;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.PackageService;
@@ -325,9 +324,9 @@ namespace NuGet.Services.Staging.UnitTests.BackgroundWorkersUnitTests
         private void AddDependency(PackagePushData from, PackagePushData to)
         {
             _packageMetadataServiceMock.Setup(x => x.GetPackageDependencies(from))
-                .Returns(Task.FromResult((IEnumerable<PackageDependency>)new List<PackageDependency>()
+                .Returns(Task.FromResult((IEnumerable<NuGet.Packaging.Core.PackageDependency>)new List<NuGet.Packaging.Core.PackageDependency>()
                 {
-                    new PackageDependency(to.Id, new VersionRange(new NuGetVersion(to.Version)))
+                    new NuGet.Packaging.Core.PackageDependency(to.Id, new VersionRange(new NuGetVersion(to.Version)))
                 }));
         }
 

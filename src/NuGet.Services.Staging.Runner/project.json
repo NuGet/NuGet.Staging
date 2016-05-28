@@ -19,7 +19,7 @@
         "NuGet.Services.Staging.Runner": "NuGet.Services.Staging.Runner"
     },
     "frameworks": {
-        "net451": {
+        "net452": {
             "dependencies": {
                 "NuGet.Services.Staging.BackgroundWorkers": "1.0.0-*"
             }

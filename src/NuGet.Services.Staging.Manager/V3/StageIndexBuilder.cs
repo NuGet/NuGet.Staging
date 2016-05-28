@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using Newtonsoft.Json.Linq;
 using NuGet.Protocol.Core.v3;
+using NuGet.Services.V3Repository;
 
 namespace NuGet.Services.Staging.Manager.V3
 {
@@ -15,9 +15,8 @@ namespace NuGet.Services.Staging.Manager.V3
         /// <param name="host">The host service.</param>
         /// <param name="scheme">http/https</param>
         /// <param name="stageId">Stage id</param>
-        public JObject CreateIndex(string baseAddress, string stageId, Uri v3BaseAddess)
+        public JObject CreateIndex(string baseAddress, string stageId, V3PathCalculator pathCalculator)
         {
-            var stageFolderPath = $"{v3BaseAddess}{stageId}";
             var stageControllerPath = $"{baseAddress}/api/stage/{stageId}";
 
             var index = new JObject
@@ -34,9 +33,9 @@ namespace NuGet.Services.Staging.Manager.V3
                         CreateResource($"{stageControllerPath}/query", ServiceTypes.SearchQueryService[0],  "Search endpoint"),
                         CreateResource($"{stageControllerPath}/query", ServiceTypes.SearchQueryService[1],  "Search endpoint"),
                         CreateResource($"{stageControllerPath}/autocomplete", ServiceTypes.SearchAutocompleteService, "Autocomplete endpoint"),
-                        CreateResource($"{stageFolderPath}/{Constants.RegistrationFolderName}/", ServiceTypes.RegistrationsBaseUrl[0], "Registration blobs Uri"),
-                        CreateResource($"{stageFolderPath}/{Constants.RegistrationFolderName}/", ServiceTypes.RegistrationsBaseUrl[1], "Registration blobs Uri"),
-                        CreateResource($"{stageFolderPath}/{Constants.FlatContainerFolderName}/", ServiceTypes.PackageBaseAddress, "Packages base uri"),
+                        CreateResource(pathCalculator.RegistrationBaseAddress.AbsoluteUri, ServiceTypes.RegistrationsBaseUrl[0], "Registration blobs Uri"),
+                        CreateResource(pathCalculator.RegistrationBaseAddress.AbsoluteUri, ServiceTypes.RegistrationsBaseUrl[1], "Registration blobs Uri"),
+                        CreateResource(pathCalculator.FlatContainerBaseAddress.AbsoluteUri, ServiceTypes.PackageBaseAddress, "Packages base uri"),
                         CreateResource($"{baseAddress}/api/package/{stageId}", ServiceTypes.PackagePublish, "Package publishing endpoint"),
                     }
                 }

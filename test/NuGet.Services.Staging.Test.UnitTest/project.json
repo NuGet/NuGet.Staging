@@ -12,10 +12,11 @@
         "dotnet-test-xunit": "1.0.0-rc3-build10019",
         "xunit": "2.1.0",
         "Microsoft.NETCore.Platforms": "1.0.1-rc2-*",
-        "NuGet.Services.Test.Common": "1.0.0-*"
+        "NuGet.Services.Test.Common": "1.0.0-*",
+        "NuGet.Services.Staging.Search": "1.0.0-*"
     },
    "frameworks": {
-    "net451": {
+    "net452": {
         "dependencies": {
             "Moq" :  "4.2.1510.2205"
         }

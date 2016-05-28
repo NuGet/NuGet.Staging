@@ -11,9 +11,10 @@ using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
-using NuGet.Services.Staging.Manager.Search;
 using NuGet.Services.Staging.Manager.V3;
 using NuGet.Services.Staging.PackageService;
+using NuGet.Services.Staging.Search;
+using NuGet.Services.V3Repository;
 using static NuGet.Services.Staging.Manager.Controllers.Messages;
 
 namespace NuGet.Services.Staging.Manager.Controllers
@@ -178,7 +179,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
         [EnsureStageExists]
         public IActionResult Index(Stage stage)
         {
-            var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), stage.Id, _storageFactory.BaseAddress);
+            var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), stage.Id, new V3PathCalculator(new Uri($"{_storageFactory.BaseAddress}{stage.Id}")));
             return Json(index);
         }
 
@@ -187,12 +188,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
         [EnsureStageExists]
         public async Task<IActionResult> Query(Stage stage)
         {
-            if (_searchService is DummySearchService)
-            {
-                ((DummySearchService) _searchService).BaseAddress = new Uri(_storageFactory.BaseAddress, $"{stage.Id}/");
-            }
-
-            var searchResult = await _searchService.Search(stage.Id, Request.QueryString.Value);
+            var searchResult = _searchService.Search(Request.QueryString.Value);
             return new JsonResult(searchResult);
         }
 

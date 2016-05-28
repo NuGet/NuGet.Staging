@@ -26,6 +26,13 @@ namespace NuGet.Services.V3Repository
         public string RegistrationFolderName { get; set; }
 
         public string CatalogFolderName { get; set; }
+
+        public V3ServiceOptions()
+        {
+            FlatContainerFolderName = Constants.FlatContainerFolderName;
+            RegistrationFolderName = Constants.RegistrationFolderName;
+            CatalogFolderName = Constants.CatalogFolderName;
+        }
     }
 
     internal class V3PackageMetadata : IPackageMetadata
