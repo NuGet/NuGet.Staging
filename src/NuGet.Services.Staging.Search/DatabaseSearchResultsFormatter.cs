@@ -61,7 +61,7 @@ namespace NuGet.Services.Staging.Search
 
             return new JObject
             {
-                { "@id", _pathCalculator.GetPackageVersionRegistrationAddress(newestVersion.Id, newestVersion.Version).ToString() },
+                { "@id", _pathCalculator.GetPackageRegistrationIndexAddress(newestVersion.Id).ToString() },
                 { "@type", "Package" },
                 { "authors", new JArray(authorsList) },
                 { "description",newestVersion.Description },

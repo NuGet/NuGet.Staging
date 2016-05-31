@@ -183,7 +183,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
                         {
                             new JObject
                             {
-                                {"@id",$"http://api.nuget.org/stage/{DefaultStageId}/registration/{expectedPackages[0].Id}/{expectedPackages[0].Version}.json"},
+                                {"@id",$"http://api.nuget.org/stage/{DefaultStageId}/registration/{expectedPackages[0].Id}/index.json"},
                                 {"@type", "Package"},
                                 {"authors", new JArray {"nuget", "nuget2author23"}},
                                 {"description", expectedPackages[0].Description},
@@ -210,7 +210,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
                             },
                             new JObject
                             {
-                                {"@id",$"http://api.nuget.org/stage/{DefaultStageId}/registration/{expectedPackages[1].Id}/{expectedPackages[1].Version}.json"},
+                                {"@id",$"http://api.nuget.org/stage/{DefaultStageId}/registration/{expectedPackages[1].Id}/index.json"},
                                 {"@type", "Package"},
                                 {"authors", new JArray {"nuget", "nuget2author25"}},
                                 {"description", expectedPackages[1].Description},

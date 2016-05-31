@@ -47,7 +47,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
                                 {
                                     new JObject
                                     {
-                                        {"@id", "http://api.nuget.org/stage/123/registration/json/1.0.0.json"},
+                                        {"@id", "http://api.nuget.org/stage/123/registration/json/index.json"},
                                         {"@type", "Package"},
                                         {"authors", new JArray {"nuget", "nuget2"}},
                                         {"description", TestPackage.DefaultDescription},
@@ -138,7 +138,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
                                 {
                                     new JObject
                                     {
-                                        {"@id", "http://api.nuget.org/stage/123/registration/json/1.0.0.1-beta.json"},
+                                        {"@id", "http://api.nuget.org/stage/123/registration/json/index.json"},
                                         {"@type", "Package"},
                                         {"authors", new JArray { "nuget", "nuget2" }},
                                         {"description", TestPackage.DefaultDescription},
