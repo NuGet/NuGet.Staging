@@ -12,13 +12,12 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Protocol.Core.v3;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager;
 using NuGet.Services.Staging.Manager.Controllers;
 using NuGet.Services.Staging.PackageService;
-using NuGet.Services.Staging.Search;
+using NuGet.Services.V3Repository;
 using Xunit;
 
 namespace NuGet.Services.Staging.Test.UnitTest
@@ -62,17 +61,21 @@ namespace NuGet.Services.Staging.Test.UnitTest
             _packageServiceMock.Setup(x => x.PushBatchAsync(It.IsAny<PackageBatchPushData>())).Returns(Task.FromResult(TrackId))
                                .Callback<PackageBatchPushData>(x => _pushedBatches.Add(x));
 
+            var v3ServiceFactory = new Mock<IV3ServiceFactory>();
+            v3ServiceFactory
+                .Setup(x => x.CreatePathCalculator(It.IsAny<string>()))
+                .Returns<string>(stageId => new V3PathCalculator(new Uri($"https://api.nuget.org/{stageId}/")));
+
             _stageController = new StageController(
                 new Mock<ILogger<StageController>>().Object,
                 _stageServiceMock.Object,
-                new TestStorageFactory((string s) => new MemoryStorage(new Uri("https://api.nuget.org/" + s))),
-                new Mock<ISearchService>().Object,
-                _packageServiceMock.Object);
+                new Mock<ISearchServiceFactory>().Object,
+                _packageServiceMock.Object,
+                v3ServiceFactory.Object);
 
             _httpContextMock = _stageController.WithMockHttpContext().WithUser(DefaultUser).WithBaseAddress();
         }
 
-      
         [Fact]
         public async Task WhenListUserStagesCalledStagesAreReturned()
         {

@@ -16,7 +16,6 @@ using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Authentication;
 using NuGet.Services.Staging.PackageService;
-using NuGet.Services.Staging.Search;
 using NuGet.Services.V3Repository;
 using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceCollection;
 
@@ -86,7 +85,7 @@ namespace NuGet.Services.Staging.Manager
             services.AddSingleton<StorageFactory>(new AzureStorageFactory(account, Constants.StagesContainerName));
 
             // Search
-          //  services.AddScoped<ISearchService, DummySearchService>();
+            services.AddScoped<ISearchServiceFactory, SearchServiceFactory>();
 
             // Authentication
             services.Configure<ApiKeyAuthenticationServiceOptions>(Configuration.GetSection("ApiKeyAuthenticationServiceOptions"));

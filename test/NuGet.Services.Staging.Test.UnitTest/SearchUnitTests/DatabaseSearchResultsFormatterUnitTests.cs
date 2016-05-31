@@ -22,7 +22,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
 
         public DatabaseSearchResultsFormatterUnitTests()
         {
-            _pathCalculator = new V3PathCalculator(new Uri("http://api.nuget.org/stage/123"));
+            _pathCalculator = new V3PathCalculator(new Uri("http://api.nuget.org/stage/123/"));
             _formatter = new DatabaseSearchResultsFormatter(_pathCalculator);
         }
 
@@ -47,7 +47,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
                                 {
                                     new JObject
                                     {
-                                        {"@id", "http://api.nuget.org/stage/123/registration/json/1.0.0.0.json"},
+                                        {"@id", "http://api.nuget.org/stage/123/registration/json/1.0.0.json"},
                                         {"@type", "Package"},
                                         {"authors", new JArray {"nuget", "nuget2"}},
                                         {"description", TestPackage.DefaultDescription},
@@ -65,10 +65,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
                                             {
                                                 new JObject
                                                 {
-                                                    {
-                                                        "@id",
-                                                        "http://api.nuget.org/stage/123/registration/json/1.0.0.0.json"
-                                                    },
+                                                    {"@id", "http://api.nuget.org/stage/123/registration/json/1.0.0.json"},
                                                     {"downloads", 0},
                                                     {"version", TestPackage.DefaultVersion}
                                                 }
@@ -159,7 +156,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
                                             {
                                                 new JObject
                                                 {
-                                                    {"@id", "http://api.nuget.org/stage/123/registration/json/1.0.0.0.json"},
+                                                    {"@id", "http://api.nuget.org/stage/123/registration/json/1.0.0.json"},
                                                     {"downloads", 0},
                                                     {"version", TestPackage.DefaultVersion}
                                                 },

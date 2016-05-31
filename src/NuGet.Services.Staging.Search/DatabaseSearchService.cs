@@ -44,12 +44,12 @@ namespace NuGet.Services.Staging.Search
             }
 
             query = query.ToLowerInvariant();
-            var queryDictionary = QueryHelpers.ParseNullableQuery(query).ToDictionary(x => x.Key, x => (string)x.Value);
+            var queryDictionary = QueryHelpers.ParseNullableQuery(query)?.ToDictionary(x => x.Key, x => (string)x.Value) ?? new Dictionary<string, string>();
 
             var skip = GetSkip(queryDictionary);
             var take = GetTake(queryDictionary);
             var includePrerelease = GetIncludePrerelease(queryDictionary);
-            var q = queryDictionary["q"];
+            var q = GetQuery(queryDictionary);
 
             return _formatter.FormatSearchResults(ApplyQueryParameters(stage.Key, includePrerelease, q, skip, take));
         }
@@ -129,6 +129,18 @@ namespace NuGet.Services.Staging.Search
             }
 
             return 0;
+        }
+
+        private static string GetQuery(Dictionary<string, string> queryDictionary)
+        {
+            string query;
+
+            if (!queryDictionary.TryGetValue("q", out query))
+            {
+                query = string.Empty;
+            }
+
+            return query;
         }
     }
 }

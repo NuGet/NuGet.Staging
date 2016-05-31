@@ -9,9 +9,9 @@ namespace NuGet.Services.V3Repository
     {
         public Uri BaseAddress { get; }
 
-        public Uri RegistrationBaseAddress => new Uri($"{BaseAddress}/{Constants.RegistrationFolderName}/");
+        public Uri RegistrationBaseAddress => new Uri($"{BaseAddress}{Constants.RegistrationFolderName}/");
 
-        public Uri FlatContainerBaseAddress => new Uri($"{BaseAddress}/{Constants.FlatContainerFolderName}/");
+        public Uri FlatContainerBaseAddress => new Uri($"{BaseAddress}{Constants.FlatContainerFolderName}/");
 
         public V3PathCalculator(Uri v3BaseAddress)
         {

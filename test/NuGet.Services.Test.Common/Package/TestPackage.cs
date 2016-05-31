@@ -20,7 +20,7 @@ namespace NuGet.Services.Test.Common
 
         public string Nuspec { get; private set; }
 
-        public const string DefaultTitle = "Test Package";
+        public const string DefaultTitle = "Test Package title";
         public const string DefaultSummary = "This package is for testing NuGet";
         public const string DefaultAuthors = "nuget, nuget2";
         public const string DefaultOwners = "Package owners";
