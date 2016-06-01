@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Test.Common;
 using Xunit;
@@ -15,25 +14,6 @@ using Xunit.Abstractions;
 
 namespace NuGet.Services.Staging.Test.EndToEnd
 {
-    public class StagingEndToEndConfiguration
-    {
-        public string ApiKey { get; set; }
-        public int PackagesToPushCount { get; set; }
-        public int CommitTimeoutInMinutes { get; set; }
-        public string StagingUri { get; set; }
-
-        public StagingEndToEndConfiguration()
-        {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Environment.CurrentDirectory)
-                .AddJsonFile("testsettings.json");
-
-            var configurationRoot = builder.Build();
-
-            configurationRoot.GetSection("StagingEndToEnd").Bind(this);
-        }
-    }
-
     public class StagingEndToEnd
     {
         private readonly ITestOutputHelper _output;
@@ -196,8 +176,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
         private async Task<JObject> VerifyCreateStage(StagingClient client)
         {
-            // TODO: make this long once new version is deployed
-            var stageName = ("TestStage" + Guid.NewGuid()).Substring(0, 32);
+            var stageName = "TestStage" + Guid.NewGuid();
 
             _output.WriteLine($"Creating Stage. Name: {stageName}");
 

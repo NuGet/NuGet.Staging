@@ -44,6 +44,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
             _loggerAdapter = new XUnitLoggerAdapter(_logger);
 
             _httpClient = new HttpClient();
+            _httpClient.Timeout = TimeSpan.FromMinutes(5);
         }
 
         public async Task<JArray> ListUserStages(string apiKey)

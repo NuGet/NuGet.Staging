@@ -15,7 +15,8 @@
         "Microsoft.NETCore.Platforms": "1.0.1-rc2-*",
         "NuGet.Services.Test.Common": "1.0.0-*",
         "Microsoft.Extensions.Configuration.Json": "1.0.0-rc2-*",
-        "Microsoft.Extensions.Configuration.Binder": "1.0.0-rc2-final"
+        "Microsoft.Extensions.Configuration.Binder": "1.0.0-rc2-final",
+        "WindowsAzure.Storage": "4.3.0"
     },
     "frameworks": {
         "net452": {
