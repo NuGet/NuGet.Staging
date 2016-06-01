@@ -35,8 +35,11 @@ namespace NuGet.Services.Staging.Manager
 
         private static string GetValue(IDictionary<string, string> dictionary, string key)
         {
-            var value = string.Empty;
-            dictionary.TryGetValue(key, out value);
+            string value;
+            if (!dictionary.TryGetValue(key, out value))
+            {
+                value = string.Empty;
+            }
 
             return value;
         }
@@ -48,9 +51,9 @@ namespace NuGet.Services.Staging.Manager
 
         private static string ParseTags(string tags)
         {
-            if (tags == null)
+            if (string.IsNullOrEmpty(tags))
             {
-                return null;
+                return string.Empty;
             }
 
             tags = tags.Replace(',', ' ').Replace(';', ' ').Replace('\t', ' ').Replace("  ", " ");
