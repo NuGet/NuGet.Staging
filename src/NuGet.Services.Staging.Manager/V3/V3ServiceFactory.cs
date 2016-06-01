@@ -37,9 +37,14 @@ namespace NuGet.Services.Staging.Manager
             _logger = logger;
         }
 
-        public IV3Service Create(string stageName)
+        public IV3Service Create(string stageId)
         {
-            return new V3Service(_options, new AppendingStorageFactory(_storageFactory, stageName), _logger);
+            return new V3Service(_options, new AppendingStorageFactory(_storageFactory, stageId), _logger);
+        }
+
+        public V3PathGenerator CreatePathGenerator(string stageId)
+        {
+            return new V3PathGenerator(new AppendingStorageFactory(_storageFactory, stageId).BaseAddress);
         }
     }
 }

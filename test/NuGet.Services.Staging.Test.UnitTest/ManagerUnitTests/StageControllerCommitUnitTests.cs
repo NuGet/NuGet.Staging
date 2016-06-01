@@ -25,7 +25,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         {
             // Arrange
             var stage = await AddMockStage("stage");
-            AddMockPackage(stage, "package");
+            _stageContextMock.AddMockPackage(stage, "package");
             await _stageController.Commit(stage);
 
             // Act
@@ -64,8 +64,8 @@ namespace NuGet.Services.Staging.Test.UnitTest
 
             // Arrange
             var stage = await AddMockStage("stage");
-            var package1 = AddMockPackage(stage, packageId1);
-            var package2 = AddMockPackage(stage, packageId2);
+            var package1 = _stageContextMock.AddMockPackage(stage, packageId1);
+            var package2 = _stageContextMock.AddMockPackage(stage, packageId2);
 
             // Act
             IActionResult actionResult = await _stageController.Commit(stage);
@@ -135,8 +135,8 @@ namespace NuGet.Services.Staging.Test.UnitTest
         {
             // Arrange
             var stage = await AddMockStage("stage");
-            AddMockPackage(stage, "package1");
-            AddMockPackage(stage, "package2");
+            _stageContextMock.AddMockPackage(stage, "package1");
+            _stageContextMock.AddMockPackage(stage, "package2");
 
             await _stageController.Commit(stage); 
 
@@ -157,8 +157,8 @@ namespace NuGet.Services.Staging.Test.UnitTest
         {
             // Arrange
             var stage = await AddMockStage("stage");
-            var package1 = AddMockPackage(stage, "package1");
-            var package2 = AddMockPackage(stage, "package2");
+            var package1 = _stageContextMock.AddMockPackage(stage, "package1");
+            var package2 = _stageContextMock.AddMockPackage(stage, "package2");
 
             await _stageController.Commit(stage);
             var progressReport = new BatchPushProgressReport

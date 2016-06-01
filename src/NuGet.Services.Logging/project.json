@@ -12,7 +12,7 @@
     },
 
     "frameworks": {
-        "net451": {
+        "net452": {
             "frameworkAssemblies": {
                 "System.Data": "",
                 "System.Threading.Tasks": "",

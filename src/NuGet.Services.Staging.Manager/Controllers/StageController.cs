@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
-using NuGet.Services.Staging.Manager.Search;
 using NuGet.Services.Staging.Manager.V3;
 using NuGet.Services.Staging.PackageService;
 using static NuGet.Services.Staging.Manager.Controllers.Messages;
@@ -25,14 +23,14 @@ namespace NuGet.Services.Staging.Manager.Controllers
         private readonly ILogger<StageController> _logger;
         private readonly IStageService _stageService;
         private readonly StageIndexBuilder _stageIndexBuilder = new StageIndexBuilder();
-        private readonly ISearchService _searchService;
-        private readonly StorageFactory _storageFactory;
+        private readonly ISearchServiceFactory _searchServiceFactory;
         private readonly IPackageService _packageService;
+        private readonly IV3ServiceFactory _v3ServiceFactory;
 
         private const string MessageFormat = "Stage: {StageId}, {Message}";
 
-        public StageController(ILogger<StageController> logger, IStageService stageService,
-                               StorageFactory storageFactory, ISearchService searchService, IPackageService packageService)
+        public StageController(ILogger<StageController> logger, IStageService stageService, ISearchServiceFactory searchServiceFactory,
+            IPackageService packageService, IV3ServiceFactory v3ServiceFactory)
         {
             if (logger == null)
             {
@@ -44,14 +42,9 @@ namespace NuGet.Services.Staging.Manager.Controllers
                 throw new ArgumentNullException(nameof(stageService));
             }
 
-            if (searchService == null)
+            if (searchServiceFactory == null)
             {
-                throw new ArgumentNullException(nameof(searchService));
-            }
-
-            if (storageFactory == null)
-            {
-                throw new ArgumentNullException(nameof(storageFactory));
+                throw new ArgumentNullException(nameof(searchServiceFactory));
             }
 
             if (packageService == null)
@@ -59,11 +52,16 @@ namespace NuGet.Services.Staging.Manager.Controllers
                 throw new ArgumentNullException(nameof(packageService));
             }
 
+            if (v3ServiceFactory == null)
+            {
+                throw new ArgumentNullException(nameof(v3ServiceFactory));
+            }
+
             _logger = logger;
             _stageService = stageService;
-            _searchService = searchService;
-            _storageFactory = storageFactory;
+            _searchServiceFactory = searchServiceFactory;
             _packageService = packageService;
+            _v3ServiceFactory = v3ServiceFactory;
         }
 
         // GET: api/stage
@@ -178,21 +176,16 @@ namespace NuGet.Services.Staging.Manager.Controllers
         [EnsureStageExists]
         public IActionResult Index(Stage stage)
         {
-            var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), stage.Id, _storageFactory.BaseAddress);
+            var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), stage.Id, _v3ServiceFactory.CreatePathGenerator(stage.Id));
             return Json(index);
         }
 
         [AllowAnonymous]
         [HttpGet("{id:guid}/query")]
         [EnsureStageExists]
-        public async Task<IActionResult> Query(Stage stage)
+        public IActionResult Query(Stage stage)
         {
-            if (_searchService is DummySearchService)
-            {
-                ((DummySearchService) _searchService).BaseAddress = new Uri(_storageFactory.BaseAddress, $"{stage.Id}/");
-            }
-
-            var searchResult = await _searchService.Search(stage.Id, Request.QueryString.Value);
+            var searchResult = _searchServiceFactory.GetSearchService(stage.Id).Search(Request.QueryString.Value);
             return new JsonResult(searchResult);
         }
 

@@ -20,17 +20,19 @@ namespace NuGet.Services.Test.Common
 
         public string Nuspec { get; private set; }
 
-        public const string DefaultTitle = "Test Package";
+        public const string DefaultTitle = "Test Package title";
         public const string DefaultSummary = "This package is for testing NuGet";
-        public const string DefaultAuthors = "nuget";
+        public const string DefaultAuthors = "nuget, nuget2";
         public const string DefaultOwners = "Package owners";
         public const string DefaultDescription = "This package is for testing NuGet";
         public const string DefaultTags = "nuget test";
         public const string DefaultIconUrl = "http://myicon";
         public const string DefaultLicenseUrl = "http://license";
         public const string DefaultProjectUrl = "http://projecturl";
+        public const string DefaultId = "json";
+        public const string DefaultVersion = "1.0.0";
 
-        public TestPackage(string id, string version)
+        public TestPackage(string id = DefaultId, string version = DefaultVersion)
         {
             Id = id;
             Version = version;

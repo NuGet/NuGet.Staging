@@ -37,15 +37,15 @@ namespace NuGet.Services.Staging.UnitTests.BackgroundWorkersUnitTests
                     new NuGetFramework("abc"),
                     new []
                     {
-                        new PackageDependency("dependency1"),
-                        new PackageDependency("dependency2"),
+                        new NuGet.Packaging.Core.PackageDependency("dependency1"),
+                        new NuGet.Packaging.Core.PackageDependency("dependency2"),
                     }),
                 new PackageDependencyGroup(
                     new NuGetFramework("def"),
                     new []
                     {
-                        new PackageDependency("dependency1"),
-                        new PackageDependency("dependency3"),
+                        new NuGet.Packaging.Core.PackageDependency("dependency1"),
+                        new NuGet.Packaging.Core.PackageDependency("dependency3"),
                     }),
             };
 

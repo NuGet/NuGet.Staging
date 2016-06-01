@@ -19,6 +19,7 @@ namespace NuGet.Services.Staging.Database.Models
         public string Tags { get; set; }
         public string Title { get; set; }
         public string Summary { get; set; }
+        public bool IsPrerelease { get; set; }
 
         public Stage Stage { get; set; }
         public StagedPackage StagedPackage { get; set; }

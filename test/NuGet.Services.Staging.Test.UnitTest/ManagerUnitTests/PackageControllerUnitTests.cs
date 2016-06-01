@@ -19,6 +19,7 @@ using NuGet.Services.Staging.Manager;
 using NuGet.Services.Staging.Manager.Controllers;
 using NuGet.Services.Staging.PackageService;
 using NuGet.Services.Test.Common;
+using NuGet.Versioning;
 using Xunit;
 
 namespace NuGet.Services.Staging.Test.UnitTest
@@ -27,9 +28,8 @@ namespace NuGet.Services.Staging.Test.UnitTest
     public class PackageControllerUnitTests
     {
         private const string DefaultRegistrationId = "DefaultId";
-        private const string DefaultVersion = "1.0.0";
+        private const string DefaultVersion = "1.0.0-beta";
         private const string BaseAddress = "http://nuget.org/";
-        protected UserInformation DefaultUser = new UserInformation { UserKey = 2, UserName = "testUser" };
 
         private StageContextMock _stageContextMock;
         private PackageController _packageController;
@@ -72,7 +72,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
                 stageServiceMock.Object,
                 v3Factory);
 
-            _httpContextMock = _packageController.WithMockHttpContext().WithUser(DefaultUser);
+            _httpContextMock = _packageController.WithMockHttpContext().WithUser(DataMockHelper.DefaultUser);
         }
 
         [Fact]
@@ -80,7 +80,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         {
             // Arrange
             ArrangeRequestWithPackage();
-            var stage = AddMockStage();
+            var stage = _stageContextMock.AddMockStage();
 
             // Act
             IActionResult actionResult = await _packageController.PushPackageToStage(stage);
@@ -96,7 +96,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
 
             package.PackageMetadata.Id.Should().Be(DefaultRegistrationId);
             package.PackageMetadata.Version.Should().Be(DefaultVersion);
-            package.PackageMetadata.Owners.Should().Be(DefaultUser.UserName);
+            package.PackageMetadata.Owners.Should().Be(DataMockHelper.DefaultUser.UserName);
             package.PackageMetadata.Authors.Should().Be(TestPackage.DefaultAuthors);
             package.PackageMetadata.Description.Should().Be(TestPackage.DefaultDescription);
             package.PackageMetadata.IconUrl.Should().Be(TestPackage.DefaultIconUrl);
@@ -105,6 +105,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
             package.PackageMetadata.Summary.Should().Be(TestPackage.DefaultSummary);
             package.PackageMetadata.Tags.Should().Be(TestPackage.DefaultTags);
             package.PackageMetadata.Title.Should().Be(TestPackage.DefaultTitle);
+            package.PackageMetadata.IsPrerelease.Should().Be(new NuGetVersion(DefaultVersion).IsPrerelease);
 
             actionResult.Should().BeOfType<StatusCodeResult>();
 
@@ -124,7 +125,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
             byte[] data = new byte[100];
             _httpContextMock.WithFile(new MemoryStream(data));
 
-            var stage = AddMockStage();
+            var stage = _stageContextMock.AddMockStage();
 
             // Act
             IActionResult actionResult = await _packageController.PushPackageToStage(stage);
@@ -140,7 +141,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
             var package = new TestPackage(DefaultRegistrationId, DefaultVersion).WithInvalidNuspec();
             _httpContextMock.WithFile(package.Stream);
 
-            var stage = AddMockStage();
+            var stage = _stageContextMock.AddMockStage();
 
             // Act
             IActionResult actionResult = await _packageController.PushPackageToStage(stage);
@@ -156,7 +157,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
             var package = new TestPackage(DefaultRegistrationId, DefaultVersion).WithMinClientVersion("9.9.9");
             _httpContextMock.WithFile(package.Stream);
 
-            var stage = AddMockStage();
+            var stage = _stageContextMock.AddMockStage();
 
             // Act
             IActionResult actionResult = await _packageController.PushPackageToStage(stage);
@@ -169,7 +170,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         public async Task WhenPushIsCalledAndPackageExistsOnStage409IsReturned()
         {
             // Arrange
-            var stage = AddMockStage();
+            var stage = _stageContextMock.AddMockStage();
 
             var package = new TestPackage(DefaultRegistrationId, DefaultVersion).WithDefaultData();
             _httpContextMock.WithFile(package.Stream);
@@ -193,7 +194,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         {
             // Arrange
             ArrangeRequestWithPackage();
-            var stage = AddMockStage();
+            var stage = _stageContextMock.AddMockStage();
 
             _packageServiceMock.Setup(x => x.IsUserOwnerOfPackageAsync(It.IsAny<int>(), It.IsAny<string>())).Returns(Task.FromResult(false));
 
@@ -211,7 +212,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         {
             // Arrange
             ArrangeRequestWithPackage();
-            var stage = AddMockStage();
+            var stage = _stageContextMock.AddMockStage();
 
             _packageServiceMock.Setup(x => x.DoesPackageExistsAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(true));
 
@@ -246,7 +247,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         public async Task WhenPushIsCalledAndStageIsCommiting400IsReturned(StageStatus status)
         {
             // Arrange
-            var stage = AddMockStage();
+            var stage = _stageContextMock.AddMockStage();
             stage.Status = status;
 
             // Act
@@ -260,33 +261,6 @@ namespace NuGet.Services.Staging.Test.UnitTest
         {
             var testPackage = new TestPackage(id, version).WithDefaultData();
             _httpContextMock.WithFile(testPackage.Stream);
-        }
-
-        private Stage AddMockStage()
-        {
-            const int stageKey = 1;
-
-            var member = new StageMembership
-            {
-                Key = 1,
-                MembershipType = MembershipType.Owner,
-                StageKey = stageKey,
-                UserKey = DefaultUser.UserKey
-            };
-
-            var stage = new Stage
-            {
-                Key = stageKey,
-                Id = Guid.NewGuid().ToString(),
-                DisplayName = "DefaultStage",
-                Memberships = new List<StageMembership> { member },
-                Packages = new List<StagedPackage>()
-            };
-
-            _stageContextMock.Object.Stages.Add(stage);
-            _stageContextMock.Object.StageMemberships.Add(member);
-
-            return stage;
         }
     }
 }

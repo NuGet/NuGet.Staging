@@ -12,13 +12,12 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Protocol.Core.v3;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager;
 using NuGet.Services.Staging.Manager.Controllers;
-using NuGet.Services.Staging.Manager.Search;
 using NuGet.Services.Staging.PackageService;
+using NuGet.Services.V3Repository;
 using Xunit;
 
 namespace NuGet.Services.Staging.Test.UnitTest
@@ -62,17 +61,21 @@ namespace NuGet.Services.Staging.Test.UnitTest
             _packageServiceMock.Setup(x => x.PushBatchAsync(It.IsAny<PackageBatchPushData>())).Returns(Task.FromResult(TrackId))
                                .Callback<PackageBatchPushData>(x => _pushedBatches.Add(x));
 
+            var v3ServiceFactory = new Mock<IV3ServiceFactory>();
+            v3ServiceFactory
+                .Setup(x => x.CreatePathGenerator(It.IsAny<string>()))
+                .Returns<string>(stageId => new V3PathGenerator(new Uri($"https://api.nuget.org/{stageId}/")));
+
             _stageController = new StageController(
                 new Mock<ILogger<StageController>>().Object,
                 _stageServiceMock.Object,
-                new Mock<StorageFactory>().Object,
-                new Mock<ISearchService>().Object,
-                _packageServiceMock.Object);
+                new Mock<ISearchServiceFactory>().Object,
+                _packageServiceMock.Object,
+                v3ServiceFactory.Object);
 
             _httpContextMock = _stageController.WithMockHttpContext().WithUser(DefaultUser).WithBaseAddress();
         }
 
-      
         [Fact]
         public async Task WhenListUserStagesCalledStagesAreReturned()
         {
@@ -106,7 +109,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
             // Arrange
             var stage = await AddMockStage("first");
             var secondStage = await AddMockStage(DisplayName);
-            AddMockPackage(secondStage, "package");
+            _stageContextMock.AddMockPackage(secondStage, "package");
             
             // Act
             IActionResult actionResult = _stageController.GetDetails(secondStage);
@@ -138,7 +141,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         public void WhenIndexIsCalledJsonIsReturned()
         {
             // Act
-            IActionResult actionResult = _stageController.Index(new Stage { Id = Guid.NewGuid().ToString() });
+            IActionResult actionResult = _stageController.Index(new Stage { Id = "330f56e4-7ca7-46b9-b53d-13c89ac15ba3" });
 
             // Assert
             actionResult.Should().BeOfType<JsonResult>();
@@ -152,6 +155,11 @@ namespace NuGet.Services.Staging.Test.UnitTest
             jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.RegistrationsBaseUrl[1]).Should().NotBeEmpty();
             jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.PackageBaseAddress).Should().NotBeEmpty();
             jsonObj["resources"].Where(x => x["@type"].ToString() == ServiceTypes.PackagePublish).Should().NotBeEmpty();
+
+            var a = jsonObj["resources"].First(x => x["@type"].ToString() == ServiceTypes.RegistrationsBaseUrl[0]);
+            jsonObj["resources"].First(x => x["@type"].ToString() == ServiceTypes.RegistrationsBaseUrl[0])["@id"].ToString().Should().Be("https://api.nuget.org/330f56e4-7ca7-46b9-b53d-13c89ac15ba3/registration/");
+            jsonObj["resources"].First(x => x["@type"].ToString() == ServiceTypes.RegistrationsBaseUrl[1])["@id"].ToString().Should().Be("https://api.nuget.org/330f56e4-7ca7-46b9-b53d-13c89ac15ba3/registration/");
+            jsonObj["resources"].First(x => x["@type"].ToString() == ServiceTypes.PackageBaseAddress)["@id"].ToString().Should().Be("https://api.nuget.org/330f56e4-7ca7-46b9-b53d-13c89ac15ba3/flatcontainer/");
         }
 
         [Fact]
@@ -182,22 +190,6 @@ namespace NuGet.Services.Staging.Test.UnitTest
             object result = (actionResult as OkObjectResult).Value;
             string id = (string)result.GetType().GetProperty("Id").GetValue(result);
             return _stageContextMock.Object.Stages.First(x => x.Id == id);
-        }
-
-        protected StagedPackage AddMockPackage(Stage stage, string packageId)
-        {
-            const string version = "1.0.0";
-            var package = new StagedPackage
-            {
-                Id = packageId,
-                Version = version,
-                NormalizedVersion = version,
-                NupkgUrl = $"http://api.nuget.org/{stage.Id}/{packageId}/{version}/{packageId}.{version}.nupkg",
-                UserKey = DefaultUser.UserKey
-            };
-
-            stage.Packages.Add(package);
-            return package;
         }
 
         protected void VerifyPackagePush(PackagePushData actual, StagedPackage expected)

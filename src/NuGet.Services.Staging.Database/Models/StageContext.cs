@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace NuGet.Services.Staging.Database.Models
 {
@@ -23,7 +22,6 @@ namespace NuGet.Services.Staging.Database.Models
         /// </summary>
         public StageContext()
         {
-            
         }
 
         public StageContext(DbContextOptions<StageContext> options) : base(options)
@@ -113,6 +111,12 @@ namespace NuGet.Services.Staging.Database.Models
                 .WithOne(sp => sp.PackageMetadata);
             modelBuilder.Entity<PackageMetadata>()
                 .HasOne(pm => pm.Stage);
+            modelBuilder.Entity<PackageMetadata>()
+                .Property(pm => pm.Version).IsRequired();
+            modelBuilder.Entity<PackageMetadata>()
+                .Property(pm => pm.IsPrerelease).IsRequired();
+            modelBuilder.Entity<PackageMetadata>()
+                .HasIndex(pm => pm.IsPrerelease);
         }
     }
 }

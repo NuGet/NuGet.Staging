@@ -59,7 +59,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         {
             // Arrange
             var stage = await AddMockStage("stage");
-            AddMockPackage(stage, "package");
+            _stageContextMock.AddMockPackage(stage, "package");
             await _stageController.Commit(stage);
 
             // Act

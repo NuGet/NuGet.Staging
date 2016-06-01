@@ -9,11 +9,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NuGet.Services.Staging.Authentication;
-using NuGet.Services.Staging.Manager;
 
 namespace NuGet.Services.Staging.Test.UnitTest
 {
-    public static class TestExtensions
+    public static class HttpContextExtensions
     {
         public static Mock<HttpContext> WithMockHttpContext(this Controller controller)
         {
@@ -25,7 +24,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         public static Mock<HttpContext> WithUser(this Mock<HttpContext> httpContextMock, UserInformation userInformation)
         {
             httpContextMock.SetupGet(x => x.User.Identity.Name).Returns(userInformation.UserKey.ToString);
-            httpContextMock.Setup(x => x.Items).Returns(new Dictionary<object, object> { { Constants.UserInformationKey, userInformation } });
+            httpContextMock.Setup(x => x.Items).Returns(new Dictionary<object, object> { { Manager.Constants.UserInformationKey, userInformation } });
             return httpContextMock;
         }
 

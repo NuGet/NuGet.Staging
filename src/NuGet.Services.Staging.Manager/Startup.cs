@@ -15,7 +15,6 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Authentication;
-using NuGet.Services.Staging.Manager.Search;
 using NuGet.Services.Staging.PackageService;
 using NuGet.Services.V3Repository;
 using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceCollection;
@@ -77,13 +76,6 @@ namespace NuGet.Services.Staging.Manager
             services.AddScoped<IStageService, StageService>();
 
             // V3
-            services.Configure<V3ServiceOptions>(options =>
-            {
-                options.CatalogFolderName = Constants.CatalogFolderName;
-                options.FlatContainerFolderName = Constants.FlatContainerFolderName;
-                options.RegistrationFolderName = Constants.RegistrationFolderName;
-            });
-
             services.AddSingleton<IV3ServiceFactory, V3ServiceFactory>();
 
             string storageAccountConnectionString = Configuration["PackageRepository:StorageAccountConnectionString"];
@@ -91,7 +83,7 @@ namespace NuGet.Services.Staging.Manager
             services.AddSingleton<StorageFactory>(new AzureStorageFactory(account, Constants.StagesContainerName));
 
             // Search
-            services.AddScoped<ISearchService, DummySearchService>();
+            services.AddScoped<ISearchServiceFactory, SearchServiceFactory>();
 
             // Authentication
             services.Configure<ApiKeyAuthenticationServiceOptions>(Configuration.GetSection("ApiKeyAuthenticationServiceOptions"));

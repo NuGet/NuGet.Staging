@@ -15,18 +15,20 @@ namespace NuGet.Services.Staging.Manager
         public static PackageMetadata LoadFromNuspec(this PackageMetadata packageMetadata, NuspecReader nuspecReader, UserInformation userInformation)
         {
             var metadataDictionary = nuspecReader.GetMetadata().ToImmutableDictionary();
+            var version = nuspecReader.GetVersion();
 
             packageMetadata.Id = nuspecReader.GetId();
-            packageMetadata.Version = nuspecReader.GetVersion().ToNormalizedString();
+            packageMetadata.Version = version.ToNormalizedString();
             packageMetadata.Authors = FlattenString(GetValue(metadataDictionary, "authors"));
             packageMetadata.Description = GetValue(metadataDictionary, "description");
             packageMetadata.IconUrl = GetValue(metadataDictionary, "iconUrl");
             packageMetadata.LicenseUrl = GetValue(metadataDictionary, "licenseUrl");
             packageMetadata.ProjectUrl = GetValue(metadataDictionary, "projectUrl");
-            packageMetadata.Tags = GetValue(metadataDictionary, "tags");
+            packageMetadata.Tags = ParseTags(GetValue(metadataDictionary, "tags"));
             packageMetadata.Title = GetValue(metadataDictionary, "title");
             packageMetadata.Summary = GetValue(metadataDictionary, "summary");
             packageMetadata.Owners = userInformation.UserName;
+            packageMetadata.IsPrerelease = version.IsPrerelease;
 
             return packageMetadata;
         }
@@ -42,6 +44,19 @@ namespace NuGet.Services.Staging.Manager
         private static string FlattenString(string commaSeparatedList)
         {
             return string.Join(", ", commaSeparatedList.Split(',').Select(x => x.Trim()));
+        }
+
+        private static string ParseTags(string tags)
+        {
+            if (tags == null)
+            {
+                return null;
+            }
+
+            tags = tags.Replace(',', ' ').Replace(';', ' ').Replace('\t', ' ').Replace("  ", " ");
+            var tagsList = tags.Split(' ').Where(x => !string.IsNullOrEmpty(x));
+
+            return string.Join(" ", tagsList);
         }
     }
 }
