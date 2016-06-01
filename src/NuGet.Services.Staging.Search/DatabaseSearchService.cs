@@ -17,20 +17,20 @@ namespace NuGet.Services.Staging.Search
         private readonly DatabaseSearchResultsFormatter _formatter;
         private readonly string _stageId;
 
-        public DatabaseSearchService(StageContext stageContext, V3PathCalculator pathCalculator, string stageId)
+        public DatabaseSearchService(StageContext stageContext, V3PathGenerator pathGenerator, string stageId)
         {
             if (stageContext == null)
             {
                 throw new ArgumentNullException(nameof(stageContext));
             }
 
-            if (pathCalculator == null)
+            if (pathGenerator == null)
             {
-                throw new ArgumentNullException(nameof(pathCalculator));
+                throw new ArgumentNullException(nameof(pathGenerator));
             }
 
             _context = stageContext;
-            _formatter = new DatabaseSearchResultsFormatter(pathCalculator);
+            _formatter = new DatabaseSearchResultsFormatter(pathGenerator);
             _stageId = stageId;
         }
 
@@ -44,7 +44,9 @@ namespace NuGet.Services.Staging.Search
             }
 
             query = query.ToLowerInvariant();
-            var queryDictionary = QueryHelpers.ParseNullableQuery(query)?.ToDictionary(x => x.Key, x => (string)x.Value) ?? new Dictionary<string, string>();
+            var queryDictionary = 
+                QueryHelpers.ParseNullableQuery(query)?.ToDictionary(x => x.Key, x => (string)x.Value)
+                ?? new Dictionary<string, string>();
 
             var skip = GetSkip(queryDictionary);
             var take = GetTake(queryDictionary);

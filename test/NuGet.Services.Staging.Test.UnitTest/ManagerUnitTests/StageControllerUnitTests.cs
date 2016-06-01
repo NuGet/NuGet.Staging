@@ -63,8 +63,8 @@ namespace NuGet.Services.Staging.Test.UnitTest
 
             var v3ServiceFactory = new Mock<IV3ServiceFactory>();
             v3ServiceFactory
-                .Setup(x => x.CreatePathCalculator(It.IsAny<string>()))
-                .Returns<string>(stageId => new V3PathCalculator(new Uri($"https://api.nuget.org/{stageId}/")));
+                .Setup(x => x.CreatePathGenerator(It.IsAny<string>()))
+                .Returns<string>(stageId => new V3PathGenerator(new Uri($"https://api.nuget.org/{stageId}/")));
 
             _stageController = new StageController(
                 new Mock<ILogger<StageController>>().Object,

@@ -30,7 +30,7 @@ namespace NuGet.Services.Staging.Manager
 
         public ISearchService GetSearchService(string stageId)
         {
-            return new DatabaseSearchService(_stageContext, _v3ServiceFactory.CreatePathCalculator(stageId), stageId);
+            return new DatabaseSearchService(_stageContext, _v3ServiceFactory.CreatePathGenerator(stageId), stageId);
         }
     }
 }

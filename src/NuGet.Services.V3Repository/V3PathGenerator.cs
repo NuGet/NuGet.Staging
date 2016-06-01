@@ -5,7 +5,7 @@ using System;
 
 namespace NuGet.Services.V3Repository
 {
-    public class V3PathCalculator
+    public class V3PathGenerator
     {
         public Uri BaseAddress { get; }
 
@@ -13,7 +13,7 @@ namespace NuGet.Services.V3Repository
 
         public Uri FlatContainerBaseAddress => new Uri($"{BaseAddress}{Constants.FlatContainerFolderName}/");
 
-        public V3PathCalculator(Uri v3BaseAddress)
+        public V3PathGenerator(Uri v3BaseAddress)
         {
             if (v3BaseAddress == null)
             {

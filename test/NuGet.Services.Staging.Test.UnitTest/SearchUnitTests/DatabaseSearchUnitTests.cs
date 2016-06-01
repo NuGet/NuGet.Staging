@@ -109,13 +109,13 @@ namespace NuGet.Services.Staging.Test.UnitTest
         public DatabaseSearchUnitTests()
         {
             _stageContextMock = new StageContextMock();
-            var pathCalculator = new V3PathCalculator(new Uri($"http://api.nuget.org/stage/{DefaultStageId}/"));
-            _databaseSearchService = new DatabaseSearchService(_stageContextMock.Object, pathCalculator, DefaultStageId);    
+            var pathGenerator = new V3PathGenerator(new Uri($"http://api.nuget.org/stage/{DefaultStageId}/"));
+            _databaseSearchService = new DatabaseSearchService(_stageContextMock.Object, pathGenerator, DefaultStageId);    
         }
 
         [Theory]
         [MemberData("_queryVerificationTestInput")]
-        public void VerifyApplyQueryParameters(string testName, bool includePrerelease, string query, int skip, int take, PackageFilter expectedResultCalculator)
+        public void VerifyApplyQueryParameters(string testName, bool includePrerelease, string query, int skip, int take, PackageFilter expectedResultGenerator)
         {
             // Arrange
             var allPackages = GeneratePackageList();
@@ -125,7 +125,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
             var filteredPackages = _databaseSearchService.ApplyQueryParameters(DefaultStageKey, includePrerelease, query, skip, take).ToList();
 
             // Assert
-            var expectedPackages = expectedResultCalculator(allPackages).ToList();
+            var expectedPackages = expectedResultGenerator(allPackages).ToList();
 
             filteredPackages.Count.Should().Be(expectedPackages.Count, $"for test {testName} count should be the same");
 

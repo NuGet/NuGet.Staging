@@ -76,8 +76,6 @@ namespace NuGet.Services.Staging.Manager
             services.AddScoped<IStageService, StageService>();
 
             // V3
-            services.Configure<V3ServiceOptions>(options => {});
-
             services.AddSingleton<IV3ServiceFactory, V3ServiceFactory>();
 
             string storageAccountConnectionString = Configuration["PackageRepository:StorageAccountConnectionString"];

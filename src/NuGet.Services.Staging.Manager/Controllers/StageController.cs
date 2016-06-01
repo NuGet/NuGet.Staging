@@ -176,7 +176,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
         [EnsureStageExists]
         public IActionResult Index(Stage stage)
         {
-            var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), stage.Id, _v3ServiceFactory.CreatePathCalculator(stage.Id));
+            var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), stage.Id, _v3ServiceFactory.CreatePathGenerator(stage.Id));
             return Json(index);
         }
 

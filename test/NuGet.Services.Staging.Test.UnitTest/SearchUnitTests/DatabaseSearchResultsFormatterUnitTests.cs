@@ -18,12 +18,12 @@ namespace NuGet.Services.Staging.Test.UnitTest
         private const string Older = "Older";
 
         private readonly DatabaseSearchResultsFormatter _formatter;
-        private readonly V3PathCalculator _pathCalculator;
+        private readonly V3PathGenerator _pathGenerator;
 
         public DatabaseSearchResultsFormatterUnitTests()
         {
-            _pathCalculator = new V3PathCalculator(new Uri("http://api.nuget.org/stage/123/"));
-            _formatter = new DatabaseSearchResultsFormatter(_pathCalculator);
+            _pathGenerator = new V3PathGenerator(new Uri("http://api.nuget.org/stage/123/"));
+            _formatter = new DatabaseSearchResultsFormatter(_pathGenerator);
         }
 
         public static IEnumerable<object[]> _formatTestList

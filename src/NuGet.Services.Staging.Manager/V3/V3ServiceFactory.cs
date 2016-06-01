@@ -42,9 +42,9 @@ namespace NuGet.Services.Staging.Manager
             return new V3Service(_options, new AppendingStorageFactory(_storageFactory, stageId), _logger);
         }
 
-        public V3PathCalculator CreatePathCalculator(string stageId)
+        public V3PathGenerator CreatePathGenerator(string stageId)
         {
-            return new V3PathCalculator(new AppendingStorageFactory(_storageFactory, stageId).BaseAddress);
+            return new V3PathGenerator(new AppendingStorageFactory(_storageFactory, stageId).BaseAddress);
         }
     }
 }

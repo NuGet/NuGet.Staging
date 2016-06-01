@@ -12,10 +12,7 @@ namespace NuGet.Services.Staging.Manager.V3
         /// <summary>
         /// Creates an index.json for the stage
         /// </summary>
-        /// <param name="host">The host service.</param>
-        /// <param name="scheme">http/https</param>
-        /// <param name="stageId">Stage id</param>
-        public JObject CreateIndex(string baseAddress, string stageId, V3PathCalculator pathCalculator)
+        public JObject CreateIndex(string baseAddress, string stageId, V3PathGenerator pathGenerator)
         {
             var stageControllerPath = $"{baseAddress}/api/stage/{stageId}";
 
@@ -33,9 +30,9 @@ namespace NuGet.Services.Staging.Manager.V3
                         CreateResource($"{stageControllerPath}/query", ServiceTypes.SearchQueryService[0],  "Search endpoint"),
                         CreateResource($"{stageControllerPath}/query", ServiceTypes.SearchQueryService[1],  "Search endpoint"),
                         CreateResource($"{stageControllerPath}/autocomplete", ServiceTypes.SearchAutocompleteService, "Autocomplete endpoint"),
-                        CreateResource(pathCalculator.RegistrationBaseAddress.AbsoluteUri, ServiceTypes.RegistrationsBaseUrl[0], "Registration blobs Uri"),
-                        CreateResource(pathCalculator.RegistrationBaseAddress.AbsoluteUri, ServiceTypes.RegistrationsBaseUrl[1], "Registration blobs Uri"),
-                        CreateResource(pathCalculator.FlatContainerBaseAddress.AbsoluteUri, ServiceTypes.PackageBaseAddress, "Packages base uri"),
+                        CreateResource(pathGenerator.RegistrationBaseAddress.AbsoluteUri, ServiceTypes.RegistrationsBaseUrl[0], "Registration blobs Uri"),
+                        CreateResource(pathGenerator.RegistrationBaseAddress.AbsoluteUri, ServiceTypes.RegistrationsBaseUrl[1], "Registration blobs Uri"),
+                        CreateResource(pathGenerator.FlatContainerBaseAddress.AbsoluteUri, ServiceTypes.PackageBaseAddress, "Packages base uri"),
                         CreateResource($"{baseAddress}/api/package/{stageId}", ServiceTypes.PackagePublish, "Package publishing endpoint"),
                     }
                 }

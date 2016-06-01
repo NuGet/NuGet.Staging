@@ -9,6 +9,6 @@ namespace NuGet.Services.Staging.Manager
     {
         IV3Service Create(string stageId);
 
-        V3PathCalculator CreatePathCalculator(string stageId);
+        V3PathGenerator CreatePathGenerator(string stageId);
     }
 }

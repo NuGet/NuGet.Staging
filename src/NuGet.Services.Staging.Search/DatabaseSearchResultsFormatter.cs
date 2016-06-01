@@ -13,16 +13,16 @@ namespace NuGet.Services.Staging.Search
 {
     public class DatabaseSearchResultsFormatter
     {
-        private readonly V3PathCalculator _pathCalculator;
+        private readonly V3PathGenerator _pathGenerator;
 
-        public DatabaseSearchResultsFormatter(V3PathCalculator pathCalculator)
+        public DatabaseSearchResultsFormatter(V3PathGenerator pathGenerator)
         {
-            if (pathCalculator == null)
+            if (pathGenerator == null)
             {
-                throw new ArgumentNullException(nameof(pathCalculator));
+                throw new ArgumentNullException(nameof(pathGenerator));
             }
 
-            _pathCalculator = pathCalculator;
+            _pathGenerator = pathGenerator;
         }
 
         public JObject FormatSearchResults(IEnumerable<PackageMetadata> packagesMetadata)
@@ -51,7 +51,7 @@ namespace NuGet.Services.Staging.Search
         private JObject FormatPackageResult(IEnumerable<PackageMetadata> packagesMetadata)
         {
             // Sort packages from 
-            var sortedPackages = packagesMetadata.OrderBy(x => x, new VersionComparer());
+            var sortedPackages = packagesMetadata.OrderBy(x => x, new PackageMetadataVersionComparer());
             var newestVersion = sortedPackages.Last();
 
             var authorsList = newestVersion.Authors.Split(',').Select(s => s.Trim());
@@ -61,7 +61,7 @@ namespace NuGet.Services.Staging.Search
 
             return new JObject
             {
-                { "@id", _pathCalculator.GetPackageRegistrationIndexAddress(newestVersion.Id).ToString() },
+                { "@id", _pathGenerator.GetPackageRegistrationIndexAddress(newestVersion.Id).ToString() },
                 { "@type", "Package" },
                 { "authors", new JArray(authorsList) },
                 { "description",newestVersion.Description },
@@ -69,7 +69,7 @@ namespace NuGet.Services.Staging.Search
                 { "id", newestVersion.Id},
                 { "licenseUrl", newestVersion.LicenseUrl },
                 { "projectUrl", newestVersion.ProjectUrl },
-                { "registration", _pathCalculator.GetPackageRegistrationIndexAddress(newestVersion.Id).ToString() },
+                { "registration", _pathGenerator.GetPackageRegistrationIndexAddress(newestVersion.Id).ToString() },
                 { "tags", new JArray(tagsList) },
                 { "title", newestVersion.Title },
                 { "totalDownloads", 0 },
@@ -82,13 +82,13 @@ namespace NuGet.Services.Staging.Search
         {
             return new JObject
             {
-                { "@id", _pathCalculator.GetPackageVersionRegistrationAddress(packageMetadata.Id, packageMetadata.Version).ToString() },
+                { "@id", _pathGenerator.GetPackageVersionRegistrationAddress(packageMetadata.Id, packageMetadata.Version).ToString() },
                 { "downloads", 0 },
                 { "version", packageMetadata.Version }
             };
         }
 
-        private class VersionComparer : IComparer<PackageMetadata>
+        private class PackageMetadataVersionComparer : IComparer<PackageMetadata>
         {
             public int Compare(PackageMetadata x, PackageMetadata y)
             {
