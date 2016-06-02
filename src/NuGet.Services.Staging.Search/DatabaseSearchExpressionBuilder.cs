@@ -24,13 +24,13 @@ namespace NuGet.Services.Staging.Search
 
         private static readonly Criteria AuthorCriteria = term => p => p.Authors.Contains(term);
 
-        private static readonly Criteria VersionCriteria = term => p => string.Compare(p.Version, term, StringComparison.InvariantCultureIgnoreCase) == 0;
+        private static readonly Criteria VersionCriteria = term => p => p.Version == term;
 
         private static readonly Criteria OwnerCriteria = term => p => p.Owners.Contains(term);
 
         private static readonly Criteria TitleCriteria = term => p => p.Title.Contains(term);
 
-        private static readonly Criteria PackageIdCriteria = term => p => string.Compare(p.Id, term, StringComparison.InvariantCultureIgnoreCase) == 0;
+        private static readonly Criteria PackageIdCriteria = term => p => p.Id == term;
 
         private static readonly Dictionary<QueryField, Criteria> QueryFieldToCriteriaMapping = new Dictionary<QueryField, Criteria>
             {
