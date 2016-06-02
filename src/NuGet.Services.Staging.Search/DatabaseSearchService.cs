@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json.Linq;
@@ -56,15 +57,26 @@ namespace NuGet.Services.Staging.Search
             return _formatter.FormatSearchResults(ApplyQueryParameters(stage.Key, includePrerelease, q, skip, take));
         }
 
-        internal IEnumerable<PackageMetadata> ApplyQueryParameters(int stageKey, bool includePrerelease, string query, int skip, int take)
+        internal IReadOnlyList<PackageMetadata> ApplyQueryParameters(int stageKey, bool includePrerelease, string query, int skip, int take)
         {
-            var searchResult = ApplyStageFilter(stageKey);
-            searchResult = ApplyIncludePrerelease(searchResult, includePrerelease);
-            searchResult = ApplyQueryFilter(searchResult, query);
-            searchResult = searchResult.Skip(skip);
-            searchResult = searchResult.Take(take);
+            // Why do we need to get a list of ids and only after that to get packages? In case there are multiple versions
+            // of the same package, all the versions will appear in the results, making take and skip give the wrong results.
+            // So first get the distinct list of ids that should be in the results, and only after translate them to the list of packages 
+            // with all the versions.
 
-            return searchResult;
+            var idsResult = ApplyStageFilter(stageKey);
+            idsResult = ApplyIncludePrerelease(idsResult, includePrerelease);
+            idsResult = ApplyQueryFilter(idsResult, query);
+
+            var distinctIds = idsResult.Select(p => p.Id).Distinct().OrderBy(id => id);
+
+            var ids = distinctIds.Skip(skip).Take(take);
+            var idsList = ids.ToList();
+
+            var searchResults = ApplyStageFilter(stageKey);
+            searchResults = ApplyIncludePrerelease(searchResults, includePrerelease);
+
+            return searchResults.Where(x => idsList.Contains(x.Id)).ToImmutableList();
         }
 
         private IQueryable<PackageMetadata> ApplyStageFilter(int stageKey)

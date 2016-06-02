@@ -13,7 +13,8 @@ using NuGet.Services.Test.Common;
 using NuGet.Services.V3Repository;
 using Xunit;
 
-using PackageFilter = System.Func<System.Collections.Generic.IEnumerable<NuGet.Services.Staging.Database.Models.PackageMetadata>, System.Collections.Generic.IEnumerable<NuGet.Services.Staging.Database.Models.PackageMetadata>>;
+using PackageFilter = System.Func<System.Collections.Generic.IEnumerable<NuGet.Services.Staging.Database.Models.PackageMetadata>,
+                                  System.Collections.Generic.IEnumerable<NuGet.Services.Staging.Database.Models.PackageMetadata>>;
 
 namespace NuGet.Services.Staging.Test.UnitTest
 {
@@ -22,7 +23,6 @@ namespace NuGet.Services.Staging.Test.UnitTest
         private readonly DatabaseSearchService _databaseSearchService;
         private readonly StageContextMock _stageContextMock;
         private const string DefaultStageId = "94bdc785-617f-4335-83c0-f80d88c01cc7";
-        private const int DefaultStageKey = 22;
 
         public static IEnumerable<object[]> _queryVerificationTestInput = new List<object[]>
         {
@@ -32,11 +32,11 @@ namespace NuGet.Services.Staging.Test.UnitTest
             },
             new object[]
             {
-                "Test take + empty query", true, "", 0, 10, new PackageFilter(allPackages => allPackages.Take(10))
+                "Test take + empty query", true, "", 0, 10, new PackageFilter(allPackages => allPackages.OrderBy(x => x.Id).Take(10))
             },
             new object[]
             {
-                "Test skip", true, "", 15, 200, new PackageFilter(allPackages => allPackages.Skip(15))
+                "Test skip", true, "", 15, 200, new PackageFilter(allPackages => allPackages.OrderBy(x => x.Id).Skip(15))
             },
             new object[]
             {
@@ -122,7 +122,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
             _stageContextMock.Object.PackagesMetadata.AddRange(allPackages);
 
             // Act
-            var filteredPackages = _databaseSearchService.ApplyQueryParameters(DefaultStageKey, includePrerelease, query, skip, take).ToList();
+            var filteredPackages = _databaseSearchService.ApplyQueryParameters(DataMockHelper.DefaultStageKey, includePrerelease, query, skip, take).ToList();
 
             // Assert
             var expectedPackages = expectedResultGenerator(allPackages).ToList();
@@ -133,22 +133,46 @@ namespace NuGet.Services.Staging.Test.UnitTest
         }
 
         [Fact]
+        public void VerifyApplyQueryParametersForPackageWithMultipleVersions()
+        {
+            // Arrange
+            const string firstId = "aaa";
+            const string secondId = "bbb";
+
+            var package1 = DataMockHelper.CreateDefaultPackageMetadata(firstId);
+            var package2 = DataMockHelper.CreateDefaultPackageMetadata(firstId, version: "2.0.0");
+            var package3 = DataMockHelper.CreateDefaultPackageMetadata(secondId);
+            var package4 = DataMockHelper.CreateDefaultPackageMetadata(secondId, version: "2.0.0");
+
+            _stageContextMock.Object.PackagesMetadata.AddRange(new List<PackageMetadata> { package1, package2, package3, package4 });
+
+            // Act
+            var filteredPackages = _databaseSearchService.ApplyQueryParameters(DataMockHelper.DefaultStageKey, includePrerelease: true, query: "", skip: 1, take: 4).ToList();
+
+            // Assert
+
+            // The "firstId" packages should have been skipped
+            filteredPackages.Should().HaveCount(2);
+            filteredPackages.Should().NotContain(x => x.Id == firstId);
+        }
+
+        [Fact]
         public void VerifyStageFiltering()
         {
             // Arrange
-            var stage1Packages = GeneratePackageList(stageKey: DefaultStageKey);
-            var stage2Packages = GeneratePackageList(stageKey: DefaultStageKey + 1);
+            var stage1Packages = GeneratePackageList(stageKey: DataMockHelper.DefaultStageKey);
+            var stage2Packages = GeneratePackageList(stageKey: DataMockHelper.DefaultStageKey + 1);
 
             _stageContextMock.Object.PackagesMetadata.AddRange(stage2Packages);
             _stageContextMock.Object.PackagesMetadata.AddRange(stage1Packages);
 
             // Act
-            var filteredPackages = _databaseSearchService.ApplyQueryParameters(DefaultStageKey, includePrerelease: true , query: "title1", skip: 0, take: 200).ToList();
+            var filteredPackages = _databaseSearchService.ApplyQueryParameters(DataMockHelper.DefaultStageKey, includePrerelease: true , query: "title1", skip: 0, take: 200).ToList();
 
             // Assert
             var expectedPackages =
                 _stageContextMock.Object.PackagesMetadata.Where(
-                    p => p.StageKey == DefaultStageKey && p.Title.Contains("title1")).ToList();
+                    p => p.StageKey == DataMockHelper.DefaultStageKey && p.Title.Contains("title1")).ToList();
 
             filteredPackages.Count.Should().Be(expectedPackages.Count);
 
@@ -243,7 +267,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
             comparer.Equals(jsonResult, expectedJson).Should().BeTrue();
         }
 
-        private IEnumerable<PackageMetadata> GeneratePackageList(int stageKey = DefaultStageKey)
+        private IEnumerable<PackageMetadata> GeneratePackageList(int stageKey = DataMockHelper.DefaultStageKey)
         {
             return Enumerable.Range(0, 100).Select(i =>
             {
