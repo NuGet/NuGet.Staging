@@ -157,7 +157,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         }
 
         [Fact]
-        public void VerifyStageFiltering()
+        public void VerifyApplyQueryParametersFilteringByStage()
         {
             // Arrange
             var stage1Packages = GeneratePackageList(stageKey: DataMockHelper.DefaultStageKey);
@@ -180,14 +180,14 @@ namespace NuGet.Services.Staging.Test.UnitTest
         }
 
         [Fact]
-        public void VerifyQueryParsing()
+        public void VerifySearch()
         {
             // Arrange
             var stage = _stageContextMock.AddMockStage();
             stage.Id = DefaultStageId;
 
             var allPackages = GeneratePackageList(stage.Key);
-            _stageContextMock.Object.PackagesMetadata.AddRange(allPackages);
+            _stageContextMock.Object.PackagesMetadata.AddRange(allPackages.Reverse());
 
             string query = "q=title2&skip=1&take=2&prerelease=false";
 
@@ -196,7 +196,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
 
             // Assert
             var expectedPackages =
-                _stageContextMock.Object.PackagesMetadata.Where(p => p.IsPrerelease == false && p.Title.Contains("title2")).Skip(1).Take(2).ToList();
+                _stageContextMock.Object.PackagesMetadata.Where(p => p.IsPrerelease == false && p.Title.Contains("title2")).OrderBy(x => x.Id).Skip(1).Take(2).ToList();
 
             var expectedJson =
                 new JObject

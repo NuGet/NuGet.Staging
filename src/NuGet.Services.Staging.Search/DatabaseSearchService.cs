@@ -76,7 +76,7 @@ namespace NuGet.Services.Staging.Search
             var searchResults = ApplyStageFilter(stageKey);
             searchResults = ApplyIncludePrerelease(searchResults, includePrerelease);
 
-            return searchResults.Where(x => idsList.Contains(x.Id)).ToImmutableList();
+            return searchResults.Where(x => idsList.Contains(x.Id)).OrderBy(x => x.Id).ToImmutableList();
         }
 
         private IQueryable<PackageMetadata> ApplyStageFilter(int stageKey)
