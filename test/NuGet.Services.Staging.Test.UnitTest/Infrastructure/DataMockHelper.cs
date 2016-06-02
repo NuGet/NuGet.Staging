@@ -12,22 +12,21 @@ namespace NuGet.Services.Staging.Test.UnitTest
     public static class DataMockHelper
     {
         public static UserInformation DefaultUser = new UserInformation { UserKey = 2, UserName = "testUser" };
+        public const int DefaultStageKey = 1;
 
         public static Stage AddMockStage(this StageContextMock stageContextMock)
         {
-            const int stageKey = 1;
-
             var member = new StageMembership
             {
                 Key = 1,
                 MembershipType = MembershipType.Owner,
-                StageKey = stageKey,
+                StageKey = DefaultStageKey,
                 UserKey = DefaultUser.UserKey
             };
 
             var stage = new Stage
             {
-                Key = stageKey,
+                Key = DefaultStageKey,
                 Id = Guid.NewGuid().ToString(),
                 DisplayName = "DefaultStage",
                 Memberships = new List<StageMembership> { member },
@@ -76,7 +75,8 @@ namespace NuGet.Services.Staging.Test.UnitTest
 
         public static PackageMetadata CreateDefaultPackageMetadata(
             string id = TestPackage.DefaultId,
-            string version = TestPackage.DefaultVersion)
+            string version = TestPackage.DefaultVersion,
+            int stageKey = DefaultStageKey)
         {
             return new PackageMetadata
             {
@@ -91,7 +91,8 @@ namespace NuGet.Services.Staging.Test.UnitTest
                 Tags = TestPackage.DefaultTags,
                 Summary = TestPackage.DefaultSummary,
                 Title = TestPackage.DefaultTitle,
-                IsPrerelease = true
+                IsPrerelease = true,
+                StageKey = stageKey
             };
         }
     }
