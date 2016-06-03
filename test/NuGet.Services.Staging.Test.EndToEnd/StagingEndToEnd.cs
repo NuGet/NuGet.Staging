@@ -45,6 +45,9 @@ namespace NuGet.Services.Staging.Test.EndToEnd
             // Search packages
             await VerifySearchPackages(client, stageId, pushedPackages);
 
+            // Autocomplete 
+            await VerifyAutocompletePackages(client, stageId, pushedPackages);
+
             // Commit stage
             await VerifyCommitStage(client, stageId, pushedPackages);
         }
@@ -206,30 +209,47 @@ namespace NuGet.Services.Staging.Test.EndToEnd
             // Assert
             var expectedPackages = packages.OrderBy(p => p.Id).Skip(skip).Take(take).ToList();
 
-            queryResult["data"].Should().HaveCount(take);
+            queryResult[Constants.Search_Data].Should().HaveCount(take);
 
-            await VerifyPackageQueryResult(queryResult["data"].First, expectedPackages[0]);
-            await VerifyPackageQueryResult(queryResult["data"].Last, expectedPackages[1]);
+            await VerifyPackageQueryResult(queryResult[Constants.Search_Data].First, expectedPackages[0]);
+            await VerifyPackageQueryResult(queryResult[Constants.Search_Data].Last, expectedPackages[1]);
         }
 
         private async Task VerifyPackageQueryResult(JToken queryResult, TestPackage package)
         {
             _output.WriteLine($"Verifying query result: {queryResult} against package {package.Id}");
 
-            queryResult["id"].ToString().ShouldBeEquivalentTo(package.Id);
-            queryResult["description"].ToString().ShouldBeEquivalentTo(TestPackage.DefaultDescription);
-            queryResult["iconUrl"].ToString().ShouldBeEquivalentTo(TestPackage.DefaultIconUrl);
-            queryResult["licenseUrl"].ToString().ShouldBeEquivalentTo(TestPackage.DefaultLicenseUrl);
-            queryResult["projectUrl"].ToString().ShouldBeEquivalentTo(TestPackage.DefaultProjectUrl);
-            queryResult["title"].ToString().ShouldBeEquivalentTo(TestPackage.DefaultTitle);
-            queryResult["version"].ToString().ShouldBeEquivalentTo(TestPackage.DefaultVersion);
+            queryResult[Constants.Search_Id].ToString().ShouldBeEquivalentTo(package.Id);
+            queryResult[Constants.Search_Description].ToString().ShouldBeEquivalentTo(TestPackage.DefaultDescription);
+            queryResult[Constants.Search_IconUrl].ToString().ShouldBeEquivalentTo(TestPackage.DefaultIconUrl);
+            queryResult[Constants.Search_LicenseUrl].ToString().ShouldBeEquivalentTo(TestPackage.DefaultLicenseUrl);
+            queryResult[Constants.Search_ProjectUrl].ToString().ShouldBeEquivalentTo(TestPackage.DefaultProjectUrl);
+            queryResult[Constants.Search_Title].ToString().ShouldBeEquivalentTo(TestPackage.DefaultTitle);
+            queryResult[Constants.Search_Version].ToString().ShouldBeEquivalentTo(TestPackage.DefaultVersion);
 
-            queryResult["versions"].Should().HaveCount(1);
-            queryResult["versions"].First["version"].ToString().ShouldBeEquivalentTo(TestPackage.DefaultVersion);
+            queryResult[Constants.Search_Versions].Should().HaveCount(1);
+            queryResult[Constants.Search_Versions].First[Constants.Search_Version].ToString().ShouldBeEquivalentTo(TestPackage.DefaultVersion);
 
-            await VerifyUri(new Uri(queryResult["@id"].ToString()));
-            await VerifyUri(new Uri(queryResult["registration"].ToString()));
-            await VerifyUri(new Uri(queryResult["versions"].First["@id"].ToString()));
+            await VerifyUri(new Uri(queryResult[Constants.Search_TId].ToString()));
+            await VerifyUri(new Uri(queryResult[Constants.Search_Registration].ToString()));
+            await VerifyUri(new Uri(queryResult[Constants.Search_Versions].First[Constants.Search_TId].ToString()));
+        }
+
+        private async Task VerifyAutocompletePackages(StagingClient client, string stageId, IReadOnlyList<TestPackage> packages)
+        {
+            const int take = 2;
+            const int skip = 1;
+
+            // Act
+            var queryResult = await client.Autocomplete(stageId, q:PackageIdPrefix, id:string.Empty, includePrerelease: true, skip: skip, take: take);
+
+            // Assert
+            var expectedPackages = packages.Select(p => p.Id).OrderBy(x => x).Skip(skip).Take(take).ToList();
+
+            queryResult[Constants.Autocomplete_TotalHits].ShouldBeEquivalentTo(packages.Count);
+
+            queryResult[Constants.Search_Data].Should().HaveCount(take);
+            queryResult[Constants.Search_Data].Select(x => x.ToString()).Should().Equal(expectedPackages);
         }
 
         private async Task VerifyUri(Uri uri)

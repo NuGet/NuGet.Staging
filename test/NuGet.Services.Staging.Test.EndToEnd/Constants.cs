@@ -24,5 +24,22 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
         public const string StageStatus_Active = "Active";
         public const string MembershipType_Owner = "Owner";
+
+        public const string Search_Data = "data";
+        public const string Search_TId = "@id";
+        public const string Search_Id = "id";
+        public const string Search_Description = "description";
+        public const string Search_IconUrl = "iconUrl";
+        public const string Search_LicenseUrl = "licenseUrl";
+        public const string Search_ProjectUrl = "projectUrl";
+        public const string Search_Title = "title";
+        public const string Search_Version = "version";
+        public const string Search_Versions = "versions";
+        public const string Search_Registration = "registration";
+
+        public const string Autocomplete_TotalHits = "totalHits";
+
+
+
     }
 }
