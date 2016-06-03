@@ -164,17 +164,17 @@ namespace NuGet.Services.Staging.Test.EndToEnd
             return JObject.Parse(responseBody);
         }
 
-        public async Task<JObject> Query(string stageId, string queryString)
+        public async Task<JObject> Query(string stageId, string query, bool includePrerelease=true, int skip=0, int take=20)
         {
             _logger.WriteLine($"StagingClient: Query called for stage {stageId}");
 
             JObject index = await Index(stageId);
 
-            string searchEndpoint = index["resources"].Where(x => x["@type"].ToString() == ServiceTypes.SearchQueryService[0]).ToString();
+            string searchEndpoint = index["resources"].First(x => x["@type"].ToString() == ServiceTypes.SearchQueryService[0])["@id"].ToString();
 
             Func<HttpRequestMessage> requestFactory = () =>
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, new Uri(_stagingServiceUri, $"{searchEndpoint}?q={queryString}"));
+                var request = new HttpRequestMessage(HttpMethod.Get, new Uri(_stagingServiceUri, $"{searchEndpoint}?q={query}&prerelease={includePrerelease}&skip={skip}&take={take}"));
                 return request;
             };
 
