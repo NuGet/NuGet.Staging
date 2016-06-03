@@ -42,7 +42,7 @@ namespace NuGet.Services.Staging.Search
                 { QueryField.Tag, TagCriteria },
                 { QueryField.Author, AuthorCriteria },
                 { QueryField.Summary, SummaryCriteria },
-                { QueryField.Owner, OwnerCriteria },
+                { QueryField.Owner, OwnerCriteria }
             };
 
         public static Expression<Func<PackageMetadata, bool>> Build(string query)
@@ -118,26 +118,6 @@ namespace NuGet.Services.Staging.Search
             }
 
             return true;
-        }
-
-        private class ParameterExpressionReplacer : ExpressionVisitor
-        {
-            private readonly ParameterExpression _parameterExpr;
-
-            public ParameterExpressionReplacer(ParameterExpression parameterExpr)
-            {
-                _parameterExpr = parameterExpr;
-            }
-
-            protected override Expression VisitParameter(ParameterExpression node)
-            {
-                if (node.Type == _parameterExpr.Type &&
-                    node != _parameterExpr)
-                {
-                    return _parameterExpr;
-                }
-                return base.VisitParameter(node);
-            }
         }
     }
 }

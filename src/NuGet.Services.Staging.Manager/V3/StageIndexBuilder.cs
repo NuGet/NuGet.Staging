@@ -7,12 +7,12 @@ using NuGet.Services.V3Repository;
 
 namespace NuGet.Services.Staging.Manager.V3
 {
-    public class StageIndexBuilder
+    public static class StageIndexBuilder
     {
         /// <summary>
         /// Creates an index.json for the stage
         /// </summary>
-        public JObject CreateIndex(string baseAddress, string stageId, V3PathGenerator pathGenerator)
+        public static JObject CreateIndex(string baseAddress, string stageId, V3PathGenerator pathGenerator)
         {
             var stageControllerPath = $"{baseAddress}/api/stage/{stageId}";
 
@@ -41,7 +41,7 @@ namespace NuGet.Services.Staging.Manager.V3
             return index;
         }
 
-        private JObject CreateResource(string id, string type, string comment)
+        private static JObject CreateResource(string id, string type, string comment)
         {
             return new JObject
             {
