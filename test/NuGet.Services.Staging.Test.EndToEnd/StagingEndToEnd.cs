@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Newtonsoft.Json.Linq;
@@ -16,13 +17,16 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 {
     public class StagingEndToEnd
     {
+        private const string PackageIdPrefix = "TestPackage";
         private readonly ITestOutputHelper _output;
         private readonly StagingEndToEndConfiguration _configuration;
+        private readonly HttpClient _httpClient;
        
         public StagingEndToEnd(ITestOutputHelper output)
         {
             _output = output;
             _configuration = new StagingEndToEndConfiguration();
+            _httpClient = new HttpClient();
         }
 
         [Fact]
@@ -37,6 +41,12 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
             // Push packages
             var pushedPackages = await VerifyPushPackages(client, stageId, _configuration.PackagesToPushCount);
+
+            // Search packages
+            await VerifySearchPackages(client, stageId, pushedPackages);
+
+            // Autocomplete 
+            await VerifyAutocompletePackages(client, stageId, pushedPackages);
 
             // Commit stage
             await VerifyCommitStage(client, stageId, pushedPackages);
@@ -58,7 +68,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
             }
 
             // Verify list user stages
-            await VerifyListUserStages(client, stagesCount, createdStageResults);
+            await VerifyListUserStages(client, createdStageResults);
 
             // Drop the stages
             for (int i = 0; i < stagesCount; i++)
@@ -73,11 +83,11 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
             var dropResult = await client.DropStage(stageId, _configuration.ApiKey);
 
-            dropResult[Constants.Stage_Id].ShouldAllBeEquivalentTo(stageId, "Stage Id should be correct");
-            dropResult[Constants.Stage_Status].ShouldAllBeEquivalentTo("Deleted");
+            dropResult[Constants.Stage_Id].ShouldBeEquivalentTo(stageId, "Stage Id should be correct");
+            dropResult[Constants.Stage_Status].ShouldBeEquivalentTo("Deleted");
         }
 
-        private async Task VerifyListUserStages(StagingClient client, int stagesCount, List<JObject> createdStageResults)
+        private async Task VerifyListUserStages(StagingClient client, List<JObject> createdStageResults)
         {
             var listUserStagesResult = await client.ListUserStages(_configuration.ApiKey);
 
@@ -144,13 +154,12 @@ namespace NuGet.Services.Staging.Test.EndToEnd
         private async Task<IReadOnlyList<TestPackage>> VerifyPushPackages(StagingClient client, string stageId, int packagesCount)
         {
             var pushedPackages = new List<TestPackage>(packagesCount);
-            string version = "1.0.0";
 
             for (int i = 0; i < packagesCount; i++)
             {
-                string packageId = "TestPackage" + Guid.NewGuid();
+                string packageId = PackageIdPrefix + Guid.NewGuid();
 
-                var package = new TestPackage(packageId, version).WithDefaultData();
+                var package = new TestPackage(packageId).WithDefaultData();
                 _output.WriteLine($"Pushing package {i}/{packagesCount}. Stage id: {stageId}, Package: {package.Id} {package.Version}");
 
                 await client.PushPackage(stageId, _configuration.ApiKey, package.Stream);
@@ -187,6 +196,69 @@ namespace NuGet.Services.Staging.Test.EndToEnd
             createStageResult[Constants.Stage_MembershipType].ToString().ShouldBeEquivalentTo(Constants.MembershipType_Owner);
 
             return createStageResult;
+        }
+
+        private async Task VerifySearchPackages(StagingClient client, string stageId, IReadOnlyList<TestPackage> packages)
+        {
+            const int take = 2;
+            const int skip = 1;
+             
+            // Act
+            var queryResult = await client.Query(stageId, PackageIdPrefix, includePrerelease: true, skip: skip, take: take);
+
+            // Assert
+            var expectedPackages = packages.OrderBy(p => p.Id).Skip(skip).Take(take).ToList();
+
+            queryResult[Constants.Search_Data].Should().HaveCount(take);
+
+            await VerifyPackageQueryResult(queryResult[Constants.Search_Data].First, expectedPackages[0]);
+            await VerifyPackageQueryResult(queryResult[Constants.Search_Data].Last, expectedPackages[1]);
+        }
+
+        private async Task VerifyPackageQueryResult(JToken queryResult, TestPackage package)
+        {
+            _output.WriteLine($"Verifying query result: {queryResult} against package {package.Id}");
+
+            queryResult[Constants.Search_Id].ToString().ShouldBeEquivalentTo(package.Id);
+            queryResult[Constants.Search_Description].ToString().ShouldBeEquivalentTo(TestPackage.DefaultDescription);
+            queryResult[Constants.Search_IconUrl].ToString().ShouldBeEquivalentTo(TestPackage.DefaultIconUrl);
+            queryResult[Constants.Search_LicenseUrl].ToString().ShouldBeEquivalentTo(TestPackage.DefaultLicenseUrl);
+            queryResult[Constants.Search_ProjectUrl].ToString().ShouldBeEquivalentTo(TestPackage.DefaultProjectUrl);
+            queryResult[Constants.Search_Title].ToString().ShouldBeEquivalentTo(TestPackage.DefaultTitle);
+            queryResult[Constants.Search_Version].ToString().ShouldBeEquivalentTo(TestPackage.DefaultVersion);
+
+            queryResult[Constants.Search_Versions].Should().HaveCount(1);
+            queryResult[Constants.Search_Versions].First[Constants.Search_Version].ToString().ShouldBeEquivalentTo(TestPackage.DefaultVersion);
+
+            await VerifyUri(new Uri(queryResult[Constants.Search_TId].ToString()));
+            await VerifyUri(new Uri(queryResult[Constants.Search_Registration].ToString()));
+            await VerifyUri(new Uri(queryResult[Constants.Search_Versions].First[Constants.Search_TId].ToString()));
+        }
+
+        private async Task VerifyAutocompletePackages(StagingClient client, string stageId, IReadOnlyList<TestPackage> packages)
+        {
+            const int take = 2;
+            const int skip = 1;
+
+            // Act
+            var queryResult = await client.Autocomplete(stageId, query:PackageIdPrefix, packageId:string.Empty, includePrerelease: true, skip: skip, take: take);
+
+            // Assert
+            var expectedPackages = packages.Select(p => p.Id).OrderBy(x => x).Skip(skip).Take(take).ToList();
+
+            queryResult[Constants.Autocomplete_TotalHits].ShouldBeEquivalentTo(packages.Count);
+
+            queryResult[Constants.Search_Data].Should().HaveCount(take);
+            queryResult[Constants.Search_Data].Select(x => x.ToString()).Should().Equal(expectedPackages);
+        }
+
+        private async Task VerifyUri(Uri uri)
+        {
+            _output.WriteLine($"Verifying Uri: {uri}");
+
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
         }
     }
 }

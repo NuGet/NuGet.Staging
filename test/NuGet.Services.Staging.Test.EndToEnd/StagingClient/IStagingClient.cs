@@ -23,7 +23,9 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
         Task<JObject> Index(string stageId);
 
-        Task<JObject> Query(string stageId, string queryString);
+        Task<JObject> Query(string stageId, string query, bool includePrerelease, int skip, int take);
+
+        Task<JObject> Autocomplete(string stageId, string query, string packageId, bool includePrerelease, int skip, int take);
 
         Task PushPackage(string stageId, string apiKey, Stream packageStream);
     }
