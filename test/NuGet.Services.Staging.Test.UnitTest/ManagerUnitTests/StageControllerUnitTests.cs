@@ -16,6 +16,7 @@ using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager;
 using NuGet.Services.Staging.Manager.Controllers;
+using NuGet.Services.Staging.Manager.V3;
 using NuGet.Services.Staging.PackageService;
 using NuGet.Services.V3Repository;
 using Xunit;
@@ -71,7 +72,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
                 _stageServiceMock.Object,
                 new Mock<ISearchServiceFactory>().Object,
                 _packageServiceMock.Object,
-                v3ServiceFactory.Object);
+                new StageIndexBuilder(v3ServiceFactory.Object));
 
             _httpContextMock = _stageController.WithMockHttpContext().WithUser(DefaultUser).WithBaseAddress();
         }

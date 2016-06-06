@@ -11,13 +11,6 @@ namespace NuGet.Services.Staging.Test.UnitTest.SearchUnitTests
 {
     public class DatabaseAutocompleteResultsFormatterUnitTests
     {
-        private DatabaseAutocompleteResultsFormatter _formatter;
-
-        public DatabaseAutocompleteResultsFormatterUnitTests()
-        {
-            _formatter = new DatabaseAutocompleteResultsFormatter();
-        }
-
         public static IEnumerable<object[]> _formatTestList => new []
         {
             new object[]
@@ -51,7 +44,7 @@ namespace NuGet.Services.Staging.Test.UnitTest.SearchUnitTests
         public void VerifyFormat(List<string> input, int totalHits, JObject expectedOutput)
         {
             // Act 
-            var result = _formatter.FormatResults(input, totalHits);
+            var result = DatabaseAutocompleteResultsFormatter.FormatResults(input, totalHits);
 
             // Assert
             // Verify lastReopen exists, and remove it because we can't mock DateTime.UtcNow

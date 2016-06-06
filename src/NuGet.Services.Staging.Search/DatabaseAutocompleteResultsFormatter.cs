@@ -7,9 +7,9 @@ using Newtonsoft.Json.Linq;
 
 namespace NuGet.Services.Staging.Search
 {
-    public class DatabaseAutocompleteResultsFormatter
+    public static class DatabaseAutocompleteResultsFormatter
     {
-        public JObject FormatResults(IEnumerable<string> items, int totalHits)
+        public static JObject FormatResults(IEnumerable<string> items, int totalHits)
         {
             return new JObject
             {

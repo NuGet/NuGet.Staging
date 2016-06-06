@@ -81,7 +81,7 @@ namespace NuGet.Services.Staging.Search
             int totalHits;
             var result = AutocompleteInternal(stage.Key, includePrerelease, q, id, skip, take, out totalHits);
 
-            return new DatabaseAutocompleteResultsFormatter().FormatResults(result, totalHits);
+            return DatabaseAutocompleteResultsFormatter.FormatResults(result, totalHits);
         }
 
         internal IReadOnlyList<PackageMetadata> SearchInternal(int stageKey, bool includePrerelease, string query, int skip, int take)
@@ -120,9 +120,8 @@ namespace NuGet.Services.Staging.Search
 
         private IQueryable<string> ApplyAutocompleteQueryFilter(IQueryable<PackageMetadata> packages, string q, string id)
         {
-            if (string.IsNullOrEmpty(q) && string.IsNullOrEmpty(id) || !string.IsNullOrEmpty(q))
+            if (!string.IsNullOrEmpty(q) || string.IsNullOrEmpty(id))
             {
-                // 
                 packages = packages.Where(package => package.Id.Contains(q));
                 return packages.Select(p => p.Id).Distinct().OrderBy(x => x);
             }
