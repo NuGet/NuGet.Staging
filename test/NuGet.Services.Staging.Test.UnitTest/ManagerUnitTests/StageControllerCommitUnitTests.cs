@@ -24,7 +24,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         public async Task WhenCommitsCalledAndStageIsCommiting409IsReturned()
         {
             // Arrange
-            var stage = await AddMockStage("stage");
+            var stage = await AddMockStage();
             _stageContextMock.AddMockPackage(stage, "package");
             await _stageController.Commit(stage);
 
@@ -47,7 +47,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         public async Task WhenCommitIsCalledForAnEmptyStage400IsReturned()
         {
             // Arrange
-            var stage = await AddMockStage("stage");
+            var stage = await AddMockStage();
 
             // Act
             IActionResult actionResult = await _stageController.Commit(stage);
@@ -63,7 +63,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
             const string packageId2 = "packageId2";
 
             // Arrange
-            var stage = await AddMockStage("stage");
+            var stage = await AddMockStage();
             var package1 = _stageContextMock.AddMockPackage(stage, packageId1);
             var package2 = _stageContextMock.AddMockPackage(stage, packageId2);
 
@@ -86,9 +86,25 @@ namespace NuGet.Services.Staging.Test.UnitTest
             VerifyPackagePush(pushedBatch.PackagePushDataList.First(x => x.Id == package1.Id), package1);
             VerifyPackagePush(pushedBatch.PackagePushDataList.First(x => x.Id == package2.Id), package2);
 
-            // Verify tracking id was saved
-            stage.Commits.First().TrackId.Should().Be(TrackId);
             stage.Commits.First().Status.Should().Be(CommitStatus.Pending);
+        }
+
+        [Fact]
+        public async Task WhenCommitIsCalledAndPackageServiceFailsStageStatusStaysActive()
+        {
+            // Arrange
+            var stage = await AddMockStage();
+            _stageContextMock.AddMockPackage(stage);
+
+            _packageServiceMock.Setup(x => x.PushBatchAsync(It.IsAny<PackageBatchPushData>()))
+                               .Throws<ArgumentException>();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(async () => await _stageController.Commit(stage));
+
+            stage.Status.ShouldBeEquivalentTo(StageStatus.Active);
+            stage.Commits.Should().HaveCount(1);
+            stage.Commits.First().Status.ShouldBeEquivalentTo(CommitStatus.Failed);
         }
 
         [Fact]
@@ -101,7 +117,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         public async Task WhenGetCommitProgressIsCalledAndStageNotCommited400Returned()
         {
             // Arrange
-            var stage = await AddMockStage("stage");
+            var stage = await AddMockStage();
 
             // Act
             IActionResult actionResult = _stageController.GetCommitProgress(stage);
@@ -114,7 +130,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         public async Task WhenGetCommitProgressIsCalledAndStageHasMultipleCommitsLatestReturned()
         {
             // Arrange
-            var stage = await AddMockStage("stage");
+            var stage = await AddMockStage();
             var commit1 = AddMockCommit(stage, DateTime.UtcNow);
             var commit2 = AddMockCommit(stage, DateTime.UtcNow + TimeSpan.FromMinutes(10));
             commit1.Status = CommitStatus.Failed;
@@ -134,7 +150,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         public async Task WhenGetCommitProgressIsCalledAndCommitProgressNotReportedSucceed()
         {
             // Arrange
-            var stage = await AddMockStage("stage");
+            var stage = await AddMockStage();
             _stageContextMock.AddMockPackage(stage, "package1");
             _stageContextMock.AddMockPackage(stage, "package2");
 
@@ -156,7 +172,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         public async Task WhenGetCommitProgressIsCalledAndCommitProgressReportedSucceed()
         {
             // Arrange
-            var stage = await AddMockStage("stage");
+            var stage = await AddMockStage();
             var package1 = _stageContextMock.AddMockPackage(stage, "package1");
             var package2 = _stageContextMock.AddMockPackage(stage, "package2");
 
@@ -234,7 +250,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
             var commit = new StageCommit
             {
                 RequestTime = requestTime,
-                TrackId = TrackId,
+                TrackId = string.Empty,
                 Status = CommitStatus.Pending
             };
 

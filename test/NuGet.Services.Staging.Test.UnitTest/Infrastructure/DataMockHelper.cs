@@ -40,17 +40,16 @@ namespace NuGet.Services.Staging.Test.UnitTest
             return stage;
         }
 
-        public static StagedPackage AddMockPackage(this StageContextMock stageContextMock, Stage stage, string packageId)
+        public static StagedPackage AddMockPackage(this StageContextMock stageContextMock, Stage stage, string packageId = TestPackage.DefaultId)
         {
-            const string version = "1.0.0";
             var package = new StagedPackage
             {
                 Id = packageId,
-                Version = version,
-                NormalizedVersion = version,
-                NupkgUrl = $"http://api.nuget.org/{stage.Id}/{packageId}/{version}/{packageId}.{version}.nupkg",
+                Version = TestPackage.DefaultVersion,
+                NormalizedVersion = TestPackage.DefaultVersion,
+                NupkgUrl = $"http://api.nuget.org/{stage.Id}/{packageId}/{TestPackage.DefaultVersion}/{packageId}.{TestPackage.DefaultVersion}.nupkg",
                 UserKey = DefaultUser.UserKey,
-                PackageMetadata = CreateDefaultPackageMetadata(packageId, version, stage.Key)
+                PackageMetadata = CreateDefaultPackageMetadata(packageId, TestPackage.DefaultVersion, stage.Key)
             };
 
             stage.Packages.Add(package);

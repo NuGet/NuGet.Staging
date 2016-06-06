@@ -14,7 +14,6 @@ namespace NuGet.Services.Staging.PackageService
         /// <summary>
         /// Pushes a batch of packages.
         /// </summary>
-        /// <returns>Tracking id that allows monitoring the progress of the push.</returns>
-        Task<string> PushBatchAsync(PackageBatchPushData data);
+        Task PushBatchAsync(PackageBatchPushData data);
     }
 }

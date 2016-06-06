@@ -16,8 +16,10 @@ namespace NuGet.Services.Staging.Test.UnitTest
         [Fact]
         public async Task WhenCreateIsCalledNewStageIsAdded()
         {
+             const string displayName = "display name";
+
             // Act 
-            IActionResult actionResult = await _stageController.Create(DisplayName);
+            IActionResult actionResult = await _stageController.Create(displayName);
 
             // Assert
             actionResult.Should().BeOfType<OkObjectResult>();
@@ -25,11 +27,11 @@ namespace NuGet.Services.Staging.Test.UnitTest
 
             Stage stage = _stageContextMock.Object.Stages.First();
 
-            stage.DisplayName.Should().Be(DisplayName);
+            stage.DisplayName.Should().Be(displayName);
             stage.Status.Should().Be(StageStatus.Active);
             stage.Memberships.Count.Should().Be(1);
             stage.Memberships.First().MembershipType.Should().Be(MembershipType.Owner);
-            stage.Memberships.First().UserKey.Should().Be(DefaultUser.UserKey);
+            stage.Memberships.First().UserKey.Should().Be(DataMockHelper.DefaultUser.UserKey);
         }
 
         [Fact]
