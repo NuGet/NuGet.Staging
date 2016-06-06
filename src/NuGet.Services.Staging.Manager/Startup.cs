@@ -15,8 +15,8 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Authentication;
+using NuGet.Services.Staging.Manager.V3;
 using NuGet.Services.Staging.PackageService;
-using NuGet.Services.V3Repository;
 using IServiceCollection = Microsoft.Extensions.DependencyInjection.IServiceCollection;
 
 namespace NuGet.Services.Staging.Manager
@@ -72,11 +72,13 @@ namespace NuGet.Services.Staging.Manager
             // IPackageService setup
             services.AddScoped<IPackageService, InternalPackageService>();
             services.Configure<InternalPackageServiceOptions>(Configuration.GetSection("InternalPackageServiceOptions"));
-
+            
+            // StageService
             services.AddScoped<IStageService, StageService>();
 
             // V3
             services.AddSingleton<IV3ServiceFactory, V3ServiceFactory>();
+            services.AddSingleton<StageIndexBuilder, StageIndexBuilder>();
 
             string storageAccountConnectionString = Configuration["PackageRepository:StorageAccountConnectionString"];
             CloudStorageAccount account = CloudStorageAccount.Parse(storageAccountConnectionString);

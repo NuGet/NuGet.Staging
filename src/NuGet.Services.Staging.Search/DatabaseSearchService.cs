@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json.Linq;
@@ -54,10 +53,38 @@ namespace NuGet.Services.Staging.Search
             var includePrerelease = GetIncludePrerelease(queryDictionary);
             var q = GetQuery(queryDictionary);
 
-            return _formatter.FormatSearchResults(ApplyQueryParameters(stage.Key, includePrerelease, q, skip, take));
+            return _formatter.FormatResults(SearchInternal(stage.Key, includePrerelease, q, skip, take));
         }
 
-        internal IReadOnlyList<PackageMetadata> ApplyQueryParameters(int stageKey, bool includePrerelease, string query, int skip, int take)
+        public JObject Autocomplete(string query)
+        {
+            var stage = _context.Stages.FirstOrDefault(x => x.Id == _stageId);
+
+            if (stage == null)
+            {
+                return null;
+            }
+
+            // Parse query
+            query = query.ToLowerInvariant();
+            var queryDictionary =
+                QueryHelpers.ParseNullableQuery(query)?.ToDictionary(x => x.Key, x => (string)x.Value)
+                ?? new Dictionary<string, string>();
+
+            var skip = GetSkip(queryDictionary);
+            var take = GetTake(queryDictionary);
+            var includePrerelease = GetIncludePrerelease(queryDictionary);
+            var q = GetQuery(queryDictionary);
+            var id = GetId(queryDictionary);
+
+            // Run query
+            int totalHits;
+            var result = AutocompleteInternal(stage.Key, includePrerelease, q, id, skip, take, out totalHits);
+
+            return DatabaseAutocompleteResultsFormatter.FormatResults(result, totalHits);
+        }
+
+        internal IReadOnlyList<PackageMetadata> SearchInternal(int stageKey, bool includePrerelease, string query, int skip, int take)
         {
             // Why do we need to get a list of ids and only after that to get packages? In case there are multiple versions
             // of the same package, all the versions will appear in the results, making take and skip give the wrong results.
@@ -69,15 +96,39 @@ namespace NuGet.Services.Staging.Search
             idsResult = ApplyQueryFilter(idsResult, query);
 
             var distinctIds = idsResult.Select(p => p.Id).Distinct().OrderBy(id => id);
-
             var ids = distinctIds.Skip(skip).Take(take);
+
             var idsList = ids.ToList();
 
             var searchResults = ApplyStageFilter(stageKey);
             searchResults = ApplyIncludePrerelease(searchResults, includePrerelease);
 
-            return searchResults.Where(x => idsList.Contains(x.Id)).OrderBy(x => x.Id).ToImmutableList();
+            return searchResults.Where(x => idsList.Contains(x.Id)).OrderBy(x => x.Id).ToList();
         }
+
+        internal IReadOnlyList<string> AutocompleteInternal(int stageKey, bool includePrerelease, string q, string id, int skip, int take, out int totalHits)
+        {
+            var result = ApplyStageFilter(stageKey);
+            result = ApplyIncludePrerelease(result, includePrerelease);
+
+            var items = ApplyAutocompleteQueryFilter(result, q, id);
+
+            totalHits = items.Count();
+
+            return items.Skip(skip).Take(take).ToList();
+        }
+
+        private IQueryable<string> ApplyAutocompleteQueryFilter(IQueryable<PackageMetadata> packages, string q, string id)
+        {
+            if (!string.IsNullOrEmpty(q) || string.IsNullOrEmpty(id))
+            {
+                packages = packages.Where(package => package.Id.Contains(q));
+                return packages.Select(p => p.Id).Distinct().OrderBy(x => x);
+            }
+
+            packages = packages.Where(package => package.Id == id);
+            return packages.Select(package => package.Version).OrderBy(x => x);
+        } 
 
         private IQueryable<PackageMetadata> ApplyStageFilter(int stageKey)
         {
@@ -155,6 +206,18 @@ namespace NuGet.Services.Staging.Search
             }
 
             return query;
+        }
+
+        private static string GetId(Dictionary<string, string> queryDictionary)
+        {
+            string id;
+
+            if (!queryDictionary.TryGetValue("id", out id))
+            {
+                id = string.Empty;
+            }
+
+            return id;
         }
     }
 }

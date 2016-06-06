@@ -22,15 +22,14 @@ namespace NuGet.Services.Staging.Manager.Controllers
     {
         private readonly ILogger<StageController> _logger;
         private readonly IStageService _stageService;
-        private readonly StageIndexBuilder _stageIndexBuilder = new StageIndexBuilder();
         private readonly ISearchServiceFactory _searchServiceFactory;
         private readonly IPackageService _packageService;
-        private readonly IV3ServiceFactory _v3ServiceFactory;
+        private readonly StageIndexBuilder _stageIndexBuilder;
 
         private const string MessageFormat = "Stage: {StageId}, {Message}";
 
         public StageController(ILogger<StageController> logger, IStageService stageService, ISearchServiceFactory searchServiceFactory,
-            IPackageService packageService, IV3ServiceFactory v3ServiceFactory)
+            IPackageService packageService, StageIndexBuilder stageIndexBuilder)
         {
             if (logger == null)
             {
@@ -52,16 +51,16 @@ namespace NuGet.Services.Staging.Manager.Controllers
                 throw new ArgumentNullException(nameof(packageService));
             }
 
-            if (v3ServiceFactory == null)
+            if (stageIndexBuilder == null)
             {
-                throw new ArgumentNullException(nameof(v3ServiceFactory));
+                throw new ArgumentNullException(nameof(stageIndexBuilder));
             }
-
+          
             _logger = logger;
             _stageService = stageService;
             _searchServiceFactory = searchServiceFactory;
             _packageService = packageService;
-            _v3ServiceFactory = v3ServiceFactory;
+            _stageIndexBuilder = stageIndexBuilder;
         }
 
         // GET: api/stage
@@ -176,7 +175,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
         [EnsureStageExists]
         public IActionResult Index(Stage stage)
         {
-            var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), stage.Id, _v3ServiceFactory.CreatePathGenerator(stage.Id));
+            var index = _stageIndexBuilder.CreateIndex(GetBaseAddress(), stage.Id);
             return Json(index);
         }
 
@@ -187,6 +186,16 @@ namespace NuGet.Services.Staging.Manager.Controllers
         {
             var searchResult = _searchServiceFactory.GetSearchService(stage.Id).Search(Request.QueryString.Value);
             return new JsonResult(searchResult);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("{id:guid}/autocomplete")]
+        [EnsureStageExists]
+        public IActionResult Autocomplete(Stage stage)
+        {
+            var autocompleteResult = _searchServiceFactory.GetSearchService(stage.Id)
+                                                          .Autocomplete(Request.QueryString.Value);
+            return new JsonResult(autocompleteResult);
         }
 
         private UserInformation GetUserInformation()

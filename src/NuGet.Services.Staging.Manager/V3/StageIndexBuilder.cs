@@ -1,19 +1,32 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Newtonsoft.Json.Linq;
 using NuGet.Protocol.Core.v3;
-using NuGet.Services.V3Repository;
 
 namespace NuGet.Services.Staging.Manager.V3
 {
     public class StageIndexBuilder
     {
+        private readonly IV3ServiceFactory _v3ServiceFactory;
+
+        public StageIndexBuilder(IV3ServiceFactory v3ServiceFactory)
+        {
+            if (v3ServiceFactory == null)
+            {
+                throw new ArgumentNullException(nameof(v3ServiceFactory));
+            }
+
+            _v3ServiceFactory = v3ServiceFactory;
+        }
+
         /// <summary>
         /// Creates an index.json for the stage
         /// </summary>
-        public JObject CreateIndex(string baseAddress, string stageId, V3PathGenerator pathGenerator)
+        public JObject CreateIndex(string baseAddress, string stageId)
         {
+            var pathGenerator = _v3ServiceFactory.CreatePathGenerator(stageId);
             var stageControllerPath = $"{baseAddress}/api/stage/{stageId}";
 
             var index = new JObject
@@ -41,7 +54,7 @@ namespace NuGet.Services.Staging.Manager.V3
             return index;
         }
 
-        private JObject CreateResource(string id, string type, string comment)
+        private static JObject CreateResource(string id, string type, string comment)
         {
             return new JObject
             {

@@ -26,164 +26,158 @@ namespace NuGet.Services.Staging.Test.UnitTest
             _formatter = new DatabaseSearchResultsFormatter(_pathGenerator);
         }
 
-        public static IEnumerable<object[]> _formatTestList
+        public static IEnumerable<object[]> _formatTestList => new[]
         {
-            get
+            #region Single package
+            new object[]
             {
-                return new[]
+                new List<PackageMetadata>
                 {
-                    #region Single package
-                    new object[]
+                    DataMockHelper.CreateDefaultPackageMetadata()
+                },
+                new JObject
+                {
+                    {"@context", new JObject {{"@vocab", "http://schema.nuget.org/schema#"}}},
                     {
-                        new List<PackageMetadata>
+                        "data", new JArray
                         {
-                            DataMockHelper.CreateDefaultPackageMetadata()
-                        },
-                        new JObject
-                        {
-                            {"@context", new JObject {{"@vocab", "http://schema.nuget.org/schema#"}}},
+                            new JObject
                             {
-                                "data", new JArray
+                                {"@id", "http://api.nuget.org/stage/123/registration/json/index.json"},
+                                {"@type", "Package"},
+                                {"authors", new JArray {"nuget", "nuget2"}},
+                                {"description", TestPackage.DefaultDescription},
+                                {"iconUrl", TestPackage.DefaultIconUrl},
+                                {"id", TestPackage.DefaultId},
+                                {"licenseUrl", TestPackage.DefaultLicenseUrl},
+                                {"projectUrl", TestPackage.DefaultProjectUrl},
+                                {"registration", "http://api.nuget.org/stage/123/registration/json/index.json"},
+                                {"tags", new JArray {"nuget", "test"}},
+                                {"title", TestPackage.DefaultTitle},
+                                {"totalDownloads", 0},
+                                {"version", TestPackage.DefaultVersion},
                                 {
-                                    new JObject
+                                    "versions", new JArray
                                     {
-                                        {"@id", "http://api.nuget.org/stage/123/registration/json/index.json"},
-                                        {"@type", "Package"},
-                                        {"authors", new JArray {"nuget", "nuget2"}},
-                                        {"description", TestPackage.DefaultDescription},
-                                        {"iconUrl", TestPackage.DefaultIconUrl},
-                                        {"id", TestPackage.DefaultId},
-                                        {"licenseUrl", TestPackage.DefaultLicenseUrl},
-                                        {"projectUrl", TestPackage.DefaultProjectUrl},
-                                        {"registration", "http://api.nuget.org/stage/123/registration/json/index.json"},
-                                        {"tags", new JArray {"nuget", "test"}},
-                                        {"title", TestPackage.DefaultTitle},
-                                        {"totalDownloads", 0},
-                                        {"version", TestPackage.DefaultVersion},
+                                        new JObject
                                         {
-                                            "versions", new JArray
-                                            {
-                                                new JObject
-                                                {
-                                                    {"@id", "http://api.nuget.org/stage/123/registration/json/1.0.0.json"},
-                                                    {"downloads", 0},
-                                                    {"version", TestPackage.DefaultVersion}
-                                                }
-                                            }
+                                            {"@id", "http://api.nuget.org/stage/123/registration/json/1.0.0.json"},
+                                            {"downloads", 0},
+                                            {"version", TestPackage.DefaultVersion}
                                         }
                                     }
                                 }
                             }
                         }
-                    },
+                    }
+                }
+            },
 
-                    #endregion
+            #endregion
                     
-                    #region Empty results
-                    new object[]
+            #region Empty results
+            new object[]
+            {
+                new List<PackageMetadata>(),
+                new JObject
+                {
+                    {"@context", new JObject {{"@vocab", "http://schema.nuget.org/schema#"}}},
+                    {"data", new JArray()}
+                }
+            },
+            #endregion
+
+            #region Two packages with same id
+            new object[]
+            {
+                new List<PackageMetadata>
+                {
+                    new PackageMetadata
                     {
-                        new List<PackageMetadata>(),
-                        new JObject
-                        {
-                            {"@context", new JObject {{"@vocab", "http://schema.nuget.org/schema#"}}},
-                            {"data", new JArray()}
-                        }
+                        Authors = TestPackage.DefaultAuthors + Older,
+                        Description = TestPackage.DefaultDescription + Older,
+                        IconUrl = TestPackage.DefaultIconUrl + Older,
+                        Id = TestPackage.DefaultId,
+                        LicenseUrl = TestPackage.DefaultLicenseUrl + Older,
+                        Version = TestPackage.DefaultVersion,
+                        Owners = TestPackage.DefaultOwners + Older,
+                        ProjectUrl = TestPackage.DefaultProjectUrl + Older,
+                        Tags = TestPackage.DefaultTags + Older,
+                        Summary = TestPackage.DefaultSummary + Older,
+                        Title = TestPackage.DefaultTitle + Older,
+                        StageKey = 1,
+                        IsPrerelease = true
                     },
-                    #endregion
-
-                    #region Two packages with same id
-                    new object[]
+                    new PackageMetadata
                     {
-                        new List<PackageMetadata>
-                        {
-                            new PackageMetadata
-                            {
-                                Authors = TestPackage.DefaultAuthors + Older,
-                                Description = TestPackage.DefaultDescription + Older,
-                                IconUrl = TestPackage.DefaultIconUrl + Older,
-                                Id = TestPackage.DefaultId,
-                                LicenseUrl = TestPackage.DefaultLicenseUrl + Older,
-                                Version = TestPackage.DefaultVersion,
-                                Owners = TestPackage.DefaultOwners + Older,
-                                ProjectUrl = TestPackage.DefaultProjectUrl + Older,
-                                Tags = TestPackage.DefaultTags + Older,
-                                Summary = TestPackage.DefaultSummary + Older,
-                                Title = TestPackage.DefaultTitle + Older,
-                                StageKey = 1,
-                                IsPrerelease = true
-                            },
-                            new PackageMetadata
-                            {
-                                Authors = TestPackage.DefaultAuthors,
-                                Description = TestPackage.DefaultDescription,
-                                IconUrl = TestPackage.DefaultIconUrl,
-                                Id = TestPackage.DefaultId,
-                                LicenseUrl = TestPackage.DefaultLicenseUrl,
-                                Version = "1.0.0.1-beta",
-                                Owners = TestPackage.DefaultOwners,
-                                ProjectUrl = TestPackage.DefaultProjectUrl,
-                                Tags = TestPackage.DefaultTags,
-                                Summary = TestPackage.DefaultSummary,
-                                Title = TestPackage.DefaultTitle,
-                                StageKey = 1,
-                                IsPrerelease = true
-                            }
+                        Authors = TestPackage.DefaultAuthors,
+                        Description = TestPackage.DefaultDescription,
+                        IconUrl = TestPackage.DefaultIconUrl,
+                        Id = TestPackage.DefaultId,
+                        LicenseUrl = TestPackage.DefaultLicenseUrl,
+                        Version = "1.0.0.1-beta",
+                        Owners = TestPackage.DefaultOwners,
+                        ProjectUrl = TestPackage.DefaultProjectUrl,
+                        Tags = TestPackage.DefaultTags,
+                        Summary = TestPackage.DefaultSummary,
+                        Title = TestPackage.DefaultTitle,
+                        StageKey = 1,
+                        IsPrerelease = true
+                    }
 
-                        },
-                        new JObject
+                },
+                new JObject
+                {
+                    {"@context", new JObject {{"@vocab", "http://schema.nuget.org/schema#"}}},
+                    {
+                        "data", new JArray
                         {
-                            {"@context", new JObject {{"@vocab", "http://schema.nuget.org/schema#"}}},
+                            new JObject
                             {
-                                "data", new JArray
+                                {"@id", "http://api.nuget.org/stage/123/registration/json/index.json"},
+                                {"@type", "Package"},
+                                {"authors", new JArray { "nuget", "nuget2" }},
+                                {"description", TestPackage.DefaultDescription},
+                                {"iconUrl", TestPackage.DefaultIconUrl},
+                                {"id", TestPackage.DefaultId},
+                                {"licenseUrl", TestPackage.DefaultLicenseUrl},
+                                {"projectUrl", TestPackage.DefaultProjectUrl},
+                                {"registration", "http://api.nuget.org/stage/123/registration/json/index.json"},
+                                {"tags", new JArray {"nuget", "test"}},
+                                {"title", TestPackage.DefaultTitle},
+                                {"totalDownloads", 0},
+                                {"version", "1.0.0.1-beta"},
                                 {
-                                    new JObject
+                                    "versions", new JArray
                                     {
-                                        {"@id", "http://api.nuget.org/stage/123/registration/json/index.json"},
-                                        {"@type", "Package"},
-                                        {"authors", new JArray { "nuget", "nuget2" }},
-                                        {"description", TestPackage.DefaultDescription},
-                                        {"iconUrl", TestPackage.DefaultIconUrl},
-                                        {"id", TestPackage.DefaultId},
-                                        {"licenseUrl", TestPackage.DefaultLicenseUrl},
-                                        {"projectUrl", TestPackage.DefaultProjectUrl},
-                                        {"registration", "http://api.nuget.org/stage/123/registration/json/index.json"},
-                                        {"tags", new JArray {"nuget", "test"}},
-                                        {"title", TestPackage.DefaultTitle},
-                                        {"totalDownloads", 0},
-                                        {"version", "1.0.0.1-beta"},
+                                        new JObject
                                         {
-                                            "versions", new JArray
-                                            {
-                                                new JObject
-                                                {
-                                                    {"@id", "http://api.nuget.org/stage/123/registration/json/1.0.0.json"},
-                                                    {"downloads", 0},
-                                                    {"version", TestPackage.DefaultVersion}
-                                                },
-                                                new JObject
-                                                {
-                                                    {"@id", "http://api.nuget.org/stage/123/registration/json/1.0.0.1-beta.json"},
-                                                    {"downloads", 0},
-                                                    {"version", "1.0.0.1-beta"}
-                                                }
-                                            }
+                                            {"@id", "http://api.nuget.org/stage/123/registration/json/1.0.0.json"},
+                                            {"downloads", 0},
+                                            {"version", TestPackage.DefaultVersion}
+                                        },
+                                        new JObject
+                                        {
+                                            {"@id", "http://api.nuget.org/stage/123/registration/json/1.0.0.1-beta.json"},
+                                            {"downloads", 0},
+                                            {"version", "1.0.0.1-beta"}
                                         }
                                     }
                                 }
                             }
                         }
-                    },
-                    #endregion
-                };
-            }
-        }
+                    }
+                }
+            },
+            #endregion
+        };
 
         [Theory]
         [MemberData("_formatTestList")]
         public void VerifyFormat(List<PackageMetadata> input, JObject expectedOutput)
         {
             // Act 
-            var result = _formatter.FormatSearchResults(input);
+            var result = _formatter.FormatResults(input);
 
             // Assert
             var comparer = JObject.EqualityComparer;

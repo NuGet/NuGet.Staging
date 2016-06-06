@@ -8,5 +8,7 @@ namespace NuGet.Services.Staging.Search
     public interface ISearchService
     {
         JObject Search(string query);
+
+        JObject Autocomplete(string query);
     }
 }

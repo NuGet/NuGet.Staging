@@ -25,7 +25,7 @@ namespace NuGet.Services.Staging.Search
             _pathGenerator = pathGenerator;
         }
 
-        public JObject FormatSearchResults(IEnumerable<PackageMetadata> packagesMetadata)
+        public JObject FormatResults(IEnumerable<PackageMetadata> packagesMetadata)
         {
             // If there are several packages with the same Id, but different version,
             // we would return one result per id
