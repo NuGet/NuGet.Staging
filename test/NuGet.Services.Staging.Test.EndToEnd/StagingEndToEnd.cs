@@ -241,7 +241,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
             const int skip = 1;
 
             // Act
-            var queryResult = await client.Autocomplete(stageId, q:PackageIdPrefix, id:string.Empty, includePrerelease: true, skip: skip, take: take);
+            var queryResult = await client.Autocomplete(stageId, query:PackageIdPrefix, packageId:string.Empty, includePrerelease: true, skip: skip, take: take);
 
             // Assert
             var expectedPackages = packages.Select(p => p.Id).OrderBy(x => x).Skip(skip).Take(take).ToList();

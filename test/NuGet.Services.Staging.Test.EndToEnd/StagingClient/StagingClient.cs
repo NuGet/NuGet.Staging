@@ -183,17 +183,17 @@ namespace NuGet.Services.Staging.Test.EndToEnd
             return JObject.Parse(responseBody);
         }
 
-        public async Task<JObject> Autocomplete(string stageId, string q, string id="", bool includePrerelease=false, int skip=0, int take=20)
+        public async Task<JObject> Autocomplete(string stageId, string query, string packageId="", bool includePrerelease=false, int skip=0, int take=20)
         {
             _logger.WriteLine($"StagingClient: Autocomplete called for stage {stageId}");
 
-            JObject index = await Index(stageId);
+            var index = await Index(stageId);
 
-            string searchEndpoint = index["resources"].First(x => x["@type"].ToString() == ServiceTypes.SearchAutocompleteService)["@id"].ToString();
+            var searchEndpoint = index["resources"].First(x => x["@type"].ToString() == ServiceTypes.SearchAutocompleteService)["@id"].ToString();
 
             Func<HttpRequestMessage> requestFactory = () =>
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, new Uri(_stagingServiceUri, $"{searchEndpoint}?q={q}&id={id}&prerelease={includePrerelease}&skip={skip}&take={take}"));
+                var request = new HttpRequestMessage(HttpMethod.Get, new Uri(_stagingServiceUri, $"{searchEndpoint}?q={query}&id={packageId}&prerelease={includePrerelease}&skip={skip}&take={take}"));
                 return request;
             };
 
