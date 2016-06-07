@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Staging.Test.EndToEnd
+namespace NuGet.Client.Staging
 {
     public class ReusableContent : HttpContent
     {

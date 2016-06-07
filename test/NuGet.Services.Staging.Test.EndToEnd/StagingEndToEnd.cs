@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Newtonsoft.Json.Linq;
+using NuGet.Client.Staging;
 using NuGet.Services.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
@@ -32,7 +33,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
         [Fact]
         public async Task VerifyCommitScenario()
         {
-            var client = new StagingClient(new Uri(_configuration.StagingUri), _output);
+            var client = new StagingClient(new Uri(_configuration.StagingUri), new XUnitLoggerAdapter(_output));
 
             // Create stage
             var createStageResult = await VerifyCreateStage(client);
@@ -55,7 +56,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
         [Fact]
         public async Task VerifyStageManagement()
         {
-            var client = new StagingClient(new Uri(_configuration.StagingUri), _output);
+            var client = new StagingClient(new Uri(_configuration.StagingUri), new XUnitLoggerAdapter(_output));
 
             // Create stages
             int stagesCount = 2;

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
-using Xunit;
+using NuGet.Client.Staging;
 using Xunit.Abstractions;
 
 namespace NuGet.Services.Staging.Test.EndToEnd
@@ -40,7 +40,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
         {
             const int packagesCount = 1000;
 
-            var client = new StagingClient(new Uri(_configuration.StagingUri), _output);
+            var client = new StagingClient(new Uri(_configuration.StagingUri), new XUnitLoggerAdapter(_output));
             var stageCreateResult = await client.CreateStage("MyStage" + DateTime.Now, _configuration.ApiKey);
             string stageId = stageCreateResult[Constants.Stage_Id].ToString();
             _output.WriteLine($"Stage id: {stageId}");

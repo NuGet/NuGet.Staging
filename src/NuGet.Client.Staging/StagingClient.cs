@@ -3,18 +3,18 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGet.Common;
 using NuGet.Protocol;
-using Xunit.Abstractions;
 using NuGet.Protocol.Core.v3;
-using System.Linq;
 
-namespace NuGet.Services.Staging.Test.EndToEnd
+namespace NuGet.Client.Staging
 {
     public class StagingClient : IStagingClient
     {
@@ -24,10 +24,9 @@ namespace NuGet.Services.Staging.Test.EndToEnd
         private const string ContentType = "application/octet-stream";
         private readonly Uri _stagingServiceUri;
         private readonly HttpClient _httpClient;
-        private readonly ITestOutputHelper _logger;
-        private readonly XUnitLoggerAdapter _loggerAdapter;
+        private readonly ILogger _logger;
 
-        public StagingClient(Uri stagingServiceUri, ITestOutputHelper logger)
+        public StagingClient(Uri stagingServiceUri, ILogger logger)
         {
             if (stagingServiceUri == null)
             {
@@ -41,7 +40,6 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
             _stagingServiceUri = stagingServiceUri;
             _logger = logger;
-            _loggerAdapter = new XUnitLoggerAdapter(_logger);
 
             _httpClient = new HttpClient();
             _httpClient.Timeout = TimeSpan.FromMinutes(5);
@@ -49,7 +47,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
         public async Task<JArray> ListUserStages(string apiKey)
         {
-            _logger.WriteLine("StagingClient: ListUserStages called.");
+            _logger.LogDebug("StagingClient: ListUserStages called.");
 
             Func<HttpRequestMessage> requestFactory = () =>
             {
@@ -67,7 +65,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
         public async Task<JObject> GetDetails(string stageId)
         {
-            _logger.WriteLine($"StagingClient: GetDetails called for stage {stageId}");
+            _logger.LogDebug($"StagingClient: GetDetails called for stage {stageId}");
 
             Func<HttpRequestMessage> requestFactory = () =>
             {
@@ -82,7 +80,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
         public async Task<JObject> CreateStage(string displayName, string apiKey)
         {
-            _logger.WriteLine($"StagingClient: CreateStage called with name {displayName}");
+            _logger.LogDebug($"StagingClient: CreateStage called with name {displayName}");
 
             Func<HttpRequestMessage> requestFactory = () =>
             {
@@ -102,7 +100,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
         public async Task<JObject> DropStage(string stageId, string apiKey)
         {
-            _logger.WriteLine($"StagingClient: DropStage called for stage {stageId}.");
+            _logger.LogDebug($"StagingClient: DropStage called for stage {stageId}.");
 
             Func<HttpRequestMessage> requestFactory = () =>
             {
@@ -120,7 +118,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
         public async Task CommitStage(string stageId, string apiKey)
         {
-            _logger.WriteLine($"StagingClient: CommitStage called for stage {stageId}.");
+            _logger.LogDebug($"StagingClient: CommitStage called for stage {stageId}.");
 
             Func<HttpRequestMessage> requestFactory = () =>
             {
@@ -136,7 +134,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
         public async Task<JObject> GetCommitProgress(string stageId)
         {
-            _logger.WriteLine($"StagingClient: GetCommitProgress called for stage {stageId}");
+            _logger.LogDebug($"StagingClient: GetCommitProgress called for stage {stageId}");
 
             Func<HttpRequestMessage> requestFactory = () =>
             {
@@ -151,7 +149,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
         public async Task<JObject> Index(string stageId)
         {
-            _logger.WriteLine($"StagingClient: Index called for stage {stageId}");
+            _logger.LogDebug($"StagingClient: Index called for stage {stageId}");
 
             Func<HttpRequestMessage> requestFactory = () =>
             {
@@ -166,7 +164,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
         public async Task<JObject> Query(string stageId, string query, bool includePrerelease=false, int skip=0, int take=20)
         {
-            _logger.WriteLine($"StagingClient: Query called for stage {stageId}");
+            _logger.LogDebug($"StagingClient: Query called for stage {stageId}");
 
             JObject index = await Index(stageId);
 
@@ -185,7 +183,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
         public async Task<JObject> Autocomplete(string stageId, string query, string packageId="", bool includePrerelease=false, int skip=0, int take=20)
         {
-            _logger.WriteLine($"StagingClient: Autocomplete called for stage {stageId}");
+            _logger.LogDebug($"StagingClient: Autocomplete called for stage {stageId}");
 
             var index = await Index(stageId);
 
@@ -204,7 +202,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
         public async Task PushPackage(string stageId, string apiKey, Stream packageStream)
         {
-            _logger.WriteLine($"StagingClient: PushPackage called for stage {stageId}");
+            _logger.LogDebug($"StagingClient: PushPackage called for stage {stageId}");
 
             JObject index = await Index(stageId);
 
@@ -237,7 +235,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
                 _httpClient,
                 requestFactory,
                 HttpCompletionOption.ResponseHeadersRead,
-                _loggerAdapter,
+                _logger,
                 CancellationToken.None);
 
             await EnsureSuccessStatusCode(response);
