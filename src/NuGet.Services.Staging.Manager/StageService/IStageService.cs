@@ -56,12 +56,17 @@ namespace NuGet.Services.Staging.Manager
         /// <summary>
         /// Commit stage (DB changes)
         /// </summary>
-        Task CommitStage(Stage stage, string trackingId);
+        Task<StageCommit> CommitStage(Stage stage);
 
         /// <summary>
         /// Get the latest commit of the stage.
         /// </summary>
         StageCommit GetCommit(Stage stage);
+
+        /// <summary>
+        /// Change commit status to failed.
+        /// </summary>
+        Task SetCommitStatusToFailed(Stage stage, StageCommit commit);
 
         /// <summary>
         /// Get progress report for this commit.

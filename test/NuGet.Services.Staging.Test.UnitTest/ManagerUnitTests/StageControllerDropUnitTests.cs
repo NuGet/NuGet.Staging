@@ -58,7 +58,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         public async Task WhenDropIsCalledAndStageIsCommiting400IsReturned()
         {
             // Arrange
-            var stage = await AddMockStage("stage");
+            var stage = await AddMockStage();
             _stageContextMock.AddMockPackage(stage, "package");
             await _stageController.Commit(stage);
 

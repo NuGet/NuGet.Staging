@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Protocol.Core.v3;
-using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager;
 using NuGet.Services.Staging.Manager.Controllers;
@@ -30,10 +29,6 @@ namespace NuGet.Services.Staging.Test.UnitTest
     /// </summary>
     public class StageControllerUnitTests
     {
-        protected const string DisplayName = "display name";
-        protected const string TrackId = "trackId";
-        protected UserInformation DefaultUser = new UserInformation { UserKey = 3, UserName = "testUser" };
-
         protected StageController _stageController;
         protected StageContextMock _stageContextMock;
         protected Mock<HttpContext> _httpContextMock;
@@ -59,7 +54,8 @@ namespace NuGet.Services.Staging.Test.UnitTest
                 .Returns((int key) => _stageContextMock.Object.StageMemberships.Where(x => x.UserKey == key));
 
             _packageServiceMock = new Mock<IPackageService>();
-            _packageServiceMock.Setup(x => x.PushBatchAsync(It.IsAny<PackageBatchPushData>())).Returns(Task.FromResult(TrackId))
+            _packageServiceMock.Setup(x => x.PushBatchAsync(It.IsAny<PackageBatchPushData>()))
+                               .Returns(Task.FromResult(default(object)))
                                .Callback<PackageBatchPushData>(x => _pushedBatches.Add(x));
 
             var v3ServiceFactory = new Mock<IV3ServiceFactory>();
@@ -74,7 +70,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
                 _packageServiceMock.Object,
                 new StageIndexBuilder(v3ServiceFactory.Object));
 
-            _httpContextMock = _stageController.WithMockHttpContext().WithUser(DefaultUser).WithBaseAddress();
+            _httpContextMock = _stageController.WithMockHttpContext().WithUser(DataMockHelper.DefaultUser).WithBaseAddress();
         }
 
         [Fact]
@@ -109,7 +105,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
         {
             // Arrange
             var stage = await AddMockStage("first");
-            var secondStage = await AddMockStage(DisplayName);
+            var secondStage = await AddMockStage();
             _stageContextMock.AddMockPackage(secondStage, "package");
             
             // Act
@@ -175,7 +171,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
             AuthorizationTest.IsAnonymous(_stageController, "Query", methodTypes: null).Should().BeTrue();
         }
 
-        protected async Task<Stage> AddMockStage(string displayName)
+        protected async Task<Stage> AddMockStage(string displayName = "test stage")
         {
             IActionResult actionResult = await _stageController.Create(displayName);
 
