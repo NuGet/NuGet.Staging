@@ -61,13 +61,13 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 
             if (stageCommit == null)
             {
-                _logger.LogWarning("Commit data for stage {StageId} not found.", pushData.StageId);
+                _logger.LogWarning("Commit data for stage {Stage} not found.", pushData.StageId);
                 return;
             }
 
             if (stageCommit.Status == CommitStatus.Completed || stageCommit.Status == CommitStatus.Failed)
             {
-                _logger.LogWarning("Commit status for stage {StageId} doesn't require handling. Status: {Status}.",
+                _logger.LogWarning("Commit status for stage {Stage} doesn't require handling. Status: {Status}.",
                     pushData.StageId, stageCommit.Status);
                 return;
             }

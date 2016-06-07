@@ -136,6 +136,8 @@ namespace NuGet.Services.Staging.Manager.Controllers
                     }
                   );
 
+                _logger.LogInformation("Stage: {Stage}, Package {Package} {Version} was pushed.", stage.Id, registrationId, normalizedVersion);
+
                 // Check if package exists in the Gallery (warning message if so)
                 bool packageAlreadyExists =
                     await _packageService.DoesPackageExistsAsync(registrationId, normalizedVersion);

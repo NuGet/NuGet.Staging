@@ -15,6 +15,7 @@ using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.BackgroundWorkers;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.PackageService;
+using Serilog.Events;
 using Serilog.Sinks.RollingFile;
 
 namespace NuGet.Services.Staging.Runner
@@ -108,7 +109,7 @@ namespace NuGet.Services.Staging.Runner
             // Write to AI
             ApplicationInsights.Initialize(_configuration["ApplicationInsights:InstrumentationKey"]);
 
-            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggingConfig);
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggingConfig, LogEventLevel.Verbose);
             serviceCollection.AddSingleton<ILoggerFactory>(loggerFactory);
         }
 
