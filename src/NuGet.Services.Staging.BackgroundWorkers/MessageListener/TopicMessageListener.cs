@@ -96,7 +96,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                         // The reason to stop the client when serialization fails, is that if we can't deserialize properly, it means
                         // the contract changed. We need to wait for deployment.
                         // TODO: monitor this case. It should have an alert
-                        _logger.LogCritical("Failed to deserialize message. Stopping subscription.", e);
+                        _logger.LogCritical(0, e, "Failed to deserialize message {MessageId}. Stopping subscription.", message.MessageId);
                         await Stop();
                         return;
                     }
@@ -111,7 +111,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
                     }
                     catch (Exception e)
                     {
-                        _logger.LogWarning("Caught handler exception. Message will be retried.", e);
+                        _logger.LogWarning(0, e, "Caught handler exception. Message {MessageId} will be retried.", message.MessageId);
                     }
                     finally
                     {
@@ -139,7 +139,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
 
             while (DateTime.UtcNow - startWaitTime < _waitForExecutionCompletionTimeout && _activeTaskCollection.Count > 0)
             {
-                _logger.LogInformation("Found {Count} active message processing tasks. Waiting..", _activeTaskCollection.Count);
+                _logger.LogInformation($"Found {_activeTaskCollection.Count} active message processing tasks. Waiting..");
                 await Task.Delay(_waitForExecutionCompletionSleepBetweenIterations);
             }
 
@@ -149,8 +149,7 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             }
             else
             {
-                _logger.LogError("Wait timed out. There are {Count} running message processing tasks. Ids: {Ids}",
-                    _activeTaskCollection.Count, string.Join(",", _activeTaskCollection.Keys));
+                _logger.LogError($"Wait timed out. There are {_activeTaskCollection.Count} running message processing tasks. Ids: {string.Join(",", _activeTaskCollection.Keys)}");
             }
 
             await _subscriptionClient.CloseAsync();

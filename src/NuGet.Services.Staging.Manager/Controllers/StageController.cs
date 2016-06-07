@@ -26,7 +26,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
         private readonly IPackageService _packageService;
         private readonly StageIndexBuilder _stageIndexBuilder;
 
-        private const string MessageFormat = "Stage: {StageId}, {Message}";
+        private const string MessageFormat = "Stage: {Stage}, {Message}";
 
         public StageController(ILogger<StageController> logger, IStageService stageService, ISearchServiceFactory searchServiceFactory,
             IPackageService packageService, StageIndexBuilder stageIndexBuilder)

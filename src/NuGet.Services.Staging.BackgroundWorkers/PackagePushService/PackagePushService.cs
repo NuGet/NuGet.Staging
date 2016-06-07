@@ -76,12 +76,12 @@ namespace NuGet.Services.Staging.BackgroundWorkers
             // 2. Load package to memory
             using (var packageStream = await GetPackage(pushData.NupkgPath))
             {
-                _logger.LogTrace("Loaded package {@Package} to memory.", pushData);
+                _logger.LogTrace("Loaded package {@PackageData} to memory.", pushData);
 
                 // 3. Upload to the gallery
                 var response = await SendPackage(packageStream, credentials.ApiKey);
 
-                _logger.LogInformation("Pushed package {Id} {Version} to {Feed}. Response: {Response}", pushData.Id, pushData.Version, _options.PushUri, response);
+                _logger.LogInformation("Pushed package {Package} {Version} to {Feed}. Response: {Response}", pushData.Id, pushData.Version, _options.PushUri, response);
 
                 if (response.StatusCode == HttpStatusCode.Created)
                 {
