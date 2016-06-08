@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Newtonsoft.Json.Linq;
+using NuGet.Protocol.Core.v3;
 using NuGet.Services.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
@@ -209,30 +210,30 @@ namespace NuGet.Services.Staging.Test.EndToEnd
             // Assert
             var expectedPackages = packages.OrderBy(p => p.Id).Skip(skip).Take(take).ToList();
 
-            queryResult[Constants.Search_Data].Should().HaveCount(take);
+            queryResult[JsonProperties.Data].Should().HaveCount(take);
 
-            await VerifyPackageQueryResult(queryResult[Constants.Search_Data].First, expectedPackages[0]);
-            await VerifyPackageQueryResult(queryResult[Constants.Search_Data].Last, expectedPackages[1]);
+            await VerifyPackageQueryResult(queryResult[JsonProperties.Data].First, expectedPackages[0]);
+            await VerifyPackageQueryResult(queryResult[JsonProperties.Data].Last, expectedPackages[1]);
         }
 
         private async Task VerifyPackageQueryResult(JToken queryResult, TestPackage package)
         {
             _output.WriteLine($"Verifying query result: {queryResult} against package {package.Id}");
 
-            queryResult[Constants.Search_Id].ToString().ShouldBeEquivalentTo(package.Id);
-            queryResult[Constants.Search_Description].ToString().ShouldBeEquivalentTo(TestPackage.DefaultDescription);
-            queryResult[Constants.Search_IconUrl].ToString().ShouldBeEquivalentTo(TestPackage.DefaultIconUrl);
-            queryResult[Constants.Search_LicenseUrl].ToString().ShouldBeEquivalentTo(TestPackage.DefaultLicenseUrl);
-            queryResult[Constants.Search_ProjectUrl].ToString().ShouldBeEquivalentTo(TestPackage.DefaultProjectUrl);
-            queryResult[Constants.Search_Title].ToString().ShouldBeEquivalentTo(TestPackage.DefaultTitle);
-            queryResult[Constants.Search_Version].ToString().ShouldBeEquivalentTo(TestPackage.DefaultVersion);
+            queryResult[JsonProperties.PackageId].ToString().ShouldBeEquivalentTo(package.Id);
+            queryResult[JsonProperties.Description].ToString().ShouldBeEquivalentTo(TestPackage.DefaultDescription);
+            queryResult[JsonProperties.IconUrl].ToString().ShouldBeEquivalentTo(TestPackage.DefaultIconUrl);
+            queryResult[JsonProperties.LicenseUrl].ToString().ShouldBeEquivalentTo(TestPackage.DefaultLicenseUrl);
+            queryResult[JsonProperties.ProjectUrl].ToString().ShouldBeEquivalentTo(TestPackage.DefaultProjectUrl);
+            queryResult[JsonProperties.Title].ToString().ShouldBeEquivalentTo(TestPackage.DefaultTitle);
+            queryResult[JsonProperties.Version].ToString().ShouldBeEquivalentTo(TestPackage.DefaultVersion);
 
-            queryResult[Constants.Search_Versions].Should().HaveCount(1);
-            queryResult[Constants.Search_Versions].First[Constants.Search_Version].ToString().ShouldBeEquivalentTo(TestPackage.DefaultVersion);
+            queryResult[JsonProperties.Versions].Should().HaveCount(1);
+            queryResult[JsonProperties.Versions].First[JsonProperties.Version].ToString().ShouldBeEquivalentTo(TestPackage.DefaultVersion);
 
-            await VerifyUri(new Uri(queryResult[Constants.Search_TId].ToString()));
+            await VerifyUri(new Uri(queryResult[JsonProperties.SubjectId].ToString()));
             await VerifyUri(new Uri(queryResult[Constants.Search_Registration].ToString()));
-            await VerifyUri(new Uri(queryResult[Constants.Search_Versions].First[Constants.Search_TId].ToString()));
+            await VerifyUri(new Uri(queryResult[JsonProperties.Versions].First[JsonProperties.SubjectId].ToString()));
         }
 
         private async Task VerifyAutocompletePackages(StagingClient client, string stageId, IReadOnlyList<TestPackage> packages)
@@ -248,8 +249,8 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
             queryResult[Constants.Autocomplete_TotalHits].ShouldBeEquivalentTo(packages.Count);
 
-            queryResult[Constants.Search_Data].Should().HaveCount(take);
-            queryResult[Constants.Search_Data].Select(x => x.ToString()).Should().Equal(expectedPackages);
+            queryResult[JsonProperties.Data].Should().HaveCount(take);
+            queryResult[JsonProperties.Data].Select(x => x.ToString()).Should().Equal(expectedPackages);
         }
 
         private async Task VerifyUri(Uri uri)
