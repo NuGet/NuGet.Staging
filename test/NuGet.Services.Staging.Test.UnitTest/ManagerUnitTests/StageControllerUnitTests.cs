@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
+using NuGet.Client.Staging;
 using NuGet.Protocol.Core.v3;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
@@ -91,8 +92,8 @@ namespace NuGet.Services.Staging.Test.UnitTest
             actionResult.Should().BeOfType<OkObjectResult>();
 
             object result = (actionResult as OkObjectResult).Value;
-            result.Should().BeOfType<List<ListViewStage>>();
-            var stages = result as List<ListViewStage>;
+            result.Should().BeOfType<List<StageListView>>();
+            var stages = result as List<StageListView>;
             stages.Count.Should().Be(2);
             VerifyListViewStage(stages[0], stage1);
             VerifyListViewStage(stages[1], stage2);
@@ -119,9 +120,9 @@ namespace NuGet.Services.Staging.Test.UnitTest
             actionResult.Should().BeOfType<OkObjectResult>();
 
             var result = (actionResult as OkObjectResult).Value;
-            result.Should().BeOfType<DetailedViewStage>();
+            result.Should().BeOfType<StageDetailedView>();
 
-            var stageDetails = result as DetailedViewStage;
+            var stageDetails = result as StageDetailedView;
 
             VerifyDetailedViewStage(stageDetails, secondStage);
         }
@@ -201,7 +202,7 @@ namespace NuGet.Services.Staging.Test.UnitTest
             actual.Version.Should().Be(expected.NormalizedVersion, "versions should match");
         }
 
-        protected void VerifyViewStage(ViewStage actual, Stage expected)
+        protected void VerifyViewStage(StageView actual, Stage expected)
         {
             actual.Id.Should().Be(expected.Id);
             actual.CreationDate.Should().Be(expected.CreationDate);
@@ -210,13 +211,13 @@ namespace NuGet.Services.Staging.Test.UnitTest
             actual.Status.Should().Be(expected.Status.ToString());
         }
 
-        protected void VerifyListViewStage(ListViewStage actual, Stage expected)
+        protected void VerifyListViewStage(StageListView actual, Stage expected)
         {
             VerifyViewStage(actual, expected);
             actual.MembershipType.Should().Be(expected.Memberships.First().MembershipType.ToString());
         }
 
-        protected void VerifyDetailedViewStage(DetailedViewStage actual, Stage expected)
+        protected void VerifyDetailedViewStage(StageDetailedView actual, Stage expected)
         {
             VerifyViewStage(actual, expected);
             actual.PackagesCount.Should().Be(expected.Packages.Count);

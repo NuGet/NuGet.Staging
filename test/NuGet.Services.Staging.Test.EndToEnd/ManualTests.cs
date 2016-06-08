@@ -42,7 +42,7 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
             var client = new StagingClient(new Uri(_configuration.StagingUri), new XUnitLoggerAdapter(_output));
             var stageCreateResult = await client.CreateStage("MyStage" + DateTime.Now, _configuration.ApiKey);
-            string stageId = stageCreateResult[Constants.Stage_Id].ToString();
+            string stageId = stageCreateResult.Id;
             _output.WriteLine($"Stage id: {stageId}");
 
             var nupkgUriList = await GetTopPackages(packagesCount);

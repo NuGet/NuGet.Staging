@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -9,6 +10,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using NuGet.Protocol;
@@ -45,7 +47,7 @@ namespace NuGet.Client.Staging
             _httpClient.Timeout = TimeSpan.FromMinutes(5);
         }
 
-        public async Task<JArray> ListUserStages(string apiKey)
+        public async Task<IList<StageListView>> ListUserStages(string apiKey)
         {
             _logger.LogDebug("StagingClient: ListUserStages called.");
 
@@ -60,10 +62,10 @@ namespace NuGet.Client.Staging
 
             var responseBody = await SendAsync(requestFactory);
 
-            return JArray.Parse(responseBody);
+            return JsonConvert.DeserializeObject<IList<StageListView>>(responseBody);
         }
 
-        public async Task<JObject> GetDetails(string stageId)
+        public async Task<StageDetailedView> GetDetails(string stageId)
         {
             _logger.LogDebug($"StagingClient: GetDetails called for stage {stageId}");
 
@@ -75,10 +77,10 @@ namespace NuGet.Client.Staging
 
             var responseBody = await SendAsync(requestFactory);
 
-            return JObject.Parse(responseBody);
+            return JsonConvert.DeserializeObject<StageDetailedView>(responseBody);
         }
 
-        public async Task<JObject> CreateStage(string displayName, string apiKey)
+        public async Task<StageListView> CreateStage(string displayName, string apiKey)
         {
             _logger.LogDebug($"StagingClient: CreateStage called with name {displayName}");
 
@@ -95,10 +97,10 @@ namespace NuGet.Client.Staging
 
             var responseBody = await SendAsync(requestFactory);
 
-            return JObject.Parse(responseBody);
+            return JsonConvert.DeserializeObject<StageListView>(responseBody);
         }
 
-        public async Task<JObject> DropStage(string stageId, string apiKey)
+        public async Task<StageView> DropStage(string stageId, string apiKey)
         {
             _logger.LogDebug($"StagingClient: DropStage called for stage {stageId}.");
 
@@ -113,7 +115,7 @@ namespace NuGet.Client.Staging
 
             var responseBody = await SendAsync(requestFactory);
 
-            return JObject.Parse(responseBody);
+            return JsonConvert.DeserializeObject<StageView>(responseBody);
         }
 
         public async Task CommitStage(string stageId, string apiKey)
@@ -132,7 +134,7 @@ namespace NuGet.Client.Staging
             await SendAsync(requestFactory);
         }
 
-        public async Task<JObject> GetCommitProgress(string stageId)
+        public async Task<StageCommitProgressView> GetCommitProgress(string stageId)
         {
             _logger.LogDebug($"StagingClient: GetCommitProgress called for stage {stageId}");
 
@@ -144,7 +146,7 @@ namespace NuGet.Client.Staging
 
             var responseBody = await SendAsync(requestFactory);
 
-            return JObject.Parse(responseBody);
+            return JsonConvert.DeserializeObject<StageCommitProgressView>(responseBody);
         }
 
         public async Task<JObject> Index(string stageId)

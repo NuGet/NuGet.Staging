@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using NuGet.Client.Staging;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.V3;
@@ -69,7 +70,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
         {
             var userKey = GetUserInformation().UserKey;
             var userMemberships =_stageService.GetUserMemberships(userKey).ToList();
-            var stageViews = userMemberships.Select(sm => new ListViewStage(sm.Stage, sm, GetBaseAddress())).ToList();
+            var stageViews = userMemberships.Select(sm => ViewBuilder.CreateStageListView(sm.Stage, sm, GetBaseAddress())).ToList();
 
             return new OkObjectResult(stageViews);
         }
@@ -80,7 +81,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
         [EnsureStageExists]
         public IActionResult GetDetails(Stage stage)
         {
-            return new OkObjectResult(new DetailedViewStage(stage, GetBaseAddress()));
+            return new OkObjectResult(ViewBuilder.CreateStageDetailedView(stage, GetBaseAddress()));
         }
 
         // POST api/stage
@@ -97,7 +98,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
             _logger.LogInformation(MessageFormat, stage.Id, "Create stage succeeded. Display name: " + stage.DisplayName);
 
-            return new OkObjectResult(new ListViewStage(stage, stage.Memberships.First(), GetBaseAddress()));
+            return new OkObjectResult(ViewBuilder.CreateStageListView(stage, stage.Memberships.First(), GetBaseAddress()));
         }
 
         // DELETE api/stage/e92156e2d6a74a19853a3294cf681dfc
@@ -114,7 +115,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
             await _stageService.DropStage(stage);
 
             _logger.LogInformation(MessageFormat, stage.Id, "Drop was successful");
-            return new OkObjectResult(new ViewStage(stage, GetBaseAddress()));
+            return new OkObjectResult(ViewBuilder.CreateStageView(stage, GetBaseAddress()));
         }
 
         // POST api/stage/e92156e2d6a74a19853a3294cf681dfc
@@ -165,7 +166,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
                 return new BadRequestObjectResult(string.Format(Messages.CommitNotFound, stage.DisplayName));
             }
 
-            var commitProgressView = CreateViewStageCommitProgress(stage, commit);
+            var commitProgressView = CreateStageCommitProgressView(stage, commit);
 
             return new OkObjectResult(commitProgressView);
         }
@@ -226,17 +227,17 @@ namespace NuGet.Services.Staging.Manager.Controllers
                 };
         }
 
-        private ViewStageCommitProgress CreateViewStageCommitProgress(Stage stage, StageCommit commit)
+        private StageCommitProgressView CreateStageCommitProgressView(Stage stage, StageCommit commit)
         {
             BatchPushProgressReport progressReport = _stageService.GetCommitProgress(commit);
-            var commitProgressView = new ViewStageCommitProgress(stage, GetBaseAddress());
+            var commitProgressView = ViewBuilder.CreateStageCommitProgressView(stage, GetBaseAddress());
 
             if (progressReport != null)
             {
                 commitProgressView.CommitStatus = progressReport.Status.ToString();
                 commitProgressView.ErrorMessage = progressReport.FailureDetails;
                 commitProgressView.PackageProgressList =
-                    progressReport.PackagePushProgressReports.Select(p => new ViewPackageCommitProgress
+                    progressReport.PackagePushProgressReports.Select(p => new PackageCommitProgressView
                     {
                         Id = p.Id,
                         Version = p.Version,
@@ -246,7 +247,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
             else
             {
                 commitProgressView.CommitStatus = commit.Status.ToString();
-                commitProgressView.PackageProgressList = stage.Packages.Select(p => new ViewPackageCommitProgress
+                commitProgressView.PackageProgressList = stage.Packages.Select(p => new PackageCommitProgressView
                 {
                     Id = p.Id,
                     Version = p.Version,

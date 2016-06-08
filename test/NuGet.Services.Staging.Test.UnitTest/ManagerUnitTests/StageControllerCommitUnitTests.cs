@@ -10,9 +10,9 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Newtonsoft.Json;
+using NuGet.Client.Staging;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager;
-using NuGet.Services.Staging.Manager.Controllers;
 using NuGet.Services.Staging.PackageService;
 using Xunit;
 
@@ -125,8 +125,8 @@ namespace NuGet.Services.Staging.Test.UnitTest
             // Assert
             actionResult.Should().BeOfType<OkObjectResult>();
             var result = actionResult as OkObjectResult;
-            result.Value.Should().BeOfType<ViewStageCommitProgress>();
-            var progress = result.Value as ViewStageCommitProgress;
+            result.Value.Should().BeOfType<StageCommitProgressView>();
+            var progress = result.Value as StageCommitProgressView;
             progress.CommitStatus.Should().Be(commit2.Status.ToString());
         }
 
@@ -146,8 +146,8 @@ namespace NuGet.Services.Staging.Test.UnitTest
             // Assert
             actionResult.Should().BeOfType<OkObjectResult>();
             var result = actionResult as OkObjectResult;
-            result.Value.Should().BeOfType<ViewStageCommitProgress>();
-            var progress = result.Value as ViewStageCommitProgress;
+            result.Value.Should().BeOfType<StageCommitProgressView>();
+            var progress = result.Value as StageCommitProgressView;
 
             VerifyCommitProgress(progress, stage);
         }
@@ -191,13 +191,13 @@ namespace NuGet.Services.Staging.Test.UnitTest
             // Assert
             actionResult.Should().BeOfType<OkObjectResult>();
             var result = actionResult as OkObjectResult;
-            result.Value.Should().BeOfType<ViewStageCommitProgress>();
-            var progress = result.Value as ViewStageCommitProgress;
+            result.Value.Should().BeOfType<StageCommitProgressView>();
+            var progress = result.Value as StageCommitProgressView;
 
             VerifyCommitProgress(progress, stage);
         }
 
-        private void VerifyCommitProgress(ViewStageCommitProgress actual, Stage expected)
+        private void VerifyCommitProgress(StageCommitProgressView actual, Stage expected)
         {
             VerifyViewStage(actual, expected);
 
