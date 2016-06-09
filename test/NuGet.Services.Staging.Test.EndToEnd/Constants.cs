@@ -13,6 +13,5 @@ namespace NuGet.Services.Staging.Test.EndToEnd
 
         public const string Search_Registration = "registration";
         public const string Autocomplete_TotalHits = "totalHits";
-
     }
 }

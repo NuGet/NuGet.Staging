@@ -87,22 +87,33 @@ namespace NuGet.Services.Staging.Manager
 
         private static string GuidToStageId(Guid guid) => guid.ToString("N");
 
-        public async Task CommitStage(Stage stage, string trackingId)
+        public async Task<StageCommit> CommitStage(Stage stage)
         {
             stage.Status = StageStatus.Committing;
-            stage.Commits.Add(new StageCommit
+            var commit = new StageCommit
             {
                 RequestTime = DateTime.UtcNow,
-                TrackId = trackingId,
+                TrackId = string.Empty,
                 Status = CommitStatus.Pending
-            });
+            };
+
+            stage.Commits.Add(commit);
 
             await _context.SaveChangesAsync();
+            return commit;
         }
 
         public StageCommit GetCommit(Stage stage)
         {
             return stage.Commits.OrderByDescending(sc => sc.RequestTime).FirstOrDefault();
+        }
+
+        public async Task SetCommitStatusToFailed(Stage stage, StageCommit commit)
+        {
+            stage.Status = StageStatus.Active;
+            commit.Status = CommitStatus.Failed;
+
+            await _context.SaveChangesAsync();
         }
 
         public BatchPushProgressReport GetCommitProgress(StageCommit commit)

@@ -100,7 +100,7 @@ namespace NuGet.Services.Staging.PackageService
             }
         }
 
-        public async Task<string> PushBatchAsync(PackageBatchPushData data)
+        public async Task PushBatchAsync(PackageBatchPushData data)
         {
             if (data == null)
             {
@@ -110,8 +110,6 @@ namespace NuGet.Services.Staging.PackageService
             string json = JsonConvert.SerializeObject(data);
 
             await _topicClient.Value.SendAsync(new BrokeredMessage(new MemoryStream(Encoding.ASCII.GetBytes(json)), ownsStream: true));
-
-            return "MockId";
         }
     }
 }

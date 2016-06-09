@@ -27,7 +27,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
         private readonly IPackageService _packageService;
         private readonly StageIndexBuilder _stageIndexBuilder;
 
-        private const string MessageFormat = "Stage: {StageId}, {Message}";
+        private const string MessageFormat = "Stage: {Stage}, {Message}";
 
         public StageController(ILogger<StageController> logger, IStageService stageService, ISearchServiceFactory searchServiceFactory,
             IPackageService packageService, StageIndexBuilder stageIndexBuilder)
@@ -143,12 +143,20 @@ namespace NuGet.Services.Staging.Manager.Controllers
             // 2. Prepare push metadata - all data needed for push without access to stage DB
             var pushData = CreatePackageBatchPushData(stage);
 
-            // 3. Give to a PackageManager component
-            string trackingId = await _packageService.PushBatchAsync(pushData);
+            // 3. Save commit to the DB
+            var commit = await _stageService.CommitStage(stage);
 
-            // 4. Save tracking id in the DB
-            await _stageService.CommitStage(stage, trackingId);
-
+            // 4. Give to the PackageService component
+            try
+            {
+                await _packageService.PushBatchAsync(pushData);
+            }
+            catch (Exception)
+            {
+                await _stageService.SetCommitStatusToFailed(stage, commit);
+                throw;
+            }
+            
             _logger.LogInformation(MessageFormat, stage.Id, "Commit initiated successfully");
 
             return new StatusCodeResult((int) HttpStatusCode.Created);

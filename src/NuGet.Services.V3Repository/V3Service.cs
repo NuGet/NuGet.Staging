@@ -106,6 +106,8 @@ namespace NuGet.Services.V3Repository
             string id = nuspec.GetId();
             string version = nuspec.GetVersion().ToNormalizedString();
 
+            _logger.LogInformation("Adding package: {Package}, {Version}", id, version);
+
             // TODO: consider closing the stream after save to flat container is done
             var packageLocations = await AddToFlatContainer(stream, packageMetadata, id, version);
             
@@ -130,13 +132,11 @@ namespace NuGet.Services.V3Repository
 
         private async Task<DnxMaker.DnxEntry> AddToFlatContainer(Stream stream, IPackageMetadata packageMetadata, string id, string version)
         {
-            _logger.LogInformation($"Adding package: {id}, {version}");
-
             stream.Position = 0;
             var packageLocations =
                 await _dnxMaker.AddPackage(stream, packageMetadata.Nuspec.ToString(), id, version, CancellationToken.None);
 
-            _logger.LogInformation($"Package {id}, {version} was added to flat container");
+            _logger.LogInformation("Package {Package}, {Version} was added to flat container", id, version);
 
             return packageLocations;
         }
@@ -162,7 +162,7 @@ namespace NuGet.Services.V3Repository
 
             var savedItems = await writer.Commit(commitMetadata, CancellationToken.None);
 
-            _logger.LogInformation($"Package {id}, {version} was added to catalog");
+            _logger.LogInformation("Package {Package}, {Version} was added to catalog", id, version);
 
             return new Tuple<Uri, IGraph>(savedItems.First(), catalogItem.CreateContentGraph(new CatalogContext()));
         }
