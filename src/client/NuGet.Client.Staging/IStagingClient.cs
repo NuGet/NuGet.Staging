@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 
 namespace NuGet.Client.Staging
 {
-    interface IStagingClient
+    public interface IStagingClient
     {
         Task<IList<StageListView>> ListUserStages(string apiKey);
 
