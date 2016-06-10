@@ -245,7 +245,7 @@ namespace NuGet.Client.Staging
             return responseBody;
         }
 
-        public async Task EnsureSuccessStatusCode(HttpResponseMessage response)
+        private static async Task EnsureSuccessStatusCode(HttpResponseMessage response)
         {
             if (!response.IsSuccessStatusCode)
             {

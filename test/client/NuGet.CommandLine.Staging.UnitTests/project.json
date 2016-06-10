@@ -1,0 +1,23 @@
+{
+    "dependencies": {
+        "Moq": "4.2.1507.118",
+        "xunit": "2.1.0",
+        "dotnet-test-xunit": "1.0.0-rc3-build10019",
+        "Test.Utility": "3.4.0-*",
+        "NuGet.Client.Staging": "1.0.0-alpha-1",
+        "Microsoft.NETCore.Platforms": "1.0.1-rc2-*"
+    },
+    "frameworks": {
+        "net452": {
+            "frameworkAssemblies": {
+                "System.Configuration": "4.0.0.0"
+            },
+            "dependencies": {
+                "NuGet.CommandLine.StagingExtensions": {
+                    "target": "project"
+                }
+            }
+        }
+    },
+    "testRunner": "xunit"
+}

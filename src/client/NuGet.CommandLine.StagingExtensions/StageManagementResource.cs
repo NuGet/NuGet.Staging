@@ -52,7 +52,7 @@ namespace NuGet.CommandLine.StagingExtensions
                 },
                 async response =>
                 {
-                    response.EnsureSuccessStatusCode();
+                    await EnsureSuccessStatusCode(response);
 
                     string responseBody = await response.Content.ReadAsStringAsync();
                     return responseBody.FromJson<StageListView>();
@@ -61,6 +61,24 @@ namespace NuGet.CommandLine.StagingExtensions
                 CancellationToken.None);
 
             return result;
+        }
+
+        private static async Task EnsureSuccessStatusCode(HttpResponseMessage response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                if (response.Content == null)
+                {
+                    response.EnsureSuccessStatusCode();
+                }
+                else
+                {
+                    string serverMessage = await response.Content.ReadAsStringAsync();
+
+                    throw new HttpRequestException(
+                        $"Response status code does not indicate success: {response.StatusCode}. Message: {serverMessage}");
+                }
+            }
         }
     }
 }
