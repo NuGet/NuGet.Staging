@@ -47,7 +47,7 @@ namespace NuGet.Client.Staging
             _httpClient.Timeout = TimeSpan.FromMinutes(5);
         }
 
-        public async Task<IList<StageListView>> ListUserStages(string apiKey)
+        public async Task<IReadOnlyList<StageListView>> ListUserStages(string apiKey)
         {
             _logger.LogDebug("StagingClient: ListUserStages called.");
 
@@ -62,7 +62,7 @@ namespace NuGet.Client.Staging
 
             var responseBody = await SendAsync(requestFactory);
 
-            return JsonConvert.DeserializeObject<IList<StageListView>>(responseBody);
+            return (IReadOnlyList<StageListView>)JsonConvert.DeserializeObject<IList<StageListView>>(responseBody);
         }
 
         public async Task<StageDetailedView> GetDetails(string stageId)

@@ -10,7 +10,7 @@ namespace NuGet.Client.Staging
 {
     public interface IStagingClient
     {
-        Task<IList<StageListView>> ListUserStages(string apiKey);
+        Task<IReadOnlyList<StageListView>> ListUserStages(string apiKey);
 
         Task<StageDetailedView> GetDetails(string stageId);
 

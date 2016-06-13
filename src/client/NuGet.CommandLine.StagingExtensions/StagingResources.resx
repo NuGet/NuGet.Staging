@@ -117,11 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ApiKeyShouldNotBeEmpty" xml:space="preserve">
+    <value>ApiKey should not be empty</value>
+  </data>
   <data name="CreatedStageMessage" xml:space="preserve">
     <value>Created new stage. Feed URI: {0}</value>
   </data>
   <data name="CreatingStageMessage" xml:space="preserve">
     <value>Creating stage with name {0}</value>
+  </data>
+  <data name="DisplayNameShouldNotBeEmpty" xml:space="preserve">
+    <value>Display name should not be empty</value>
   </data>
   <data name="LiveFeed" xml:space="preserve">
     <value>the NuGet gallery</value>

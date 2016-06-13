@@ -61,6 +61,15 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ApiKey should not be empty.
+        /// </summary>
+        internal static string ApiKeyShouldNotBeEmpty {
+            get {
+                return ResourceManager.GetString("ApiKeyShouldNotBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Created new stage. Feed URI: {0}.
         /// </summary>
         internal static string CreatedStageMessage {
@@ -75,6 +84,15 @@ namespace NuGet.CommandLine.StagingExtensions {
         internal static string CreatingStageMessage {
             get {
                 return ResourceManager.GetString("CreatingStageMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Display name should not be empty.
+        /// </summary>
+        internal static string DisplayNameShouldNotBeEmpty {
+            get {
+                return ResourceManager.GetString("DisplayNameShouldNotBeEmpty", resourceCulture);
             }
         }
         

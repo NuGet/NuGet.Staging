@@ -14,7 +14,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
         public static StageListView CreateStageListView(Stage stage, StageMembership membership, string baseAddress)
         {
             var view = new StageListView();
-            ((StageView)view).Populate(stage, baseAddress);
+            PopulateStageView(view, stage, baseAddress);
             view.MembershipType = membership.MembershipType.ToString();
 
             return view;
@@ -23,7 +23,7 @@ namespace NuGet.Services.Staging.Manager.Controllers
         public static StageDetailedView CreateStageDetailedView(Stage stage, string baseAddress)
         {
             var view = new StageDetailedView();
-            ((StageView)view).Populate(stage, baseAddress);
+            PopulateStageView(view, stage, baseAddress);
             view.Packages = new List<PackageView>(stage.Packages.Select(package => CreatePackageView(package)));
             view.PackagesCount = view.Packages.Count;
             view.Memberships = new List<MembershipView>(stage.Memberships.Select(membership => CreateMembershipView(membership)));
@@ -33,19 +33,9 @@ namespace NuGet.Services.Staging.Manager.Controllers
 
         public static StageView CreateStageView(Stage stage, string baseAddress)
         {
-            return new StageView().Populate(stage, baseAddress);
-        }
-
-        public static StageView Populate(this StageView stageView, Stage stage, string baseAddress)
-        {
-            stageView.Id = stage.Id;
-            stageView.DisplayName = stage.DisplayName;
-            stageView.CreationDate = stage.CreationDate;
-            stageView.ExpirationDate = stage.ExpirationDate;
-            stageView.Status = stage.Status.ToString();
-            stageView.Feed = $"{baseAddress}/api/stage/{stage.Id}/index.json";
-
-            return stageView;
+            var view = new StageView();
+            PopulateStageView(view, stage, baseAddress);
+            return view;
         }
 
         public static PackageView CreatePackageView(StagedPackage package)
@@ -69,9 +59,19 @@ namespace NuGet.Services.Staging.Manager.Controllers
         public static StageCommitProgressView CreateStageCommitProgressView(Stage stage, string baseAddress)
         {
             var view = new StageCommitProgressView();
-            ((StageView)view).Populate(stage, baseAddress);
+            PopulateStageView(view, stage, baseAddress);
 
             return view;
+        }
+
+        private static void PopulateStageView(StageView stageView, Stage stage, string baseAddress)
+        {
+            stageView.Id = stage.Id;
+            stageView.DisplayName = stage.DisplayName;
+            stageView.CreationDate = stage.CreationDate;
+            stageView.ExpirationDate = stage.ExpirationDate;
+            stageView.Status = stage.Status.ToString();
+            stageView.Feed = $"{baseAddress}/api/stage/{stage.Id}/index.json";
         }
     }
 }

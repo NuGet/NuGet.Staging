@@ -8,37 +8,43 @@ using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Client.Staging;
 using NuGet.Protocol;
+using NuGet.Protocol.Core.Types;
 using NuGet.Protocol.Core.v3;
 
 namespace NuGet.CommandLine.StagingExtensions
 {
-    public class StageManagementResource : Protocol.Core.Types.INuGetResource
+    public class StageManagementResource : INuGetResource
     {
         private const string ApiKeyHeader = "X-NuGet-ApiKey";
         private const string StagePath = "api/stage";
         private const string MediaType = "application/json";
 
-        private HttpSource _httpSource;
-        private string _stageServiceUri;
+        private readonly HttpSource _httpSource;
+        private readonly string _stageServiceUri;
 
         public StageManagementResource(string stageServiceUri, HttpSource httpSource)
         {
-            if (string.IsNullOrEmpty(stageServiceUri))
-            {
-                throw new ArgumentNullException(nameof(stageServiceUri));
-            }
-
-            if (httpSource == null)
-            {
-                throw new ArgumentNullException(nameof(httpSource));
-            }
-
             _stageServiceUri = stageServiceUri;
             _httpSource = httpSource;
         }
 
-        public async Task<StageListView> Create(string displayName,string apiKey, Common.ILogger log)
+        public async Task<StageListView> Create(string displayName, string apiKey, Common.ILogger log)
         {
+            if (string.IsNullOrWhiteSpace(displayName))
+            {
+                throw new ArgumentException(StagingResources.DisplayNameShouldNotBeEmpty, nameof(displayName));    
+            }
+
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                throw new ArgumentException(StagingResources.ApiKeyShouldNotBeEmpty, nameof(apiKey));
+            }
+
+            if (log == null)
+            {
+                throw new ArgumentNullException(nameof(log));
+            }
+
             var result = await _httpSource.ProcessResponseAsync(
                 () =>
                 {

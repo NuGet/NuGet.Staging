@@ -31,8 +31,7 @@ namespace NuGet.CommandLine.StagingExtensions
         public override async Task ExecuteCommandAsync()
         {
             // Verify input
-            if (!string.IsNullOrEmpty(Create) && !string.IsNullOrEmpty(Drop) ||
-                (string.IsNullOrEmpty(Create) && string.IsNullOrEmpty(Drop)))
+            if (string.IsNullOrEmpty(Create) == string.IsNullOrEmpty(Drop))
             {
                 HelpCommand.ViewHelpForCommand(CommandAttribute.CommandName);
                 return;
@@ -86,11 +85,6 @@ namespace NuGet.CommandLine.StagingExtensions
                 source = SourceProvider.DefaultPushSource;
             }
 
-            if (string.IsNullOrEmpty(source))
-            {
-                source = NuGetConstants.V3FeedUrl;
-            }
-
             if (!string.IsNullOrEmpty(source))
             {
                 source = SourceProvider.ResolveAndValidateSource(source);
@@ -126,10 +120,10 @@ namespace NuGet.CommandLine.StagingExtensions
         {
             if (String.IsNullOrEmpty(source) || source.Equals(NuGetConstants.DefaultGalleryServerUrl, StringComparison.OrdinalIgnoreCase))
             {
-                return StagingResources.LiveFeed + " (" + NuGetConstants.DefaultGalleryServerUrl + ")";
+                return $"{StagingResources.LiveFeed} ({NuGetConstants.DefaultGalleryServerUrl})";
             }
 
-            return "'" + source + "'";
+            return $"'{source}'";
         }
     }
 }
