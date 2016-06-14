@@ -16,6 +16,7 @@
                 "NuGet.CommandLine.StagingExtensions": {
                     "target": "project"
                 }
+
             }
         }
     },
