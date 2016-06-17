@@ -120,14 +120,28 @@
   <data name="ApiKeyShouldNotBeEmpty" xml:space="preserve">
     <value>ApiKey should not be empty</value>
   </data>
+  <data name="ConfirmStageDrop" xml:space="preserve">
+    <value>Stage with id '{0}' will be dropped. Do you want to continue?</value>
+  </data>
   <data name="CreatedStageMessage" xml:space="preserve">
-    <value>Created new stage. Feed URI: {0}</value>
+    <value>Created new stage.
+Stage Id: {0}
+Feed URI: {1}</value>
   </data>
   <data name="CreatingStageMessage" xml:space="preserve">
     <value>Creating stage with name {0}</value>
   </data>
   <data name="DisplayNameShouldNotBeEmpty" xml:space="preserve">
     <value>Display name should not be empty</value>
+  </data>
+  <data name="DropCommandWasCanceled" xml:space="preserve">
+    <value>Drop command was canceled</value>
+  </data>
+  <data name="DropingStageMessage" xml:space="preserve">
+    <value>Droping stage with id '{0}'..</value>
+  </data>
+  <data name="DroppedStageMessage" xml:space="preserve">
+    <value>Stage '{0}' was dropped.</value>
   </data>
   <data name="LiveFeed" xml:space="preserve">
     <value>the NuGet gallery</value>
@@ -150,8 +164,15 @@
   <data name="StageCommandSourceDescription" xml:space="preserve">
     <value>Specifies the server URL. If not specified, nuget.org is used unless DefaultPushSource config value is set in the NuGet config file. The specified server must support staging.</value>
   </data>
+  <data name="StageCommandUsageExample" xml:space="preserve">
+    <value>stage -create "my first stage" -source https://api.nuget.org/v3/index.json -apiKey 4003d786-cc37-4004-bfdf-c4f3e8ef9b3a
+stage -drop 4b139cb7-c4d4-4541-8c05-0f41ba5ab945 -source https://api.nuget.org/v3/index.json -apiKey 4003d786-cc37-4004-bfdf-c4f3e8ef9b3a</value>
+  </data>
   <data name="StageCommandUsageSummary" xml:space="preserve">
     <value>(-create &lt;display name&gt; | -drop &lt;stage id&gt;)</value>
+  </data>
+  <data name="StageIdShouldNotBeEmpty" xml:space="preserve">
+    <value>Stage id should not be empty</value>
   </data>
   <data name="StagingNotSupported" xml:space="preserve">
     <value>The specified server does not support staging.</value>

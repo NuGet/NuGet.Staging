@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -13,7 +14,7 @@ using NuGet.Protocol.Core.v3;
 namespace NuGet.CommandLine.StagingExtensions
 {
     [Command(resourceType: typeof(StagingResources), commandName: "stage", descriptionResourceName: "StageCommandDescription",
-       MinArgs = 0, MaxArgs = 0, UsageSummaryResourceName = "StageCommandUsageSummary")]
+       MinArgs = 0, MaxArgs = 0, UsageSummaryResourceName = "StageCommandUsageSummary", UsageExampleResourceName = "StageCommandUsageExample")]
     public class StageCommand : Command
     {
         [Option(typeof(StagingResources), "StageCommandCreateDescription")]
@@ -30,6 +31,7 @@ namespace NuGet.CommandLine.StagingExtensions
 
         public override async Task ExecuteCommandAsync()
         {
+            Debugger.Launch();
             // Verify input
             if (string.IsNullOrEmpty(Create) == string.IsNullOrEmpty(Drop))
             {
@@ -49,6 +51,10 @@ namespace NuGet.CommandLine.StagingExtensions
             {
                 await CreateStage(stageManagementResource, apiKey, Create);
             }
+            else if (!string.IsNullOrEmpty(Drop))
+            {
+                await DropStage(stageManagementResource, apiKey, Drop);
+            }
         }
 
         private async Task CreateStage(StageManagementResource stageManagementResource, string apiKey, string stageDisplayName)
@@ -57,7 +63,25 @@ namespace NuGet.CommandLine.StagingExtensions
 
             var createResult = await stageManagementResource.Create(stageDisplayName, apiKey, Console);
 
-            Console.LogInformation(string.Format(CultureInfo.CurrentCulture, StagingResources.CreatedStageMessage, createResult.Feed));
+            Console.LogInformation(string.Format(CultureInfo.CurrentCulture, StagingResources.CreatedStageMessage, createResult.Id, createResult.Feed));
+        }
+
+        private async Task DropStage(StageManagementResource stageManagementResource, string apiKey, string stageId)
+        {
+            if (!NonInteractive)
+            {
+                if (!Console.Confirm(string.Format(CultureInfo.CurrentCulture, StagingResources.ConfirmStageDrop, stageId)))
+                {
+                    Console.LogInformation(string.Format(CultureInfo.CurrentCulture, StagingResources.DropCommandWasCanceled));
+                    return;
+                }
+            }
+
+            Console.LogWarning(string.Format(CultureInfo.CurrentCulture, StagingResources.DropingStageMessage, stageId));
+
+            var dropResults = await stageManagementResource.Drop(stageId, apiKey, Console);
+
+            Console.LogInformation(string.Format(CultureInfo.CurrentCulture, StagingResources.DroppedStageMessage, dropResults.Id));
         }
 
         private async Task<StageManagementResource> GetStageManagementResource(string source)
