@@ -23,6 +23,64 @@ namespace NuGet.CommandLine.Staging.UnitTests
         }
 
         [Fact]
+        public void StageCommand_WhenSourceNotProvidedErrorIsShown()
+        {
+            // Act
+            string[] args = { "stage", "-create", "abc" };
+            var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+            // Assert
+            Assert.Equal(1, result.Item1);
+            var error = result.Item3;
+            Assert.Contains(NuGetResources.Error_MissingSourceParameter, error);
+        }
+
+        [Fact]
+        public void StageCommand_WhenApiKeyNotProvidedErrorIsShown()
+        {
+            // Act
+            string[] args = { "stage", "-create", "abc", "-Source", "http://api.nuget.org/v3/index.json" };
+            var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+            // Assert
+            Assert.Equal(1, result.Item1);
+            var error = result.Item3;
+            Assert.Contains("No API Key was provided", error);
+        }
+
+        [Fact]
+        public void StageCommand_WhenBadParametersProvidedHelpIsShown()
+        {
+            // Act
+            string[] args = { "stage", "-create", "abc", "-drop", "cde" };
+            var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+            // Assert
+            Assert.Contains(StagingResources.StageCommandUsageSummary, result.Item2);
+        }
+
+        [Fact]
+        public void StageCommand_WhenSourceDoesNotSupportStagingErrorIsShown()
+        {
+            // Arrange
+            using (var serverV3 = CreateV3Server(Util.CreateIndexJson()))
+            {
+                serverV3.Start();
+
+                // Act
+                string[] args = { "stage", "-create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
+                var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+                serverV3.Stop();
+
+                // Assert
+                Assert.Equal(1, result.Item1);
+                var error = result.Item3;
+                Assert.Contains(StagingResources.StagingNotSupported, error);
+            }
+        }
+
+        [Fact]
         public void CreateCommand_HappyFlow()
         {
             // Arrange
@@ -65,27 +123,6 @@ namespace NuGet.CommandLine.Staging.UnitTests
         }
 
         [Fact]
-        public void CreateCommand_WhenSourceDoesNotSupportStagingErrorIsShown()
-        {
-            // Arrange
-            using (var serverV3 = CreateV3Server(Util.CreateIndexJson()))
-            {
-                serverV3.Start();
-
-                // Act
-                string[] args = { "stage", "-create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
-                var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
-
-                serverV3.Stop();
-
-                // Assert
-                Assert.Equal(1, result.Item1);
-                var error = result.Item3;
-                Assert.Contains(StagingResources.StagingNotSupported, error);
-            }
-        }
-
-        [Fact]
         public void CreateCommand_WhenStagingServiceReturnsAnErrorItIsShown()
         {
             // Arrange
@@ -111,6 +148,88 @@ namespace NuGet.CommandLine.Staging.UnitTests
 
                     // Act
                     string[] args = { "stage", "-create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
+                    var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+                    serverV3.Stop();
+                    stagingServer.Stop();
+
+                    // Assert
+                    Assert.Equal(1, result.Item1);
+                    var error = result.Item3;
+                    Assert.Contains(serverMessage, error);
+                }
+            }
+        }
+
+        [Fact]
+        public void DropCommand_HappyFlow()
+        {
+            // Arrange
+            const string stageId = "4b139cb7-c4d4-4541-8c05-0f41ba5ab945";
+
+            var indexJson = Util.CreateIndexJson();
+
+            using (var serverV3 = CreateV3Server(indexJson))
+            {
+                using (var stagingServer = new MockServer())
+                {
+                    Util.AddStagingResource(indexJson, stagingServer);
+
+                    stagingServer.Delete.Add($"/api/stage/{stageId}", r =>
+                        new Action<HttpListenerResponse>(response =>
+                        {
+                            var createResult = new StageView();
+                            createResult.Id = stageId;
+                            var json = JsonConvert.SerializeObject(createResult);
+
+                            MockServer.SetResponseContent(response, json);
+                        }));
+
+                    serverV3.Start();
+                    stagingServer.Start();
+
+                    // Act
+                    string[] args = { "stage", "-drop", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
+                    var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+                    serverV3.Stop();
+                    stagingServer.Stop();
+
+                    // Assert
+                    Assert.Equal(0, result.Item1);
+                    var output = result.Item2;
+                    Assert.Contains(stageId, output);
+                }
+            }
+        }
+
+        [Fact]
+        public void DropCommand_WhenStagingServiceReturnsAnErrorItIsShown()
+        {
+            // Arrange
+            const string serverMessage = "Failure message";
+            const string stageId = "4b139cb7-c4d4-4541-8c05-0f41ba5ab945";
+
+            var indexJson = Util.CreateIndexJson();
+
+            using (var serverV3 = CreateV3Server(indexJson))
+            {
+                using (var stagingServer = new MockServer())
+                {
+                    Util.AddStagingResource(indexJson, stagingServer);
+
+                    stagingServer.Delete.Add($"/api/stage/{stageId}", r =>
+                        new Action<HttpListenerResponse>(response =>
+                        {
+                            response.StatusCode = 400;
+                            MockServer.SetResponseContent(response, serverMessage);
+                        }));
+
+                    serverV3.Start();
+                    stagingServer.Start();
+
+                    // Act
+                    string[] args = { "stage", "-drop", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
                     var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
                     serverV3.Stop();

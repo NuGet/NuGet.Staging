@@ -69,6 +69,44 @@ namespace NuGet.CommandLine.StagingExtensions
             return result;
         }
 
+        public async Task<StageView> Drop(string id, string apiKey, Common.ILogger log)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException(StagingResources.StageIdShouldNotBeEmpty, nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                throw new ArgumentException(StagingResources.ApiKeyShouldNotBeEmpty, nameof(apiKey));
+            }
+
+            if (log == null)
+            {
+                throw new ArgumentNullException(nameof(log));
+            }
+
+            var result = await _httpSource.ProcessResponseAsync(
+                () =>
+                {
+                    var request = new HttpRequestMessage(HttpMethod.Delete, new Uri(new Uri(_stageServiceUri), $"{StagePath}/{id}"));
+                    request.Headers.Add(ApiKeyHeader, apiKey);
+
+                    return request;
+                },
+                async response =>
+                {
+                    await EnsureSuccessStatusCode(response);
+
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    return responseBody.FromJson<StageView>();
+                },
+                log,
+                CancellationToken.None);
+
+            return result;
+        }
+
         private static async Task EnsureSuccessStatusCode(HttpResponseMessage response)
         {
             if (!response.IsSuccessStatusCode)

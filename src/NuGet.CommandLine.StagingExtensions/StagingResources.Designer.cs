@@ -70,7 +70,18 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Created new stage. Feed URI: {0}.
+        ///   Looks up a localized string similar to Stage with id &apos;{0}&apos; will be dropped. Do you want to continue?.
+        /// </summary>
+        internal static string ConfirmStageDrop {
+            get {
+                return ResourceManager.GetString("ConfirmStageDrop", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Created new stage.
+        ///Stage Id: {0}
+        ///Feed URI: {1}.
         /// </summary>
         internal static string CreatedStageMessage {
             get {
@@ -93,6 +104,33 @@ namespace NuGet.CommandLine.StagingExtensions {
         internal static string DisplayNameShouldNotBeEmpty {
             get {
                 return ResourceManager.GetString("DisplayNameShouldNotBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Drop command was canceled.
+        /// </summary>
+        internal static string DropCommandWasCanceled {
+            get {
+                return ResourceManager.GetString("DropCommandWasCanceled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Droping stage with id &apos;{0}&apos;...
+        /// </summary>
+        internal static string DropingStageMessage {
+            get {
+                return ResourceManager.GetString("DropingStageMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stage &apos;{0}&apos; was dropped..
+        /// </summary>
+        internal static string DroppedStageMessage {
+            get {
+                return ResourceManager.GetString("DroppedStageMessage", resourceCulture);
             }
         }
         
@@ -160,11 +198,30 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to stage -create &quot;my first stage&quot; -source https://api.nuget.org/v3/index.json -apiKey 4003d786-cc37-4004-bfdf-c4f3e8ef9b3a
+        ///stage -drop 4b139cb7-c4d4-4541-8c05-0f41ba5ab945 -source https://api.nuget.org/v3/index.json -apiKey 4003d786-cc37-4004-bfdf-c4f3e8ef9b3a.
+        /// </summary>
+        internal static string StageCommandUsageExample {
+            get {
+                return ResourceManager.GetString("StageCommandUsageExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to (-create &lt;display name&gt; | -drop &lt;stage id&gt;).
         /// </summary>
         internal static string StageCommandUsageSummary {
             get {
                 return ResourceManager.GetString("StageCommandUsageSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stage id should not be empty.
+        /// </summary>
+        internal static string StageIdShouldNotBeEmpty {
+            get {
+                return ResourceManager.GetString("StageIdShouldNotBeEmpty", resourceCulture);
             }
         }
         
