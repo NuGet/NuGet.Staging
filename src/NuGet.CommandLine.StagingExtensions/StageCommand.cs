@@ -31,7 +31,6 @@ namespace NuGet.CommandLine.StagingExtensions
 
         public override async Task ExecuteCommandAsync()
         {
-            Debugger.Launch();
             // Verify input
             if (string.IsNullOrEmpty(Create) == string.IsNullOrEmpty(Drop))
             {
