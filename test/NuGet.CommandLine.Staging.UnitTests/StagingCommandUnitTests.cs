@@ -189,7 +189,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
                     stagingServer.Start();
 
                     // Act
-                    string[] args = { "stage", "-drop", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
+                    string[] args = { "stage", "-drop", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123", "-NonInteractive" };
                     var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
                     serverV3.Stop();
@@ -229,7 +229,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
                     stagingServer.Start();
 
                     // Act
-                    string[] args = { "stage", "-drop", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
+                    string[] args = { "stage", "-drop", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123", "-NonInteractive" };
                     var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
                     serverV3.Stop();
