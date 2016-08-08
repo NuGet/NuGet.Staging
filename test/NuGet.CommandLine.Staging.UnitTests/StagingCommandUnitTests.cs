@@ -26,7 +26,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
         public void StageCommand_WhenSourceNotProvidedErrorIsShown()
         {
             // Act
-            string[] args = { "stage", "-create", "abc" };
+            string[] args = { "stage", "create", "abc" };
             var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
             // Assert
@@ -39,7 +39,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
         public void StageCommand_WhenApiKeyNotProvidedErrorIsShown()
         {
             // Act
-            string[] args = { "stage", "-create", "abc", "-Source", "http://api.nuget.org/v3/index.json" };
+            string[] args = { "stage", "create", "abc", "-Source", "http://api.nuget.org/v3/index.json" };
             var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
             // Assert
@@ -52,7 +52,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
         public void StageCommand_WhenBadParametersProvidedHelpIsShown()
         {
             // Act
-            string[] args = { "stage", "-create", "abc", "-drop", "cde" };
+            string[] args = { "stage", "create", "abc", "drop", "cde" };
             var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
             // Assert
@@ -68,7 +68,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
                 serverV3.Start();
 
                 // Act
-                string[] args = { "stage", "-create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
+                string[] args = { "stage", "create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
                 var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
                 serverV3.Stop();
@@ -108,7 +108,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
                     stagingServer.Start();
 
                     // Act
-                    string[] args = {"stage", "-create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123"};
+                    string[] args = {"stage", "create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123"};
                     var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
                     serverV3.Stop();
@@ -147,7 +147,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
                     stagingServer.Start();
 
                     // Act
-                    string[] args = { "stage", "-create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
+                    string[] args = { "stage", "create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
                     var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
                     serverV3.Stop();
@@ -189,7 +189,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
                     stagingServer.Start();
 
                     // Act
-                    string[] args = { "stage", "-drop", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123", "-NonInteractive" };
+                    string[] args = { "stage", "drop", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123", "-NonInteractive" };
                     var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
                     serverV3.Stop();
@@ -229,7 +229,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
                     stagingServer.Start();
 
                     // Act
-                    string[] args = { "stage", "-drop", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123", "-NonInteractive" };
+                    string[] args = { "stage", "drop", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123", "-NonInteractive" };
                     var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
                     serverV3.Stop();
