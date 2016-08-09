@@ -76,22 +76,12 @@ namespace NuGet.CommandLine.StagingExtensions
 
         private bool TryParseArguments(out SubCommand subCommand, out string parameter)
         {
-            subCommand = SubCommand.None;
             parameter = string.Empty;
-
             string commandString = Arguments[0];
 
-            if (string.Equals(commandString, "create", StringComparison.InvariantCultureIgnoreCase))
+            if (!Enum.TryParse(commandString, ignoreCase: true, result: out subCommand))
             {
-                subCommand = SubCommand.Create;
-            }
-            else if (string.Equals(commandString, "drop", StringComparison.InvariantCultureIgnoreCase))
-            {
-                subCommand = SubCommand.Drop;
-            }
-            else if (string.Equals(commandString, "list", StringComparison.InvariantCultureIgnoreCase))
-            {
-                subCommand = SubCommand.List;
+                subCommand = SubCommand.None;
             }
 
             if (subCommand == SubCommand.Create || subCommand == SubCommand.Drop)
