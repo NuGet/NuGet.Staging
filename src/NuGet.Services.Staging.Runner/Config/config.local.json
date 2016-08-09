@@ -20,12 +20,10 @@
   "ApiKeyAuthenticationServiceOptions": {
     "DatabaseConnectionString": ""
   },
-  "KeyVault": {
-    "VaultName": "",
-    "ClientId": "",
-    "CertificateThumbprint": "",
-    "StoreName": "My",
-    "StoreLocation": "LocalMachine",
-    "ValidateCertificate": "true"
-  }
+  "KeyVault_VaultName": "",
+  "KeyVault_ClientId": "",
+  "KeyVault_CertificateThumbprint": "",
+  "KeyVault_StoreName": "My",
+  "KeyVault_StoreLocation": "LocalMachine",
+  "KeyVault_ValidateCertificate": "true"
 }

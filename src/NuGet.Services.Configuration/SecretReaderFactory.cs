@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography.X509Certificates;
 using NuGet.Services.KeyVault;
 
-namespace NuGet.Services.Staging.Common
+namespace NuGet.Services.Configuration
 {
     public class SecretReaderFactory : ISecretReaderFactory
     {

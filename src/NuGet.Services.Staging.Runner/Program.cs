@@ -10,10 +10,10 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.BackgroundWorkers;
-using NuGet.Services.Staging.Common;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.PackageService;
 using Serilog.Events;
@@ -123,7 +123,7 @@ namespace NuGet.Services.Staging.Runner
 
             var configBuild = builder.Build();
 
-            _configuration = new KeyVaultConfigurationReader(configBuild, new SecretReaderFactory(configBuild));
+            _configuration = new SecretConfigurationReader(configBuild, new SecretReaderFactory(configBuild));
         }
 
         private static bool IsLocalEnvironment(string environment)

@@ -3,7 +3,7 @@
 
 using NuGet.Services.KeyVault;
 
-namespace NuGet.Services.Staging.Common
+namespace NuGet.Services.Configuration
 {
     public interface ISecretReaderFactory
     {

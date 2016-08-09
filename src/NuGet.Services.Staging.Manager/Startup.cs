@@ -10,10 +10,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
+using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Staging.Authentication;
-using NuGet.Services.Staging.Common;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.Manager.Authentication;
 using NuGet.Services.Staging.Manager.V3;
@@ -48,7 +48,7 @@ namespace NuGet.Services.Staging.Manager
             }
 
             var configBuild = builder.Build();
-            Configuration = new KeyVaultConfigurationReader(configBuild, new SecretReaderFactory(configBuild));
+            Configuration = new SecretConfigurationReader(configBuild, new SecretReaderFactory(configBuild));
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
