@@ -24,8 +24,8 @@
     "VaultName": "",
     "ClientId": "",
     "CertificateThumbprint": "",
-    "StoreName": "",
-    "StoreLocation": "",
+    "StoreName": "My",
+    "StoreLocation": "LocalMachine",
     "ValidateCertificate": "true"
   }
 }

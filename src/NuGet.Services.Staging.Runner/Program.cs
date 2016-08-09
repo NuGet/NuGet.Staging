@@ -119,9 +119,11 @@ namespace NuGet.Services.Staging.Runner
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile(Path.Combine("Config", $"config.{environment}.json")).Build();
+                .AddJsonFile(Path.Combine("Config", $"config.{environment}.json"));
 
-            _configuration = new KeyVaultConfigurationReader(builder, new SecretReaderFactory(builder));
+            var configBuild = builder.Build();
+
+            _configuration = new KeyVaultConfigurationReader(configBuild, new SecretReaderFactory(configBuild));
         }
 
         private static bool IsLocalEnvironment(string environment)

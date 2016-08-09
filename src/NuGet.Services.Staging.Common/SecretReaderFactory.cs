@@ -20,12 +20,12 @@ namespace NuGet.Services.Staging.Common
 
         public SecretReaderFactory(IConfigurationRoot config)
         {
-            _vaultName = config["KeyVault:VaultName"];
-            _clientId = config["KeyVault:ClientId"];
-            _certificateThumbprint = config["KeyVault:CertificateThumbprint"];
-            _storeName = config["KeyVault:StoreName"];
-            _storeLocation = config["KeyVault:StoreLocation"];
-            _validateCertificate = bool.Parse(config["KeyVault:ValidateCertificate"]);
+            _vaultName = config[Constants.KeyVaultVaultNameKey];
+            _clientId = config[Constants.KeyVaultClientIdKey];
+            _certificateThumbprint = config[Constants.KeyVaultCertificateThumbprintKey];
+            _storeName = config[Constants.KeyVaultStoreNameKey];
+            _storeLocation = config[Constants.KeyVaultStoreLocationKey];
+            _validateCertificate = bool.Parse(config[Constants.KeyVaultValidateCertificateKey]);
         }
 
         public ISecretReader CreateSecretReader()
