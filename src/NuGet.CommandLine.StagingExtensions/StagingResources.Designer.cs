@@ -135,6 +135,51 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Creation date.
+        /// </summary>
+        internal static string HeaderStageCreationDate {
+            get {
+                return ResourceManager.GetString("HeaderStageCreationDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expiration date.
+        /// </summary>
+        internal static string HeaderStageExpirationDate {
+            get {
+                return ResourceManager.GetString("HeaderStageExpirationDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Feed.
+        /// </summary>
+        internal static string HeaderStageFeed {
+            get {
+                return ResourceManager.GetString("HeaderStageFeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name.
+        /// </summary>
+        internal static string HeaderStageName {
+            get {
+                return ResourceManager.GetString("HeaderStageName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Status.
+        /// </summary>
+        internal static string HeaderStageStatus {
+            get {
+                return ResourceManager.GetString("HeaderStageStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to the NuGet gallery.
         /// </summary>
         internal static string LiveFeed {
@@ -189,6 +234,15 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Get a list of the stages you own.
+        /// </summary>
+        internal static string StageCommandListDescription {
+            get {
+                return ResourceManager.GetString("StageCommandListDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Specifies the server URL. If not specified, nuget.org is used unless DefaultPushSource config value is set in the NuGet config file. The specified server must support staging..
         /// </summary>
         internal static string StageCommandSourceDescription {
@@ -222,6 +276,15 @@ namespace NuGet.CommandLine.StagingExtensions {
         internal static string StageIdShouldNotBeEmpty {
             get {
                 return ResourceManager.GetString("StageIdShouldNotBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No stages were found..
+        /// </summary>
+        internal static string StageListNoStagesFound {
+            get {
+                return ResourceManager.GetString("StageListNoStagesFound", resourceCulture);
             }
         }
         

@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Common;
 using NuGet.Configuration;
@@ -40,39 +40,6 @@ namespace NuGet.CommandLine.StagingExtensions
             List
         }
 
-        private bool TryParseArguments(out SubCommand subCommand, out string parameter)
-        {
-            subCommand = SubCommand.None;
-            parameter = string.Empty;
-
-            string commandString = Arguments[0];
-
-            if (string.Equals(commandString, "create", StringComparison.InvariantCultureIgnoreCase))
-            {
-                subCommand = SubCommand.Create;
-            }
-            else if (string.Equals(commandString, "drop", StringComparison.InvariantCultureIgnoreCase))
-            {
-                subCommand = SubCommand.Drop;   
-            }
-            else if(string.Equals(commandString, "list", StringComparison.InvariantCultureIgnoreCase))
-            {
-                subCommand = SubCommand.List;
-            }
-
-            if (subCommand == SubCommand.Create || subCommand == SubCommand.Drop)
-            {
-                if (Arguments.Count < 2)
-                {
-                    return false;
-                }
-
-                parameter = Arguments[1];
-            }
-
-            return subCommand != SubCommand.None;
-        }
-
         public override async Task ExecuteCommandAsync()
         {
             // Verify input
@@ -101,6 +68,43 @@ namespace NuGet.CommandLine.StagingExtensions
             {
                 await DropStage(stageManagementResource, apiKey, parameter);
             }
+            else if (subCommand == SubCommand.List)
+            {
+                await ListStages(stageManagementResource, apiKey);
+            }
+        }
+
+        private bool TryParseArguments(out SubCommand subCommand, out string parameter)
+        {
+            subCommand = SubCommand.None;
+            parameter = string.Empty;
+
+            string commandString = Arguments[0];
+
+            if (string.Equals(commandString, "create", StringComparison.InvariantCultureIgnoreCase))
+            {
+                subCommand = SubCommand.Create;
+            }
+            else if (string.Equals(commandString, "drop", StringComparison.InvariantCultureIgnoreCase))
+            {
+                subCommand = SubCommand.Drop;
+            }
+            else if (string.Equals(commandString, "list", StringComparison.InvariantCultureIgnoreCase))
+            {
+                subCommand = SubCommand.List;
+            }
+
+            if (subCommand == SubCommand.Create || subCommand == SubCommand.Drop)
+            {
+                if (Arguments.Count < 2)
+                {
+                    return false;
+                }
+
+                parameter = Arguments[1];
+            }
+
+            return subCommand != SubCommand.None;
         }
 
         private async Task CreateStage(StageManagementResource stageManagementResource, string apiKey, string stageDisplayName)
@@ -128,6 +132,28 @@ namespace NuGet.CommandLine.StagingExtensions
             var dropResults = await stageManagementResource.Drop(stageId, apiKey, Console);
 
             Console.LogInformation(string.Format(CultureInfo.CurrentCulture, StagingResources.DroppedStageMessage, dropResults.Id));
+        }
+
+        private async Task ListStages(StageManagementResource stageManagementResource, string apiKey)
+        {
+            var listResult = await stageManagementResource.List(apiKey, Console);
+
+            if (!listResult.Any())
+            {
+                Console.LogInformation(StagingResources.StageListNoStagesFound);
+            }
+            else
+            {
+                foreach (var stageListView in listResult)
+                {
+                    Console.WriteLine();
+                    Console.PrintJustified(0, string.Format(CultureInfo.CurrentCulture, "{0}: {1}", StagingResources.HeaderStageName, stageListView.DisplayName));
+                    Console.PrintJustified(1, string.Format(CultureInfo.CurrentCulture, "{0}: {1}", StagingResources.HeaderStageStatus, stageListView.Status));
+                    Console.PrintJustified(1, string.Format(CultureInfo.CurrentCulture, "{0}: {1}", StagingResources.HeaderStageFeed, stageListView.Feed));
+                    Console.PrintJustified(1, string.Format(CultureInfo.CurrentCulture, "{0}: {1}", StagingResources.HeaderStageCreationDate, stageListView.CreationDate));
+                    Console.PrintJustified(1, string.Format(CultureInfo.CurrentCulture, "{0}: {1}", StagingResources.HeaderStageExpirationDate, stageListView.ExpirationDate));
+                }
+            }
         }
 
         private async Task<StageManagementResource> GetStageManagementResource(string source)

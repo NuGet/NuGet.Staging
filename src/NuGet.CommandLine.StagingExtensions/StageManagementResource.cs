@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NuGet.Client.Staging;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
@@ -100,6 +102,39 @@ namespace NuGet.CommandLine.StagingExtensions
 
                     string responseBody = await response.Content.ReadAsStringAsync();
                     return responseBody.FromJson<StageView>();
+                },
+                log,
+                CancellationToken.None);
+
+            return result;
+        }
+
+        public async Task<IReadOnlyList<StageListView>> List(string apiKey, Common.ILogger log)
+        {
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                throw new ArgumentException(StagingResources.ApiKeyShouldNotBeEmpty, nameof(apiKey));
+            }
+
+            if (log == null)
+            {
+                throw new ArgumentNullException(nameof(log));
+            }
+
+            var result = await _httpSource.ProcessResponseAsync(
+                () =>
+                {
+                    var request = new HttpRequestMessage(HttpMethod.Get, new Uri(new Uri(_stageServiceUri), $"{StagePath}"));
+                    request.Headers.Add(ApiKeyHeader, apiKey);
+
+                    return request;
+                },
+                async response =>
+                {
+                    await EnsureSuccessStatusCode(response);
+
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    return (IReadOnlyList<StageListView>)JsonConvert.DeserializeObject<IList<StageListView>>(responseBody);
                 },
                 log,
                 CancellationToken.None);
