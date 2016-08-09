@@ -1,23 +1,31 @@
 ﻿{
-    "ApplicationInsights": {
-        "InstrumentationKey": "1213"
-    },
-    "TopicMessageListenerOptions": {
-        "ProcessingConcurrency": 10,
-        "ServiceBusUri": "",
-        "SharedAccessPolicyName": "Reader",
-        "SharedAccessPolicyKey": "",
-        "SubscriptionName": "stagecommitworker",
-        "TopicName": "batchpush",
-        "MaxDeliveryCount": 10
-    },
-    "StageDatabase": {
-        "ConnectionString": "Server=(localdb)\\mssqllocaldb;Database=StageDB;Trusted_Connection=True;"
-    },
-    "PackagePushServiceOptions": {
-        "PushUri": "https://dev.nugettest.org/api/v2/package"
-    },
-    "ApiKeyAuthenticationServiceOptions": {
-        "DatabaseConnectionString": ""
-    }
+  "ApplicationInsights": {
+    "InstrumentationKey": "1213"
+  },
+  "TopicMessageListenerOptions": {
+    "ProcessingConcurrency": 10,
+    "ServiceBusUri": "",
+    "SharedAccessPolicyName": "Reader",
+    "SharedAccessPolicyKey": "",
+    "SubscriptionName": "stagecommitworker",
+    "TopicName": "batchpush",
+    "MaxDeliveryCount": 10
+  },
+  "StageDatabase": {
+    "ConnectionString": "Server=(localdb)\\mssqllocaldb;Database=StageDB;Trusted_Connection=True;"
+  },
+  "PackagePushServiceOptions": {
+    "PushUri": "https://dev.nugettest.org/api/v2/package"
+  },
+  "ApiKeyAuthenticationServiceOptions": {
+    "DatabaseConnectionString": ""
+  },
+  "KeyVault": {
+    "VaultName": "",
+    "ClientId": "",
+    "CertificateThumbprint": "",
+    "StoreName": "",
+    "StoreLocation": "",
+    "ValidateCertificate": "true"
+  }
 }

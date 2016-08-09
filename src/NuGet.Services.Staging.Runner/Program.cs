@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using NuGet.Services.Logging;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.BackgroundWorkers;
+using NuGet.Services.Staging.Common;
 using NuGet.Services.Staging.Database.Models;
 using NuGet.Services.Staging.PackageService;
 using Serilog.Events;
@@ -118,9 +119,9 @@ namespace NuGet.Services.Staging.Runner
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile(Path.Combine("Config", $"config.{environment}.json"));
+                .AddJsonFile(Path.Combine("Config", $"config.{environment}.json")).Build();
 
-            _configuration = builder.Build();
+            _configuration = new KeyVaultConfigurationReader(builder, new SecretReaderFactory(builder));
         }
 
         private static bool IsLocalEnvironment(string environment)

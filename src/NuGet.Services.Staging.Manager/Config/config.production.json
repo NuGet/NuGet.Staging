@@ -1,18 +1,26 @@
 ﻿{
-    "ApplicationInsights": {
-        "InstrumentationKey": ""
-    },
-    "StageDatabase": {
-        "ConnectionString": ""
-    },
-    "InternalPackageServiceOptions": {
-        "DatabaseConnectionString": "",
-        "ServiceBusConnectionString": ""
-    },
-    "PackageRepository": {
-        "StorageAccountConnectionString": ""
-    },
-    "ApiKeyAuthenticationServiceOptions": {
-        "DatabaseConnectionString": ""
-    }
+  "ApplicationInsights": {
+    "InstrumentationKey": ""
+  },
+  "StageDatabase": {
+    "ConnectionString": ""
+  },
+  "InternalPackageServiceOptions": {
+    "DatabaseConnectionString": "",
+    "ServiceBusConnectionString": ""
+  },
+  "PackageRepository": {
+    "StorageAccountConnectionString": ""
+  },
+  "ApiKeyAuthenticationServiceOptions": {
+    "DatabaseConnectionString": ""
+  },
+  "KeyVault": {
+    "VaultName": "",
+    "ClientId": "",
+    "CertificateThumbprint": "",
+    "StoreName": "",
+    "StoreLocation": "",
+    "ValidateCertificate": "true"
+  }
 }
