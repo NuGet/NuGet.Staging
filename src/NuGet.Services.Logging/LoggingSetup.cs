@@ -13,10 +13,11 @@ namespace NuGet.Services.Logging
         public static LoggerConfiguration CreateDefaultLoggerConfiguration(bool withConsoleLogger = false)
         {
             var loggerConfiguration = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .Enrich.WithMachineName()
-                .Enrich.WithProcessId()
-                .Enrich.FromLogContext();
+                .MinimumLevel.Verbose();
+
+            loggerConfiguration.Enrich.WithMachineName();
+            loggerConfiguration.Enrich.WithProcessId();
+            loggerConfiguration.Enrich.FromLogContext();
 
             if (withConsoleLogger)
             {
@@ -38,7 +39,7 @@ namespace NuGet.Services.Logging
 
             if (!string.IsNullOrEmpty(TelemetryConfiguration.Active.InstrumentationKey))
             {
-                loggerConfiguration = loggerConfiguration.WriteTo.ApplicationInsights(
+                loggerConfiguration = loggerConfiguration.WriteTo.ApplicationInsightsTraces(
                     TelemetryConfiguration.Active.InstrumentationKey,
                     restrictedToMinimumLevel: applicationInsightsMinimumLogEventLevel);
             }
