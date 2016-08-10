@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
+using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Staging.Authentication;
@@ -41,12 +42,13 @@ namespace NuGet.Services.Staging.Manager
                 .AddJsonFile(Path.Combine("Config", $"config.{hostingEnvironment.EnvironmentName}.json"))
                 .AddEnvironmentVariables();
 
-            Configuration = builder.Build();
-
             if (hostingEnvironment.IsEnvironment(_localEnvironmentName))
             {
                 builder.AddApplicationInsightsSettings(developerMode: true);
             }
+
+            var configBuild = builder.Build();
+            Configuration = new SecretConfigurationReader(configBuild, new SecretReaderFactory(configBuild));
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.

@@ -1,23 +1,29 @@
 ﻿{
-    "ApplicationInsights": {
-        "InstrumentationKey": "1213"
-    },
-    "TopicMessageListenerOptions": {
-        "ProcessingConcurrency": 10,
-        "ServiceBusUri": "",
-        "SharedAccessPolicyName": "Reader",
-        "SharedAccessPolicyKey": "",
-        "SubscriptionName": "stagecommitworker",
-        "TopicName": "batchpush",
-        "MaxDeliveryCount": 10
-    },
-    "StageDatabase": {
-        "ConnectionString": ""
-    },
-    "PackagePushServiceOptions": {
-        "PushUri": "https://dev.nugettest.org/api/v2/package"
-    },
-    "ApiKeyAuthenticationServiceOptions": {
-        "DatabaseConnectionString": ""
-    }
+  "ApplicationInsights": {
+    "InstrumentationKey": "1213"
+  },
+  "TopicMessageListenerOptions": {
+    "ProcessingConcurrency": 10,
+    "ServiceBusUri": "",
+    "SharedAccessPolicyName": "Reader",
+    "SharedAccessPolicyKey": "",
+    "SubscriptionName": "stagecommitworker",
+    "TopicName": "batchpush",
+    "MaxDeliveryCount": 10
+  },
+  "StageDatabase": {
+    "ConnectionString": ""
+  },
+  "PackagePushServiceOptions": {
+    "PushUri": "https://dev.nugettest.org/api/v2/package"
+  },
+  "ApiKeyAuthenticationServiceOptions": {
+    "DatabaseConnectionString": ""
+  },
+  "KeyVault_VaultName": "",
+  "KeyVault_ClientId": "",
+  "KeyVault_CertificateThumbprint": "",
+  "KeyVault_StoreName": "My",
+  "KeyVault_StoreLocation": "LocalMachine",
+  "KeyVault_ValidateCertificate": "true"
 }
