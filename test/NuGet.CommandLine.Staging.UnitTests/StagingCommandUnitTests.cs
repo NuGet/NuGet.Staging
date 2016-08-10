@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -26,7 +28,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
         public void StageCommand_WhenSourceNotProvidedErrorIsShown()
         {
             // Act
-            string[] args = { "stage", "-create", "abc" };
+            string[] args = { "stage", "create", "abc" };
             var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
             // Assert
@@ -39,7 +41,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
         public void StageCommand_WhenApiKeyNotProvidedErrorIsShown()
         {
             // Act
-            string[] args = { "stage", "-create", "abc", "-Source", "http://api.nuget.org/v3/index.json" };
+            string[] args = { "stage", "create", "abc", "-Source", "http://api.nuget.org/v3/index.json" };
             var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
             // Assert
@@ -52,7 +54,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
         public void StageCommand_WhenBadParametersProvidedHelpIsShown()
         {
             // Act
-            string[] args = { "stage", "-create", "abc", "-drop", "cde" };
+            string[] args = { "stage", "create", "abc", "drop", "cde" };
             var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
             // Assert
@@ -68,7 +70,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
                 serverV3.Start();
 
                 // Act
-                string[] args = { "stage", "-create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
+                string[] args = { "stage", "create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
                 var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
                 serverV3.Stop();
@@ -108,7 +110,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
                     stagingServer.Start();
 
                     // Act
-                    string[] args = {"stage", "-create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123"};
+                    string[] args = {"stage", "create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123"};
                     var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
                     serverV3.Stop();
@@ -147,7 +149,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
                     stagingServer.Start();
 
                     // Act
-                    string[] args = { "stage", "-create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
+                    string[] args = { "stage", "create", "abc", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
                     var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
                     serverV3.Stop();
@@ -189,7 +191,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
                     stagingServer.Start();
 
                     // Act
-                    string[] args = { "stage", "-drop", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123", "-NonInteractive" };
+                    string[] args = { "stage", "drop", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123", "-NonInteractive" };
                     var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
                     serverV3.Stop();
@@ -229,7 +231,7 @@ namespace NuGet.CommandLine.Staging.UnitTests
                     stagingServer.Start();
 
                     // Act
-                    string[] args = { "stage", "-drop", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123", "-NonInteractive" };
+                    string[] args = { "stage", "drop", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123", "-NonInteractive" };
                     var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
 
                     serverV3.Stop();
@@ -239,6 +241,97 @@ namespace NuGet.CommandLine.Staging.UnitTests
                     Assert.Equal(1, result.Item1);
                     var error = result.Item3;
                     Assert.Contains(serverMessage, error);
+                }
+            }
+        }
+
+        [Fact]
+        public void ListCommand_WhenNoStagesExistMessageIsPrinted()
+        {
+            // Arrange
+            var indexJson = Util.CreateIndexJson();
+
+            using (var serverV3 = CreateV3Server(indexJson))
+            {
+                using (var stagingServer = new MockServer())
+                {
+                    Util.AddStagingResource(indexJson, stagingServer);
+
+                    stagingServer.Get.Add("/api/stage", r =>
+                        new Action<HttpListenerResponse>(response =>
+                        {
+                            var json = JsonConvert.SerializeObject(new List<StageListView>());
+                            MockServer.SetResponseContent(response, json);
+                        }));
+
+                    serverV3.Start();
+                    stagingServer.Start();
+
+                    // Act
+                    string[] args = { "stage", "list", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
+                    var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+                    serverV3.Stop();
+                    stagingServer.Stop();
+
+                    // Assert
+                    Assert.Equal(0, result.Item1);
+                    var output = result.Item2;
+                    Assert.Contains(StagingResources.StageListNoStagesFound, output);
+                }
+            }
+        }
+
+        [Fact]
+        public void ListCommand_WhenStagesExistTheyArePrinted()
+        {
+            // Arrange
+            var stages = Enumerable.Range(1, 2).Select(i =>
+                new StageListView
+                {
+                    DisplayName = "stage" + i,
+                    CreationDate = DateTime.UtcNow,
+                    ExpirationDate = DateTime.UtcNow + TimeSpan.FromDays(i),
+                    Feed = "feed" + i,
+                    Status = "status" + i,
+                }).ToList();
+
+            var indexJson = Util.CreateIndexJson();
+
+            using (var serverV3 = CreateV3Server(indexJson))
+            {
+                using (var stagingServer = new MockServer())
+                {
+                    Util.AddStagingResource(indexJson, stagingServer);
+
+                    stagingServer.Get.Add("/api/stage", r =>
+                        new Action<HttpListenerResponse>(response =>
+                        {
+                            var json = JsonConvert.SerializeObject(stages);
+                            MockServer.SetResponseContent(response, json);
+                        }));
+
+                    serverV3.Start();
+                    stagingServer.Start();
+
+                    // Act
+                    string[] args = { "stage", "list", "-Source", serverV3.Uri + "index.json", "-ApiKey", "123" };
+                    var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+                    serverV3.Stop();
+                    stagingServer.Stop();
+
+                    // Assert
+                    Assert.Equal(0, result.Item1);
+                    var output = result.Item2;
+
+                    foreach (var stage in stages)
+                    {
+                        Assert.Contains(stage.DisplayName, output);
+                        Assert.Contains(stage.CreationDate.ToString(), output);
+                        Assert.Contains(stage.ExpirationDate.ToString(), output);
+                        Assert.Contains(stage.Status, output);
+                    }
                 }
             }
         }
