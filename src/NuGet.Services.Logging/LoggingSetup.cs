@@ -4,7 +4,6 @@
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Enrichers;
 using Serilog.Events;
 
 namespace NuGet.Services.Logging
@@ -15,7 +14,9 @@ namespace NuGet.Services.Logging
         {
             var loggerConfiguration = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
-                .Enrich.With(new MachineNameEnricher());
+                .Enrich.WithMachineName()
+                .Enrich.WithProcessId()
+                .Enrich.FromLogContext();
 
             if (withConsoleLogger)
             {
