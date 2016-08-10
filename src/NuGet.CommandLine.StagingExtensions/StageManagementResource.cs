@@ -124,7 +124,7 @@ namespace NuGet.CommandLine.StagingExtensions
             var result = await _httpSource.ProcessResponseAsync(
                 () =>
                 {
-                    var request = new HttpRequestMessage(HttpMethod.Get, new Uri(_stageServiceUri, $"{StagePath}"));
+                    var request = new HttpRequestMessage(HttpMethod.Get, new Uri(_stageServiceUri, StagePath));
                     request.Headers.Add(ApiKeyHeader, apiKey);
 
                     return request;
