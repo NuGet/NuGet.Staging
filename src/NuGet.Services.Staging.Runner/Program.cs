@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
 using NuGet.Services.Staging.Authentication;
 using NuGet.Services.Staging.BackgroundWorkers;
@@ -120,7 +121,9 @@ namespace NuGet.Services.Staging.Runner
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile(Path.Combine("Config", $"config.{environment}.json"));
 
-            _configuration = builder.Build();
+            var configBuild = builder.Build();
+
+            _configuration = new SecretConfigurationReader(configBuild, new SecretReaderFactory(configBuild));
         }
 
         private static bool IsLocalEnvironment(string environment)

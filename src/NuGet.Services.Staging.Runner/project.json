@@ -2,19 +2,20 @@
     "buildOptions": {
         "emitEntryPoint": true
     },
-    "dependencies": {
-        "Microsoft.ApplicationInsights": "2.1.0-beta4",
-        "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0-rc2-*",
-        "Microsoft.Extensions.Configuration.Json": "1.0.0-rc2-*",
-        "Microsoft.Extensions.DependencyInjection": "1.0.0-rc2-*",
-        "Microsoft.Extensions.Logging": "1.0.0-rc2-*",
-        "Microsoft.Extensions.Logging.Debug": "1.0.0-rc2-*",
-        "Microsoft.Extensions.Logging.TraceSource": "1.0.0-rc2-*",
-        "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0-rc2-*",
-        "EnterpriseLibrary.TransientFaultHandling.Data": "6.0.1304.1",
-        "NuGet.Services.Logging": "2.0.0-rc2-*",
-        "Serilog.Sinks.RollingFile": "2.0.0-rc-703"
-    },
+  "dependencies": {
+    "Microsoft.ApplicationInsights": "2.1.0-beta4",
+    "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0-rc2-*",
+    "Microsoft.Extensions.Configuration.Json": "1.0.0-rc2-*",
+    "Microsoft.Extensions.DependencyInjection": "1.0.0-rc2-*",
+    "Microsoft.Extensions.Logging": "1.0.0-rc2-*",
+    "Microsoft.Extensions.Logging.Debug": "1.0.0-rc2-*",
+    "Microsoft.Extensions.Logging.TraceSource": "1.0.0-rc2-*",
+    "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0-rc2-*",
+    "EnterpriseLibrary.TransientFaultHandling.Data": "6.0.1304.1",
+    "NuGet.Services.Logging": "2.0.0-rc2-*",
+    "Serilog.Sinks.RollingFile": "2.0.0-rc-703",
+    "NuGet.Services.Configuration": "1.0.0-*"
+  },
     "commands": {
         "NuGet.Services.Staging.Runner": "NuGet.Services.Staging.Runner"
     },
