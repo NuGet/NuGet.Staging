@@ -4,10 +4,9 @@
         }
     },
     "dependencies": {
-        "Microsoft.Extensions.Options": "1.0.0-rc2-*",
-        "Newtonsoft.Json": "8.0.3",
+        "Microsoft.Extensions.Options": "1.0.0",
         "NuGet.Services.Metadata.Catalog": "3.0.2496-r-master",
-        "Microsoft.Extensions.Logging": "1.0.0-rc2-*",
+        "Microsoft.Extensions.Logging": "1.0.0",
         "NuGet.Packaging": "3.5.0-beta-final"
     }
 }

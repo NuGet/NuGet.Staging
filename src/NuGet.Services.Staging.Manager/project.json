@@ -1,75 +1,72 @@
 {
-    "buildOptions": {
-        "emitEntryPoint": true,
-        "preserveCompilationContext": true,
-        "copyToOutput": {
-            "include": [ "Config", "wwwroot", "web.config", "appsettings.json" ]
-        }
-    },
-    "publishOptions": {
-        "include": [
-            "Config",
-            "wwroot",
-            "appsettings.json",
-            "web.config", 
-            "NuGet.Services.Staging.Manager.nuspec" ]
-    },
-
-    "runtimeOptions": {
-        "gcServer": true,
-        "gcConcurrent": true
-    },
-
-    "dependencies": {
-        "Microsoft.ApplicationInsights.AspNetCore": "1.0.0-rc2-*",
-        "NuGet.Services.Staging.Database": "1.0.0-*",
-        "NuGet.Services.Staging.PackageService": "1.0.0-*",
-        "NuGet.Services.V3Repository": "1.0.0-*",
-        "Newtonsoft.Json": "8.0.3",
-        "NuGet.Services.Staging.Authentication": "1.0.0-*",
-        "Microsoft.EntityFrameworkCore": "1.0.0-rc2-*",
-        "Microsoft.EntityFrameworkCore.SqlServer": "1.0.0-rc2-*",
-        "Microsoft.AspNetCore.Diagnostics": "1.0.0-rc2-*",
-        "Microsoft.AspNetCore.Http.Abstractions": "1.0.0-rc2-*",
-        "Microsoft.AspNetCore.Mvc": "1.0.0-rc2-*",
-        "Microsoft.AspNetCore.Server.Kestrel": "1.0.0-rc2-*",
-        "Microsoft.AspNetCore.Hosting": "1.0.0-rc2-*",
-        "Microsoft.Extensions.Configuration.Abstractions": "1.0.0-rc2-*",
-        "Microsoft.Extensions.Configuration.Json": "1.0.0-rc2-*",
-        "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.0.0-rc2-*",
-        "Microsoft.Extensions.Logging.Console": "1.0.0-rc2-*",
-        "Microsoft.Extensions.Logging.Debug": "1.0.0-rc2-*",
-        "Microsoft.Extensions.Logging.TraceSource": "1.0.0-rc2-*",
-        "NuGet.Protocol.Core.v3": "3.5.0-beta-final",
-        "NuGet.Versioning": "3.5.0-beta-final",
-        "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0-rc2-*",
-        "EnterpriseLibrary.TransientFaultHandling.Data": "6.0.1304.1",
-        "Microsoft.Extensions.Configuration.CommandLine": "1.0.0-rc2-*",
-        "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0-rc2-*",
-        "NuGet.Services.Logging": "2.0.0-rc2-*",
-        "Microsoft.EntityFrameworkCore.Tools": {
-            "type": "build",
-            "version": "1.0.0-preview1-*"
-        },
-        "NuGet.Services.Staging.Search": "1.0.0-*",
-      "NuGet.Client.Staging": "1.0.0-*",
-      "NuGet.Services.Configuration": "1.0.0-*"
-    },
-
-    "frameworks": {
-        "net452": { }
-    },
-    "tools": {
-        "Microsoft.EntityFrameworkCore.Tools": {
-            "imports": [ "portable-net451+win8" ],
-            "version": "1.0.0-preview1-*"
-        },
-        "Microsoft.AspNetCore.Server.IISIntegration.Tools": {
-            "version": "1.0.0-preview1-*",
-            "imports": "portable-net45+wp80+win8+wpa81+dnxcore50"
-        }
-    },
-    "scripts": {
-        "postpublish": "dotnet publish-iis --publish-folder %publish:OutputPath% --framework %publish:FullTargetFramework%"
+  "buildOptions": {
+    "emitEntryPoint": true,
+    "preserveCompilationContext": true,
+    "copyToOutput": {
+      "include": [ "Config", "wwwroot", "web.config", "appsettings.json" ]
     }
+  },
+  "publishOptions": {
+    "include": [
+      "Config",
+      "wwroot",
+      "appsettings.json",
+      "web.config",
+      "NuGet.Services.Staging.Manager.nuspec"
+    ]
+  },
+
+  "runtimeOptions": {
+    "gcServer": true,
+    "gcConcurrent": true
+  },
+
+  "dependencies": {
+    "Microsoft.ApplicationInsights.AspNetCore": "1.0.0",
+    "NuGet.Services.Staging.Database": "1.0.0-*",
+    "NuGet.Services.Staging.PackageService": "1.0.0-*",
+    "NuGet.Services.V3Repository": "1.0.0-*",
+    "NuGet.Services.Staging.Authentication": "1.0.0-*",
+    "Microsoft.EntityFrameworkCore": "1.0.0",
+    "Microsoft.EntityFrameworkCore.SqlServer": "1.0.0",
+    "Microsoft.AspNetCore.Diagnostics": "1.0.0",
+    "Microsoft.AspNetCore.Http.Abstractions": "1.0.0",
+    "Microsoft.AspNetCore.Mvc": "1.0.0",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0",
+    "Microsoft.AspNetCore.Hosting": "1.0.0",
+    "Microsoft.Extensions.Configuration": "1.0.0",
+    "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.0.0",
+    "Microsoft.Extensions.Configuration.Abstractions": "1.0.0",
+    "Microsoft.Extensions.Configuration.Json": "1.0.0",
+    "Microsoft.Extensions.Logging.Console": "1.0.0",
+    "Microsoft.Extensions.Logging.Debug": "1.0.0",
+    "Microsoft.Extensions.Logging.TraceSource": "1.0.0",
+    "NuGet.Protocol.Core.v3": "3.5.0-beta-final",
+    "NuGet.Versioning": "3.5.0-beta-final",
+    "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0",
+    "EnterpriseLibrary.TransientFaultHandling.Data": "6.0.1304.1",
+    "Microsoft.Extensions.Configuration.CommandLine": "1.0.0",
+    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0",
+    "NuGet.Services.Staging.Search": "1.0.0-*",
+    "NuGet.Client.Staging": "1.0.0-*",
+    "NuGet.Services.Configuration": "1.0.0-*",
+    "NuGet.Services.Logging": "3.0.0"
+  },
+
+  "frameworks": {
+    "net452": {}
+  },
+  "tools": {
+    "Microsoft.EntityFrameworkCore.Tools": {
+      "imports": [ "portable-net451+win8" ],
+      "version": "1.0.0-preview1-final"
+    },
+    "Microsoft.AspNetCore.Server.IISIntegration.Tools": {
+      "version": "1.0.0-preview1-final",
+      "imports": "portable-net45+wp80+win8+wpa81+dnxcore50"
+    }
+  },
+  "scripts": {
+    "postpublish": "dotnet publish-iis --publish-folder %publish:OutputPath% --framework %publish:FullTargetFramework%"
+  }
 }

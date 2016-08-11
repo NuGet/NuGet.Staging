@@ -10,6 +10,6 @@
     },
     "dependencies": {
         "EnterpriseLibrary.TransientFaultHandling.Data": "6.0.1304.1",
-        "Microsoft.Extensions.Options": "1.0.0-rc2-*"
+        "Microsoft.Extensions.Options": "1.0.0"
     }
 }

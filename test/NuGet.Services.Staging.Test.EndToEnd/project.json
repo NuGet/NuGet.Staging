@@ -7,15 +7,15 @@
     },
     "dependencies": {
         "FluentAssertions": "4.3.2",
-        "Microsoft.AspNetCore.Mvc": "1.0.0-rc2-*",
+        "Microsoft.AspNetCore.Mvc": "1.0.0",
         "Newtonsoft.Json": "8.0.3",
         "dotnet-test-xunit": "1.0.0-rc3-build10019",
         "xunit": "2.1.0",
         "NuGet.Protocol.Core.v3": "3.5.0-beta-final",
         "Microsoft.NETCore.Platforms": "1.0.1-rc2-*",
         "NuGet.Services.Test.Common": "1.0.0-*",
-        "Microsoft.Extensions.Configuration.Json": "1.0.0-rc2-*",
-        "Microsoft.Extensions.Configuration.Binder": "1.0.0-rc2-final",
+        "Microsoft.Extensions.Configuration.Json": "1.0.0",
+        "Microsoft.Extensions.Configuration.Binder": "1.0.0",
         "WindowsAzure.Storage": "4.3.0",
         "NuGet.Client.Staging": "1.0.0-*"
     },
