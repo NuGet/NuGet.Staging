@@ -50,7 +50,7 @@
     "NuGet.Services.Staging.Search": "1.0.0-*",
     "NuGet.Client.Staging": "1.0.0-*",
     "NuGet.Services.Configuration": "1.0.0-*",
-    "NuGet.Services.Logging": "2.0.0-rc2-1"
+    "NuGet.Services.Logging": "3.0.0"
   },
 
   "frameworks": {
