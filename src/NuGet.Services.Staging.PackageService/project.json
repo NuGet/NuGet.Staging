@@ -7,8 +7,8 @@
         }
     },
     "dependencies": {
-        "Microsoft.Extensions.Options": "1.0.0-rc2-*",
-        "Newtonsoft.Json": "8.0.3",
+        "Microsoft.Extensions.Options": "1.0.0",
+        "Newtonsoft.Json": "*",
         "WindowsAzure.ServiceBus": "3.1.7"
     }
 }
