@@ -40,14 +40,31 @@ namespace NuGet.CommandLine.Staging.UnitTests
         [Fact]
         public void StageCommand_WhenApiKeyNotProvidedErrorIsShown()
         {
-            // Act
-            string[] args = { "stage", "create", "abc", "-Source", "http://api.nuget.org/v3/index.json" };
-            var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+            // Arrange
+            var indexJson = Util.CreateIndexJson();
 
-            // Assert
-            Assert.Equal(1, result.Item1);
-            var error = result.Item3;
-            Assert.Contains("No API Key was provided", error);
+            using (var serverV3 = CreateV3Server(indexJson))
+            {
+                using (var stagingServer = new MockServer())
+                {
+                    Util.AddStagingResource(indexJson, stagingServer);
+
+                    serverV3.Start();
+                    stagingServer.Start();
+
+                    // Act
+                    string[] args = { "stage", "create", "abc", "-Source", serverV3.Uri + "index.json" };
+                    var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+                    serverV3.Stop();
+                    stagingServer.Stop();
+
+                    // Assert
+                    Assert.Equal(1, result.Item1);
+                    var error = result.Item3;
+                    Assert.Contains("No API Key was provided", error);
+                }
+            }
         }
 
         [Fact]
@@ -336,7 +353,422 @@ namespace NuGet.CommandLine.Staging.UnitTests
             }
         }
 
-        private MockServer CreateV3Server(JObject indexJson)
+        [Fact]
+        public void GetCommand_WhenStagingServiceReturnsAnErrorItIsShown()
+        {
+            // Arrange
+            const string stageId = "1323";
+
+            var indexJson = Util.CreateIndexJson();
+
+            using (var serverV3 = CreateV3Server(indexJson))
+            {
+                using (var stagingServer = new MockServer())
+                {
+                    Util.AddStagingResource(indexJson, stagingServer);
+
+                    stagingServer.Get.Add($"/api/stage/{stageId}", r =>
+                        new Action<HttpListenerResponse>(response =>
+                        {
+                            response.StatusCode = 404;
+                            MockServer.SetResponseContent(response, string.Empty);
+                        }));
+
+                    serverV3.Start();
+                    stagingServer.Start();
+
+                    // Act
+                    string[] args = { "stage", "get", stageId, "-Source", serverV3.Uri + "index.json" };
+                    var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+                    serverV3.Stop();
+                    stagingServer.Stop();
+
+                    // Assert
+                    Assert.Equal(1, result.Item1);
+                    var error = result.Item3;
+                    Assert.Contains("NotFound", error);
+                }
+            }
+        }
+
+        [Fact]
+        public void GetCommand_HappyFlow()
+        {
+            // Arrange
+            var stageDetails = new StageDetailedView
+            {
+                Id = "1323",
+                DisplayName = "name",
+                CreationDate = DateTime.UtcNow,
+                ExpirationDate = DateTime.UtcNow + TimeSpan.FromDays(1),
+                Feed = "http://abc",
+                Status = "Active",
+                PackagesCount = 2,
+                Packages = new List<PackageView>
+                {
+                    new PackageView {Id = "first", Version = "1.0.0"},
+                    new PackageView {Id = "second", Version = "2.0.0"}
+                },
+                Memberships = new List<MembershipView>
+                {
+                    new MembershipView {MembershipType = "Owner", Name = "aabb"},
+                    new MembershipView {MembershipType = "Contributor", Name = "ccvv"}
+                }
+            };
+
+            var indexJson = Util.CreateIndexJson();
+
+            using (var serverV3 = CreateV3Server(indexJson))
+            {
+                using (var stagingServer = new MockServer())
+                {
+                    Util.AddStagingResource(indexJson, stagingServer);
+
+                    stagingServer.Get.Add($"/api/stage/{stageDetails.Id}", r =>
+                        new Action<HttpListenerResponse>(response =>
+                        {
+                            var json = JsonConvert.SerializeObject(stageDetails);
+                            MockServer.SetResponseContent(response, json);
+                        }));
+
+                    serverV3.Start();
+                    stagingServer.Start();
+
+                    // Act
+                    string[] args = { "stage", "get", stageDetails.Id, "-Source", serverV3.Uri + "index.json" };
+                    var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+                    serverV3.Stop();
+                    stagingServer.Stop();
+
+                    // Assert
+                    Assert.Equal(0, result.Item1);
+                    var output = result.Item2;
+                    
+                    Assert.Contains(stageDetails.Id, output);
+                    Assert.Contains(stageDetails.DisplayName, output);
+                    Assert.Contains(stageDetails.CreationDate.ToString(), output);
+                    Assert.Contains(stageDetails.ExpirationDate.ToString(), output);
+                    Assert.Contains(stageDetails.Feed, output);
+                    Assert.Contains(stageDetails.Status, output);
+
+                    foreach (var membership in stageDetails.Memberships)
+                    {
+                        Assert.Contains(membership.MembershipType, output);
+                        Assert.Contains(membership.Name, output);
+                    }
+
+                    foreach (var package in stageDetails.Packages)
+                    {
+                        Assert.Contains(package.Id, output);
+                        Assert.Contains(package.Version, output);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void GetProgress_HappyFlow()
+        {
+            // Arrange
+            const string stageId = "1323";
+
+            var progressList = GenerateHappyFlowCommitProgress();
+
+            var indexJson = Util.CreateIndexJson();
+
+            using (var serverV3 = CreateV3Server(indexJson))
+            {
+                using (var stagingServer = new MockServer())
+                {
+                    Util.AddStagingResource(indexJson, stagingServer);
+
+                    int counter = 0;
+
+                    stagingServer.Get.Add($"/api/stage/{stageId}/commit", r =>
+                        new Action<HttpListenerResponse>(response =>
+                        {
+                            var val = progressList[counter++];
+                            var json = JsonConvert.SerializeObject(val);
+                            MockServer.SetResponseContent(response, json);
+                        }));
+
+                    serverV3.Start();
+                    stagingServer.Start();
+
+                    // Act
+                    string[] args = { "stage", "progress", stageId, "-Source", serverV3.Uri + "index.json" };
+                    var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+                    serverV3.Stop();
+                    stagingServer.Stop();
+
+                    // Assert
+                    Assert.Equal(0, result.Item1);
+                    var output = result.Item2;
+
+                    VerifyHappyFlowCommitProgress(output, progressList);
+                }
+            }
+        }
+
+        [Fact]
+        public void GetProgress_WhenStagingServiceReturnsAnErrorItIsShown()
+        {
+            // Arrange
+            const string stageId = "1323";
+            const string errorMessage = "Commit doesn't exist";
+
+            var indexJson = Util.CreateIndexJson();
+
+            using (var serverV3 = CreateV3Server(indexJson))
+            {
+                using (var stagingServer = new MockServer())
+                {
+                    Util.AddStagingResource(indexJson, stagingServer);
+
+                    stagingServer.Get.Add($"/api/stage/{stageId}/commit", r =>
+                        new Action<HttpListenerResponse>(response =>
+                        {
+                            response.StatusCode = 400;
+                            MockServer.SetResponseContent(response, errorMessage);
+                        }));
+
+                    serverV3.Start();
+                    stagingServer.Start();
+
+                    // Act
+                    string[] args = { "stage", "progress", stageId, "-Source", serverV3.Uri + "index.json" };
+                    var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+                    serverV3.Stop();
+                    stagingServer.Stop();
+
+                    // Assert
+                    Assert.Equal(1, result.Item1);
+                    var error = result.Item3;
+                    Assert.Contains(errorMessage, error);
+                }
+            }
+        }
+
+        [Fact]
+        public void GetProgress_WhenGetCommitProgressFailsErrorIsShown()
+        {
+            // Arrange
+            const string stageId = "1323";
+
+            var progress = new StageCommitProgressView
+            {
+                CommitStatus = StageCommand.CommitFailed,
+                ErrorMessage = "Error message",
+                PackageProgressList = new List<PackageCommitProgressView>
+                {
+                    new PackageCommitProgressView { Id = "abc", Version = "1.0.0", Progress = "Pending" }
+                }
+            };
+
+            var indexJson = Util.CreateIndexJson();
+
+            using (var serverV3 = CreateV3Server(indexJson))
+            {
+                using (var stagingServer = new MockServer())
+                {
+                    Util.AddStagingResource(indexJson, stagingServer);
+
+                    stagingServer.Get.Add($"/api/stage/{stageId}/commit", r =>
+                        new Action<HttpListenerResponse>(response =>
+                        {
+                            var json = JsonConvert.SerializeObject(progress);
+                            MockServer.SetResponseContent(response, json);
+                        }));
+
+                    serverV3.Start();
+                    stagingServer.Start();
+
+                    // Act
+                    string[] args = { "stage", "progress", stageId, "-Source", serverV3.Uri + "index.json" };
+                    var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+                    serverV3.Stop();
+                    stagingServer.Stop();
+
+                    // Assert
+                    Assert.Equal(0, result.Item1);
+                    var output = result.Item2;
+                    var error = result.Item3;
+
+                    Assert.Contains(StagingResources.StageCommitFailed, error);
+                    Assert.Contains(progress.ErrorMessage, error);
+                    Assert.Contains(progress.PackageProgressList[0].Id, output);
+                    Assert.Contains(progress.PackageProgressList[0].Version, output);
+                    Assert.Contains(progress.PackageProgressList[0].Progress, output);
+                }
+            }
+        }
+
+        [Fact]
+        public void StageCommit_HappyFlow()
+        {
+            // Arrange
+            const string stageId = "1323";
+
+            var progressList = GenerateHappyFlowCommitProgress();
+
+            var indexJson = Util.CreateIndexJson();
+
+            using (var serverV3 = CreateV3Server(indexJson))
+            {
+                using (var stagingServer = new MockServer())
+                {
+                    Util.AddStagingResource(indexJson, stagingServer);
+
+                    stagingServer.Post.Add($"/api/stage/{stageId}", r =>
+                        new Action<HttpListenerResponse>(response =>
+                        {
+                            MockServer.SetResponseContent(response, string.Empty);
+                        }));
+
+                    int counter = 0;
+
+                    stagingServer.Get.Add($"/api/stage/{stageId}/commit", r =>
+                        new Action<HttpListenerResponse>(response =>
+                        {
+                            var val = progressList[counter++];
+                            var json = JsonConvert.SerializeObject(val);
+                            MockServer.SetResponseContent(response, json);
+                        }));
+
+                    serverV3.Start();
+                    stagingServer.Start();
+
+                    // Act
+                    string[] args = { "stage", "commit", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123", "-NonInteractive" };
+                    var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+                    serverV3.Stop();
+                    stagingServer.Stop();
+
+                    // Assert
+                    Assert.Equal(0, result.Item1);
+                    var output = result.Item2;
+
+                    VerifyHappyFlowCommitProgress(output, progressList);
+                }
+            }
+        }
+
+        [Fact]
+        public void StageCommit_WhenStagingServiceReturnsAnErrorItIsShown()
+        {
+            // Arrange
+            const string stageId = "1323";
+            const string errorMessage = "Error Message";
+
+            var indexJson = Util.CreateIndexJson();
+
+            using (var serverV3 = CreateV3Server(indexJson))
+            {
+                using (var stagingServer = new MockServer())
+                {
+                    Util.AddStagingResource(indexJson, stagingServer);
+
+                    stagingServer.Post.Add($"/api/stage/{stageId}", r =>
+                        new Action<HttpListenerResponse>(response =>
+                        {
+                            response.StatusCode = 400;
+                            MockServer.SetResponseContent(response, errorMessage);
+                        }));
+
+                    serverV3.Start();
+                    stagingServer.Start();
+
+                    // Act
+                    string[] args = { "stage", "commit", stageId, "-Source", serverV3.Uri + "index.json", "-ApiKey", "123", "-NonInteractive" };
+                    var result = CommandRunner.Run(NuGetExe, Directory.GetCurrentDirectory(), string.Join(" ", args), true);
+
+                    serverV3.Stop();
+                    stagingServer.Stop();
+
+                    // Assert
+                    Assert.Equal(1, result.Item1);
+                    var error = result.Item3;
+                    Assert.Contains(errorMessage, error);
+                }
+            }
+        }
+
+        private static void VerifyHappyFlowCommitProgress(string output, List<StageCommitProgressView> progressList)
+        {
+            // Check pending status printout
+            int pendingIdx = output.IndexOf(StagingResources.StageCommitPending);
+            Assert.True(pendingIdx > 0);
+
+            int separatorIdx = output.IndexOf("...");
+
+            // Check in progress status printout
+            int inprogressIdx = output.IndexOf(StagingResources.StageCommitInProgress, startIndex: separatorIdx);
+            Assert.True(inprogressIdx > 0);
+
+            foreach (var packageProgress in progressList[1].PackageProgressList)
+            {
+                Assert.True(output.IndexOf(packageProgress.Id, startIndex: inprogressIdx) > 0);
+                Assert.True(output.IndexOf(packageProgress.Version, startIndex: inprogressIdx) > 0);
+                Assert.True(
+                    output.IndexOf(StageCommand.GetCommitStatusString(packageProgress.Progress), startIndex: inprogressIdx) > 0);
+            }
+
+            separatorIdx = output.IndexOf("...", startIndex: inprogressIdx);
+
+            // Check completed status printout
+            int completedIdx = output.IndexOf(StagingResources.StageCommitCompleted, startIndex: separatorIdx);
+            Assert.True(completedIdx > 0);
+        }
+
+        private static List<StageCommitProgressView> GenerateHappyFlowCommitProgress()
+        {
+            var progressList = new List<StageCommitProgressView>
+            {
+                new StageCommitProgressView
+                {
+                    CommitStatus = StageCommand.CommitPending
+                },
+                new StageCommitProgressView
+                {
+                    CommitStatus = StageCommand.CommitInProgress,
+                    PackageProgressList = new List<PackageCommitProgressView>
+                    {
+                        new PackageCommitProgressView
+                        {
+                            Id = "abc",
+                            Version = "1.0.0",
+                            Progress = StageCommand.CommitCompleted
+                        },
+                        new PackageCommitProgressView
+                        {
+                            Id = "abc1",
+                            Version = "2.0.0",
+                            Progress = StageCommand.CommitInProgress
+                        },
+                        new PackageCommitProgressView
+                        {
+                            Id = "abc2",
+                            Version = "3.0.0",
+                            Progress = StageCommand.CommitPending
+                        }
+                    }
+                },
+                new StageCommitProgressView
+                {
+                    CommitStatus = StageCommand.CommitCompleted
+                }
+            };
+
+            return progressList;
+        }
+
+        private static MockServer CreateV3Server(JObject indexJson)
         {
             var serverV3 = new MockServer();
 
