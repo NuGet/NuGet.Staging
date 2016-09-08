@@ -13,8 +13,8 @@
     "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0",
     "EnterpriseLibrary.TransientFaultHandling.Data": "6.0.1304.1",
     "Serilog.Sinks.RollingFile": "2.0.0-rc-703",
-    "NuGet.Services.Configuration": "1.0.0-*",
-    "NuGet.Services.Logging": "3.0.0"
+    "NuGet.Services.Configuration": "1.0.21-r-develop",
+    "NuGet.Services.Logging": "1.0.21-r-develop"
   },
     "commands": {
         "NuGet.Services.Staging.Runner": "NuGet.Services.Staging.Runner"
