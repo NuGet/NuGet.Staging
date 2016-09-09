@@ -70,6 +70,15 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t parse commit progress. Please update to a newer version of NuGet client..
+        /// </summary>
+        internal static string CanNotParseProgress {
+            get {
+                return ResourceManager.GetString("CanNotParseProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Commit was canceled.
         /// </summary>
         internal static string CommitCommandWasCanceled {
@@ -306,7 +315,7 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please retry commit or contact support in case of recuring failures.
+        ///   Looks up a localized string similar to Please retry commit or contact support in case of recurring failures.
         /// </summary>
         internal static string RetryCommitMessage {
             get {

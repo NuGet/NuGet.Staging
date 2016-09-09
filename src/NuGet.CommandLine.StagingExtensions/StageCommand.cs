@@ -18,10 +18,13 @@ namespace NuGet.CommandLine.StagingExtensions
        MinArgs = 1, MaxArgs = 2, UsageSummaryResourceName = "StageCommandUsageSummary", UsageExampleResourceName = "StageCommandUsageExample")]
     public class StageCommand : Command
     {
-        internal const string CommitPending = "Pending";
-        internal const string CommitInProgress = "InProgress";
-        internal const string CommitCompleted = "Completed";
-        internal const string CommitFailed = "Failed";
+        internal enum CommitStatus
+        {
+            Pending,
+            InProgress,
+            Completed,
+            Failed
+        }
 
         [Option(typeof(StagingResources), "StageCommandCreateDescription")]
         public string Create { get; set; }
@@ -220,45 +223,65 @@ namespace NuGet.CommandLine.StagingExtensions
             while (!done)
             {
                 var progress = await stageManagementResource.GetCommitProgress(stageId, Console);
+                CommitStatus commitStatus;
 
-                if (progress.CommitStatus == CommitPending)
+                if (!Enum.TryParse(progress.CommitStatus, ignoreCase: true, result: out commitStatus))
                 {
-                    Console.PrintJustified(0, string.Format(CultureInfo.CurrentCulture, "{0}.", StagingResources.StageCommitPending));
-                }
-                else if (progress.CommitStatus == CommitInProgress)
-                {
-                    Console.PrintJustified(0, string.Format(CultureInfo.CurrentCulture, "{0}:", StagingResources.StageCommitInProgress));
-
-                    PrintPackagesProgress(progress);
-
-                    Console.WriteLine();
-                }
-                else if (progress.CommitStatus == CommitCompleted)
-                {
-                    Console.PrintJustified(0, string.Format(CultureInfo.CurrentCulture, "{0}.", StagingResources.StageCommitCompleted));
-
+                    Console.WriteWarning(string.Format(CultureInfo.CurrentCulture, "{0}",
+                        StagingResources.CanNotParseProgress));
                     done = true;
                 }
-                else if (progress.CommitStatus == CommitFailed)
+                else
                 {
-                    Console.WriteError(string.Format(CultureInfo.CurrentCulture, "{0}. Error: {1}", StagingResources.StageCommitFailed, progress.ErrorMessage));
-
-                    PrintPackagesProgress(progress);
-
-                    Console.WriteWarning(string.Format(CultureInfo.CurrentCulture, "{0}.", StagingResources.RetryCommitMessage));
-
-                    done = true;
-                }
-
-                if (!done)
-                {
-                    for (int i = 0; i < checkIntervalSeconds; i++)
+                    switch (commitStatus)
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(1));
-                        Console.Write(".");
+                        case CommitStatus.Pending:
+                        {
+                            Console.PrintJustified(0,
+                                string.Format(CultureInfo.CurrentCulture, "{0}.", StagingResources.StageCommitPending));
+
+                            break;
+                        }
+                        case CommitStatus.InProgress:
+                        {
+                            Console.PrintJustified(0,
+                                string.Format(CultureInfo.CurrentCulture, "{0}:", StagingResources.StageCommitInProgress));
+
+                            PrintPackagesProgress(progress);
+                            Console.WriteLine();
+
+                            break;
+                        }
+                        case CommitStatus.Completed:
+                        {
+                            Console.PrintJustified(0,
+                                string.Format(CultureInfo.CurrentCulture, "{0}.", StagingResources.StageCommitCompleted));
+                            done = true;
+
+                            break;
+                        }
+                        case CommitStatus.Failed:
+                        {
+                            Console.WriteError(string.Format(CultureInfo.CurrentCulture, "{0}. Error: {1}",
+                                StagingResources.StageCommitFailed, progress.ErrorMessage));
+                            PrintPackagesProgress(progress);
+                            Console.WriteWarning(string.Format(CultureInfo.CurrentCulture, "{0}.", StagingResources.RetryCommitMessage));
+                            done = true;
+
+                            break;
+                        }
                     }
 
-                    Console.WriteLine();
+                    if (!done)
+                    {
+                        for (int i = 0; i < checkIntervalSeconds; i++)
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(1));
+                            Console.Write(".");
+                        }
+
+                        Console.WriteLine();
+                    }
                 }
             }
         }
@@ -294,27 +317,35 @@ namespace NuGet.CommandLine.StagingExtensions
             }
         }
 
-        internal static string GetCommitStatusString(string commitStatus)
+        internal static string GetCommitStatusString(string commitStatusString)
         {
-            if (commitStatus == CommitPending)
+            CommitStatus commitStatus;
+
+            // If the server was updated, lets do our best to output the correct result for the new commit status:
+            // Fallback to the received value, so that server changes won't break the client 
+            if (!Enum.TryParse(commitStatusString, ignoreCase: true, result: out commitStatus))
+            {
+                return commitStatusString;
+            }
+            else if (commitStatus == CommitStatus.Pending)
             {
                 return StagingResources.Pending;
             }
-            else if (commitStatus == CommitInProgress)
+            else if (commitStatus == CommitStatus.InProgress)
             {
                 return StagingResources.InProgress;
             }
-            else if (commitStatus == CommitCompleted)
+            else if (commitStatus == CommitStatus.Completed)
             {
                 return StagingResources.Completed;
             }
-            else if (commitStatus == CommitFailed)
+            else if (commitStatus == CommitStatus.Failed)
             {
                 return StagingResources.Failed;
             }
-
-            // Fallback to the received value, so that server changes won't break the client 
-            return commitStatus;
+            
+            // This should never happen
+            throw new ArgumentException($"Commit status value is not supported: {commitStatusString}");
         }
 
         private async Task<StageManagementResource> GetStageManagementResource(string source)

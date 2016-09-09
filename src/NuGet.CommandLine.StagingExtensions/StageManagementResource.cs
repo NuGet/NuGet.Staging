@@ -256,7 +256,7 @@ namespace NuGet.CommandLine.StagingExtensions
 
                     if (!string.IsNullOrEmpty(serverMessage))
                     {
-                        errorMessage = errorMessage + $" Message: {serverMessage}";
+                        errorMessage += $" Message: {serverMessage}";
                     }
 
                     throw new HttpRequestException(errorMessage);
