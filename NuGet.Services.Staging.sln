@@ -28,8 +28,6 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Services.Staging.Mana
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Services.Staging.Test.UnitTest", "test\NuGet.Services.Staging.Test.UnitTest\NuGet.Services.Staging.Test.UnitTest.xproj", "{12A7A535-A67C-4E53-BCC1-56853B9E74E7}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Services.Logging", "src\NuGet.Services.Logging\NuGet.Services.Logging.xproj", "{3A70A370-5ABE-4A53-B5B9-297DB288964E}"
-EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Services.Staging.Test.EndToEnd", "test\NuGet.Services.Staging.Test.EndToEnd\NuGet.Services.Staging.Test.EndToEnd.xproj", "{E6859EB8-303B-47C9-AF2B-E62398EDD37B}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Services.Test.Common", "test\NuGet.Services.Test.Common\NuGet.Services.Test.Common.xproj", "{5E7AF5B0-FE47-4CEF-96BD-9A4F401F1D1A}"
@@ -37,8 +35,6 @@ EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Services.Staging.Search", "src\NuGet.Services.Staging.Search\NuGet.Services.Staging.Search.xproj", "{80C55932-60A4-4A2E-B5DC-E6D7B853929D}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Client.Staging", "src\NuGet.Client.Staging\NuGet.Client.Staging.xproj", "{49FD2E6D-594F-4998-AEAF-45BC26DB41BB}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NuGet.Services.Configuration", "src\NuGet.Services.Configuration\NuGet.Services.Configuration.xproj", "{E2D65F09-81A6-4D69-B128-C47C2DC43D36}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -78,10 +74,6 @@ Global
 		{12A7A535-A67C-4E53-BCC1-56853B9E74E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12A7A535-A67C-4E53-BCC1-56853B9E74E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12A7A535-A67C-4E53-BCC1-56853B9E74E7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3A70A370-5ABE-4A53-B5B9-297DB288964E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3A70A370-5ABE-4A53-B5B9-297DB288964E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3A70A370-5ABE-4A53-B5B9-297DB288964E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3A70A370-5ABE-4A53-B5B9-297DB288964E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E6859EB8-303B-47C9-AF2B-E62398EDD37B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E6859EB8-303B-47C9-AF2B-E62398EDD37B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E6859EB8-303B-47C9-AF2B-E62398EDD37B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -98,10 +90,6 @@ Global
 		{49FD2E6D-594F-4998-AEAF-45BC26DB41BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49FD2E6D-594F-4998-AEAF-45BC26DB41BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49FD2E6D-594F-4998-AEAF-45BC26DB41BB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E2D65F09-81A6-4D69-B128-C47C2DC43D36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E2D65F09-81A6-4D69-B128-C47C2DC43D36}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E2D65F09-81A6-4D69-B128-C47C2DC43D36}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E2D65F09-81A6-4D69-B128-C47C2DC43D36}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -115,11 +103,9 @@ Global
 		{D3F5D4DE-BAA3-4F0E-8AA1-F4D7C6D83A97} = {2FF49FA1-E459-43C4-A86D-8EB40DF7FCC2}
 		{C541829E-267C-4006-AE3F-298986696A0D} = {2FF49FA1-E459-43C4-A86D-8EB40DF7FCC2}
 		{12A7A535-A67C-4E53-BCC1-56853B9E74E7} = {01B6E97F-7B86-4364-AFD3-81881C199117}
-		{3A70A370-5ABE-4A53-B5B9-297DB288964E} = {2FF49FA1-E459-43C4-A86D-8EB40DF7FCC2}
 		{E6859EB8-303B-47C9-AF2B-E62398EDD37B} = {01B6E97F-7B86-4364-AFD3-81881C199117}
 		{5E7AF5B0-FE47-4CEF-96BD-9A4F401F1D1A} = {01B6E97F-7B86-4364-AFD3-81881C199117}
 		{80C55932-60A4-4A2E-B5DC-E6D7B853929D} = {2FF49FA1-E459-43C4-A86D-8EB40DF7FCC2}
 		{49FD2E6D-594F-4998-AEAF-45BC26DB41BB} = {2FF49FA1-E459-43C4-A86D-8EB40DF7FCC2}
-		{E2D65F09-81A6-4D69-B128-C47C2DC43D36} = {2FF49FA1-E459-43C4-A86D-8EB40DF7FCC2}
 	EndGlobalSection
 EndGlobal
