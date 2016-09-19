@@ -226,7 +226,7 @@ stage -drop 4b139cb7-c4d4-4541-8c05-0f41ba5ab945 -source https://api.nuget.org/v
     <value>Commit was canceled</value>
   </data>
   <data name="ConfirmStageCommit" xml:space="preserve">
-    <value>Stage '{0}' will be commited. Do you want to continue?</value>
+    <value>Stage '{0}' will be committed. Do you want to continue?</value>
   </data>
   <data name="CommittingStageMessage" xml:space="preserve">
     <value>Committing stage with id '{0}'</value>
@@ -260,5 +260,11 @@ stage -drop 4b139cb7-c4d4-4541-8c05-0f41ba5ab945 -source https://api.nuget.org/v
   </data>
   <data name="CanNotParseProgress" xml:space="preserve">
     <value>Can't parse commit progress. Please update to a newer version of NuGet client.</value>
+  </data>
+  <data name="StageCommandProgressTimeoutDescription" xml:space="preserve">
+    <value>Specifies the timeout of monitoring commit progress in seconds. Defaults to 300 seconds (5 minutes).</value>
+  </data>
+  <data name="HttpError" xml:space="preserve">
+    <value>Response status code does not indicate success</value>
   </data>
 </root>

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -142,7 +143,7 @@ namespace NuGet.CommandLine.StagingExtensions
             return result;
         }
 
-        public async Task<StageDetailedView> Get(string id, Common.ILogger log)
+        public async Task<StageDetailedView> GetStageDetails(string id, Common.ILogger log)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -154,24 +155,7 @@ namespace NuGet.CommandLine.StagingExtensions
                 throw new ArgumentNullException(nameof(log));
             }
 
-            var result = await _httpSource.ProcessResponseAsync(
-                () =>
-                {
-                    var request = new HttpRequestMessage(HttpMethod.Get, new Uri(_stageServiceUri, $"{StagePath}/{id}"));
-
-                    return request;
-                },
-                async response =>
-                {
-                    await EnsureSuccessStatusCode(response);
-
-                    string responseBody = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<StageDetailedView>(responseBody);
-                },
-                log,
-                CancellationToken.None);
-
-            return result;
+            return await Get<StageDetailedView>($"{StagePath}/{id}", log);
         }
 
         public async Task Commit(string id, string apiKey, Common.ILogger log)
@@ -220,11 +204,15 @@ namespace NuGet.CommandLine.StagingExtensions
                 throw new ArgumentNullException(nameof(log));
             }
 
+            return await Get<StageCommitProgressView>($"{StagePath}/{id}/commit", log);
+        }
+
+        private async Task<T> Get<T>(string uriSuffix, Common.ILogger log)
+        {
             var result = await _httpSource.ProcessResponseAsync(
                 () =>
                 {
-                    var request = new HttpRequestMessage(HttpMethod.Get, new Uri(_stageServiceUri, $"{StagePath}/{id}/commit"));
-
+                    var request = new HttpRequestMessage(HttpMethod.Get, new Uri(_stageServiceUri, uriSuffix));
                     return request;
                 },
                 async response =>
@@ -232,7 +220,7 @@ namespace NuGet.CommandLine.StagingExtensions
                     await EnsureSuccessStatusCode(response);
 
                     string responseBody = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<StageCommitProgressView>(responseBody);
+                    return JsonConvert.DeserializeObject<T>(responseBody);
                 },
                 log,
                 CancellationToken.None);
@@ -252,11 +240,11 @@ namespace NuGet.CommandLine.StagingExtensions
                 {
                     string serverMessage = await response.Content.ReadAsStringAsync();
 
-                    var errorMessage = $"Response status code does not indicate success: {response.StatusCode}.";
+                    var errorMessage = string.Format(CultureInfo.CurrentCulture, "{0} : {1}.", StagingResources.HttpError, response.StatusCode);
 
                     if (!string.IsNullOrEmpty(serverMessage))
                     {
-                        errorMessage += $" Message: {serverMessage}";
+                        errorMessage += $" {serverMessage}";
                     }
 
                     throw new HttpRequestException(errorMessage);

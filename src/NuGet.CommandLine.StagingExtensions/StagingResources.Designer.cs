@@ -106,7 +106,7 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Stage &apos;{0}&apos; will be commited. Do you want to continue?.
+        ///   Looks up a localized string similar to Stage &apos;{0}&apos; will be committed. Do you want to continue?.
         /// </summary>
         internal static string ConfirmStageCommit {
             get {
@@ -270,6 +270,15 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Response status code does not indicate success.
+        /// </summary>
+        internal static string HttpError {
+            get {
+                return ResourceManager.GetString("HttpError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to In progress.
         /// </summary>
         internal static string InProgress {
@@ -392,6 +401,15 @@ namespace NuGet.CommandLine.StagingExtensions {
         internal static string StageCommandProgressDescription {
             get {
                 return ResourceManager.GetString("StageCommandProgressDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specifies the timeout of monitoring commit progress in seconds. Defaults to 300 seconds (5 minutes)..
+        /// </summary>
+        internal static string StageCommandProgressTimeoutDescription {
+            get {
+                return ResourceManager.GetString("StageCommandProgressTimeoutDescription", resourceCulture);
             }
         }
         

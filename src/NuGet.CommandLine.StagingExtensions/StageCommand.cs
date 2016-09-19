@@ -18,6 +18,21 @@ namespace NuGet.CommandLine.StagingExtensions
        MinArgs = 1, MaxArgs = 2, UsageSummaryResourceName = "StageCommandUsageSummary", UsageExampleResourceName = "StageCommandUsageExample")]
     public class StageCommand : Command
     {
+        /// <summary>
+        /// How often do we refresh commit progress in the begining
+        /// </summary>
+        private const int CommitProgressRefreshIntervalInitialSeconds = 10;
+
+        /// <summary>
+        /// Upper bound for commit progress refresh wait
+        /// </summary>
+        private const int CommitProgressRefreshIntervalUpperBoundSeconds = 60;
+
+        /// <summary>
+        /// Default commit progress monitoring timeout.
+        /// </summary>
+        private const int DefaultCommitProgressTimeoutSeconds = 300;
+
         internal enum CommitStatus
         {
             Pending,
@@ -49,6 +64,9 @@ namespace NuGet.CommandLine.StagingExtensions
 
         [Option(typeof(StagingResources), "StageCommandApiKeyDescription")]
         public string ApiKey { get; set; }
+
+        [Option(typeof(StagingResources), "StageCommandProgressTimeoutDescription")]
+        public int Timeout { get; set; }
 
         private enum SubCommand
         {
@@ -184,7 +202,7 @@ namespace NuGet.CommandLine.StagingExtensions
 
         private async Task GetStageDetails(StageManagementResource stageManagementResource, string stageId)
         {
-            var stageDetails = await stageManagementResource.Get(stageId, Console);
+            var stageDetails = await stageManagementResource.GetStageDetails(stageId, Console);
 
             Console.WriteLine();
             Console.PrintJustified(0, string.Format(CultureInfo.CurrentCulture, "{0}: {1} ({2})", StagingResources.HeaderStageName, stageDetails.DisplayName, stageDetails.Id));
@@ -217,8 +235,11 @@ namespace NuGet.CommandLine.StagingExtensions
 
         private async Task GetCommitProgress(StageManagementResource stageManagementResource, string stageId)
         {
-            const int checkIntervalSeconds = 10;
+            int refreshSeconds = CommitProgressRefreshIntervalInitialSeconds;
+            int monitoringTimeoutSeconds = Timeout <= 0 ? DefaultCommitProgressTimeoutSeconds : Timeout; 
+
             bool done = false;
+            var startTime = DateTime.UtcNow;
 
             while (!done)
             {
@@ -272,18 +293,33 @@ namespace NuGet.CommandLine.StagingExtensions
                         }
                     }
 
+                    // Check for timeout
+                    if ((DateTime.UtcNow - startTime).TotalSeconds > monitoringTimeoutSeconds)
+                    {
+                        done = true;
+                    }
+
                     if (!done)
                     {
-                        for (int i = 0; i < checkIntervalSeconds; i++)
+                        // Print ... until next retry.
+                        for (int i = 0; i < refreshSeconds; i++)
                         {
                             await Task.Delay(TimeSpan.FromSeconds(1));
                             Console.Write(".");
                         }
 
+                        refreshSeconds = CalculateNextCommitProgressRefreshInterval(refreshSeconds);
+
                         Console.WriteLine();
                     }
                 }
             }
+        }
+
+        private int CalculateNextCommitProgressRefreshInterval(int commitProgressRefreshSeconds)
+        {
+            return Math.Min(CommitProgressRefreshIntervalUpperBoundSeconds,
+                            CommitProgressRefreshIntervalInitialSeconds*(commitProgressRefreshSeconds/CommitProgressRefreshIntervalInitialSeconds+1));
         }
 
         private async Task CommitStage(StageManagementResource stageManagementResource, string apiKey, string stageId)

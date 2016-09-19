@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Client.Staging;
@@ -480,6 +481,39 @@ namespace NuGet.CommandLine.Staging.UnitTests
                 Assert.Equal(0, result.Item1);
                 var output = result.Item2;
                 Assert.Contains(StagingResources.CanNotParseProgress, output);
+            });
+        }
+
+        [Fact]
+        public void GetProgress_WhenTimeoutSpecifiedItIsHonored()
+        {
+            const string stageId = "1323";
+
+            var progressList = GenerateHappyFlowCommitProgress();
+
+            TestStagingScenario(stagingServer =>
+            {
+                // Arrange
+                int counter = 0;
+
+                stagingServer.Get.Add($"/api/stage/{stageId}/commit", r =>
+                    new Action<HttpListenerResponse>(response =>
+                    {
+                        Thread.Sleep(TimeSpan.FromSeconds(1));
+                        var val = progressList[counter++];
+                        var json = JsonConvert.SerializeObject(val);
+                        MockServer.SetResponseContent(response, json);
+                    }));
+            },
+            // Act
+            serverV3 => new[] { "stage", "progress", stageId, "-Source", serverV3.Uri + "index.json", "-Timeout", "2" },
+            result =>
+            {
+                // Assert
+                Assert.Equal(0, result.Item1);
+                var output = result.Item2;
+
+                Assert.DoesNotContain(StagingResources.StageCommitCompleted, output);
             });
         }
 
