@@ -70,7 +70,52 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Stage with id &apos;{0}&apos; will be dropped. Do you want to continue?.
+        ///   Looks up a localized string similar to Can&apos;t parse commit progress. Please update to a newer version of NuGet client..
+        /// </summary>
+        internal static string CanNotParseProgress {
+            get {
+                return ResourceManager.GetString("CanNotParseProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commit was canceled.
+        /// </summary>
+        internal static string CommitCommandWasCanceled {
+            get {
+                return ResourceManager.GetString("CommitCommandWasCanceled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Committing stage with id &apos;{0}&apos;.
+        /// </summary>
+        internal static string CommittingStageMessage {
+            get {
+                return ResourceManager.GetString("CommittingStageMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Completed.
+        /// </summary>
+        internal static string Completed {
+            get {
+                return ResourceManager.GetString("Completed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stage &apos;{0}&apos; will be committed. Do you want to continue?.
+        /// </summary>
+        internal static string ConfirmStageCommit {
+            get {
+                return ResourceManager.GetString("ConfirmStageCommit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stage &apos;{0}&apos; will be dropped. Do you want to continue?.
         /// </summary>
         internal static string ConfirmStageDrop {
             get {
@@ -108,20 +153,11 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Drop command was canceled.
+        ///   Looks up a localized string similar to Drop was canceled.
         /// </summary>
         internal static string DropCommandWasCanceled {
             get {
                 return ResourceManager.GetString("DropCommandWasCanceled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Droping stage with id &apos;{0}&apos;...
-        /// </summary>
-        internal static string DropingStageMessage {
-            get {
-                return ResourceManager.GetString("DropingStageMessage", resourceCulture);
             }
         }
         
@@ -131,6 +167,24 @@ namespace NuGet.CommandLine.StagingExtensions {
         internal static string DroppedStageMessage {
             get {
                 return ResourceManager.GetString("DroppedStageMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dropping stage with id &apos;{0}&apos;...
+        /// </summary>
+        internal static string DroppingStageMessage {
+            get {
+                return ResourceManager.GetString("DroppingStageMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed.
+        /// </summary>
+        internal static string Failed {
+            get {
+                return ResourceManager.GetString("Failed", resourceCulture);
             }
         }
         
@@ -162,6 +216,33 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Memberships.
+        /// </summary>
+        internal static string HeaderStageMemberships {
+            get {
+                return ResourceManager.GetString("HeaderStageMemberships", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type.
+        /// </summary>
+        internal static string HeaderStageMemberType {
+            get {
+                return ResourceManager.GetString("HeaderStageMemberType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User name.
+        /// </summary>
+        internal static string HeaderStageMemberUserName {
+            get {
+                return ResourceManager.GetString("HeaderStageMemberUserName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name.
         /// </summary>
         internal static string HeaderStageName {
@@ -171,11 +252,38 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Packages.
+        /// </summary>
+        internal static string HeaderStagePackages {
+            get {
+                return ResourceManager.GetString("HeaderStagePackages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Status.
         /// </summary>
         internal static string HeaderStageStatus {
             get {
                 return ResourceManager.GetString("HeaderStageStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Response status code does not indicate success.
+        /// </summary>
+        internal static string HttpError {
+            get {
+                return ResourceManager.GetString("HttpError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In progress.
+        /// </summary>
+        internal static string InProgress {
+            get {
+                return ResourceManager.GetString("InProgress", resourceCulture);
             }
         }
         
@@ -198,11 +306,47 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to None.
+        /// </summary>
+        internal static string None {
+            get {
+                return ResourceManager.GetString("None", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pending.
+        /// </summary>
+        internal static string Pending {
+            get {
+                return ResourceManager.GetString("Pending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please retry commit or contact support in case of recurring failures.
+        /// </summary>
+        internal static string RetryCommitMessage {
+            get {
+                return ResourceManager.GetString("RetryCommitMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The API key for the server..
         /// </summary>
         internal static string StageCommandApiKeyDescription {
             get {
                 return ResourceManager.GetString("StageCommandApiKeyDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commit staged packages to source feed, and remove stage.
+        /// </summary>
+        internal static string StageCommandCommitDescription {
+            get {
+                return ResourceManager.GetString("StageCommandCommitDescription", resourceCulture);
             }
         }
         
@@ -234,11 +378,38 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Get stage details.
+        /// </summary>
+        internal static string StageCommandGetDescription {
+            get {
+                return ResourceManager.GetString("StageCommandGetDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Get a list of the stages you own.
         /// </summary>
         internal static string StageCommandListDescription {
             get {
                 return ResourceManager.GetString("StageCommandListDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Get status of commit progress.
+        /// </summary>
+        internal static string StageCommandProgressDescription {
+            get {
+                return ResourceManager.GetString("StageCommandProgressDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specifies the timeout of monitoring commit progress in seconds. Defaults to 300 seconds (5 minutes)..
+        /// </summary>
+        internal static string StageCommandProgressTimeoutDescription {
+            get {
+                return ResourceManager.GetString("StageCommandProgressTimeoutDescription", resourceCulture);
             }
         }
         
@@ -262,11 +433,47 @@ namespace NuGet.CommandLine.StagingExtensions {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to (-create &lt;display name&gt; | -drop &lt;stage id&gt;).
+        ///   Looks up a localized string similar to (create &lt;display name&gt; | drop &lt;stage id&gt; | list | get &lt;stage id&gt;| commit &lt;stage id&gt; | progress &lt;stage id&gt;) [API Key] [Source] [Options].
         /// </summary>
         internal static string StageCommandUsageSummary {
             get {
                 return ResourceManager.GetString("StageCommandUsageSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commit has completed.
+        /// </summary>
+        internal static string StageCommitCompleted {
+            get {
+                return ResourceManager.GetString("StageCommitCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commit failed.
+        /// </summary>
+        internal static string StageCommitFailed {
+            get {
+                return ResourceManager.GetString("StageCommitFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commit is in progress.
+        /// </summary>
+        internal static string StageCommitInProgress {
+            get {
+                return ResourceManager.GetString("StageCommitInProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commit is pending.
+        /// </summary>
+        internal static string StageCommitPending {
+            get {
+                return ResourceManager.GetString("StageCommitPending", resourceCulture);
             }
         }
         

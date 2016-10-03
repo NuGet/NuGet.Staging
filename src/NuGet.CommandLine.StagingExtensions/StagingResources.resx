@@ -121,7 +121,7 @@
     <value>ApiKey should not be empty</value>
   </data>
   <data name="ConfirmStageDrop" xml:space="preserve">
-    <value>Stage with id '{0}' will be dropped. Do you want to continue?</value>
+    <value>Stage '{0}' will be dropped. Do you want to continue?</value>
   </data>
   <data name="CreatedStageMessage" xml:space="preserve">
     <value>Created new stage.
@@ -135,10 +135,10 @@ Feed URI: {1}</value>
     <value>Display name should not be empty</value>
   </data>
   <data name="DropCommandWasCanceled" xml:space="preserve">
-    <value>Drop command was canceled</value>
+    <value>Drop was canceled</value>
   </data>
-  <data name="DropingStageMessage" xml:space="preserve">
-    <value>Droping stage with id '{0}'..</value>
+  <data name="DroppingStageMessage" xml:space="preserve">
+    <value>Dropping stage with id '{0}'..</value>
   </data>
   <data name="DroppedStageMessage" xml:space="preserve">
     <value>Stage '{0}' was dropped.</value>
@@ -152,8 +152,20 @@ Feed URI: {1}</value>
   <data name="HeaderStageFeed" xml:space="preserve">
     <value>Feed</value>
   </data>
+  <data name="HeaderStageMemberships" xml:space="preserve">
+    <value>Memberships</value>
+  </data>
+  <data name="HeaderStageMemberType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="HeaderStageMemberUserName" xml:space="preserve">
+    <value>User name</value>
+  </data>
   <data name="HeaderStageName" xml:space="preserve">
     <value>Name</value>
+  </data>
+  <data name="HeaderStagePackages" xml:space="preserve">
+    <value>Packages</value>
   </data>
   <data name="HeaderStageStatus" xml:space="preserve">
     <value>Status</value>
@@ -187,7 +199,7 @@ Feed URI: {1}</value>
 stage -drop 4b139cb7-c4d4-4541-8c05-0f41ba5ab945 -source https://api.nuget.org/v3/index.json -apiKey 4003d786-cc37-4004-bfdf-c4f3e8ef9b3a</value>
   </data>
   <data name="StageCommandUsageSummary" xml:space="preserve">
-    <value>(-create &lt;display name&gt; | -drop &lt;stage id&gt;)</value>
+    <value>(create &lt;display name&gt; | drop &lt;stage id&gt; | list | get &lt;stage id&gt;| commit &lt;stage id&gt; | progress &lt;stage id&gt;) [API Key] [Source] [Options]</value>
   </data>
   <data name="StageIdShouldNotBeEmpty" xml:space="preserve">
     <value>Stage id should not be empty</value>
@@ -197,5 +209,62 @@ stage -drop 4b139cb7-c4d4-4541-8c05-0f41ba5ab945 -source https://api.nuget.org/v
   </data>
   <data name="StagingNotSupported" xml:space="preserve">
     <value>The specified server does not support staging.</value>
+  </data>
+  <data name="StageCommandGetDescription" xml:space="preserve">
+    <value>Get stage details</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="StageCommandCommitDescription" xml:space="preserve">
+    <value>Commit staged packages to source feed, and remove stage</value>
+  </data>
+  <data name="StageCommandProgressDescription" xml:space="preserve">
+    <value>Get status of commit progress</value>
+  </data>
+  <data name="CommitCommandWasCanceled" xml:space="preserve">
+    <value>Commit was canceled</value>
+  </data>
+  <data name="ConfirmStageCommit" xml:space="preserve">
+    <value>Stage '{0}' will be committed. Do you want to continue?</value>
+  </data>
+  <data name="CommittingStageMessage" xml:space="preserve">
+    <value>Committing stage with id '{0}'</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="Failed" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+  <data name="InProgress" xml:space="preserve">
+    <value>In progress</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="RetryCommitMessage" xml:space="preserve">
+    <value>Please retry commit or contact support in case of recurring failures</value>
+  </data>
+  <data name="StageCommitCompleted" xml:space="preserve">
+    <value>Commit has completed</value>
+  </data>
+  <data name="StageCommitFailed" xml:space="preserve">
+    <value>Commit failed</value>
+  </data>
+  <data name="StageCommitInProgress" xml:space="preserve">
+    <value>Commit is in progress</value>
+  </data>
+  <data name="StageCommitPending" xml:space="preserve">
+    <value>Commit is pending</value>
+  </data>
+  <data name="CanNotParseProgress" xml:space="preserve">
+    <value>Can't parse commit progress. Please update to a newer version of NuGet client.</value>
+  </data>
+  <data name="StageCommandProgressTimeoutDescription" xml:space="preserve">
+    <value>Specifies the timeout of monitoring commit progress in seconds. Defaults to 300 seconds (5 minutes).</value>
+  </data>
+  <data name="HttpError" xml:space="preserve">
+    <value>Response status code does not indicate success</value>
   </data>
 </root>

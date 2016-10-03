@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -142,6 +143,91 @@ namespace NuGet.CommandLine.StagingExtensions
             return result;
         }
 
+        public async Task<StageDetailedView> GetStageDetails(string id, Common.ILogger log)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException(StagingResources.StageIdShouldNotBeEmpty, nameof(id));
+            }
+
+            if (log == null)
+            {
+                throw new ArgumentNullException(nameof(log));
+            }
+
+            return await Get<StageDetailedView>($"{StagePath}/{id}", log);
+        }
+
+        public async Task Commit(string id, string apiKey, Common.ILogger log)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException(StagingResources.StageIdShouldNotBeEmpty, nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                throw new ArgumentException(StagingResources.ApiKeyShouldNotBeEmpty, nameof(apiKey));
+            }
+
+            if (log == null)
+            {
+                throw new ArgumentNullException(nameof(log));
+            }
+
+            await _httpSource.ProcessResponseAsync(
+                () =>
+                {
+                    var request = new HttpRequestMessage(HttpMethod.Post, new Uri(_stageServiceUri, $"{StagePath}/{id}"));
+                    request.Headers.Add(ApiKeyHeader, apiKey);
+
+                    return request;
+                },
+                async response =>
+                {
+                    await EnsureSuccessStatusCode(response);
+                    return true;
+                },
+                log,
+                CancellationToken.None);
+        }
+
+        public async Task<StageCommitProgressView> GetCommitProgress(string id, Common.ILogger log)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException(StagingResources.StageIdShouldNotBeEmpty, nameof(id));
+            }
+
+            if (log == null)
+            {
+                throw new ArgumentNullException(nameof(log));
+            }
+
+            return await Get<StageCommitProgressView>($"{StagePath}/{id}/commit", log);
+        }
+
+        private async Task<T> Get<T>(string uriSuffix, Common.ILogger log)
+        {
+            var result = await _httpSource.ProcessResponseAsync(
+                () =>
+                {
+                    var request = new HttpRequestMessage(HttpMethod.Get, new Uri(_stageServiceUri, uriSuffix));
+                    return request;
+                },
+                async response =>
+                {
+                    await EnsureSuccessStatusCode(response);
+
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    return JsonConvert.DeserializeObject<T>(responseBody);
+                },
+                log,
+                CancellationToken.None);
+
+            return result;
+        }
+
         private static async Task EnsureSuccessStatusCode(HttpResponseMessage response)
         {
             if (!response.IsSuccessStatusCode)
@@ -154,8 +240,14 @@ namespace NuGet.CommandLine.StagingExtensions
                 {
                     string serverMessage = await response.Content.ReadAsStringAsync();
 
-                    throw new HttpRequestException(
-                        $"Response status code does not indicate success: {response.StatusCode}. Message: {serverMessage}");
+                    var errorMessage = string.Format(CultureInfo.CurrentCulture, "{0} : {1}.", StagingResources.HttpError, response.StatusCode);
+
+                    if (!string.IsNullOrEmpty(serverMessage))
+                    {
+                        errorMessage += $" {serverMessage}";
+                    }
+
+                    throw new HttpRequestException(errorMessage);
                 }
             }
         }
